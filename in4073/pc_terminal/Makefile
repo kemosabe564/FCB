@@ -10,8 +10,3 @@ clean:
 
 run: default
 	$(EXEC)
-
-run-ble: default
-	sudo python ble_pty.py &
-	sleep 5
-	sudo $(EXEC) /dev/pts/13

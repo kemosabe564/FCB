@@ -11,3 +11,31 @@ p.s. If dfu_serial complains about pyserial, you can install it with "pip instal
       ("sudo apt-get install python2.7" for dfu-serial)	  
 	  
 Have fun and remember: Google it before asking the TAs!
+
+## Requirements (Ubuntu 20.04)
+* build-essential
+* python2
+* git (optional)
+* pip2 (to install pyserial)
+* pyserial (`pip2 install pyserial`)
+
+## Installing pip2 on Ubuntu 20.04
+Ubuntu wanted to make it more difficult to install pip2, so it's not downloadable using the package manager.
+To install pip2, run:
+```
+$ wget https://bootstrap.pypa.io/pip/2.7/get-pip.py
+$ sudo python2.7 get-pip.py 
+```
+
+Next install pyserial by running:
+```
+$ pip2 install pyserial
+```
+
+## Uploading without sudo
+To access `/dev/tty` devices on ubuntu you need to be part of the `dialout` group, 
+you can add yourself to the group by running:
+```
+$ sudo adduser YOUR_USER_NAME dialout
+```
+You need to reboot for the change to take effect.

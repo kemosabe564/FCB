@@ -30,52 +30,15 @@
 #include "mpu6050/mpu6050.h"
 #include "utils/quad_ble.h"
 
+#include "drone/LoopHandler.h"
+#include "drone/Rotor.h"
+#include "drone/IMU.h"
+#include "drone/FlightController.h"
+
 bool demo_done;
 
-
-/*------------------------------------------------------------------
- * process_key -- process command keys
- *------------------------------------------------------------------
- */
-void process_key(uint8_t c)
-{
-	switch (c) {
-	case 'q':
-		ae[0] += 10;
-		break;
-	case 'a':
-		ae[0] -= 10;
-		if (ae[0] < 0) ae[0] = 0;
-		break;
-	case 'w':
-		ae[1] += 10;
-		break;
-	case 's':
-		ae[1] -= 10;
-		if (ae[1] < 0) ae[1] = 0;
-		break;
-	case 'e':
-		ae[2] += 10;
-		break;
-	case 'd':
-		ae[2] -= 10;
-		if (ae[2] < 0) ae[2] = 0;
-		break;
-	case 'r':
-		ae[3] += 10;
-		break;
-	case 'f':
-		ae[3] -= 10;
-		if (ae[3] < 0) ae[3] = 0;
-		break;
-	case 27:
-		demo_done = true;
-		break;
-	default:
-		nrf_gpio_pin_toggle(RED);
-	}
-}
-
+#define COMM_SERIAL 0
+#define COMM_BLE    1
 
 /*------------------------------------------------------------------
  * main -- everything you need is here :)
@@ -83,49 +46,42 @@ void process_key(uint8_t c)
  */
 int main(void)
 {
-	uart_init();
-	gpio_init();
-	timers_init();
-	adc_init();
-	twi_init();
-	imu_init(true, 100);
-	baro_init();
-	spi_flash_init();
-	quad_ble_init();
+    bool running = true;
 
-	uint32_t counter = 0;
-	demo_done = false;
-	wireless_mode = false;
+    struct LoopHandler lh = LoopHandler_init();
 
-	while (!demo_done) {
-		if (rx_queue.count) {
-			process_key(dequeue(&rx_queue));
-		}
-		if (ble_rx_queue.count) {
-			process_key(dequeue(&ble_rx_queue));
-		}
+    struct RotorMap r_map = RotorMap_init(0, 10000);
 
-		if (check_timer_flag()) {
-			if (counter++%20 == 0) {
-				nrf_gpio_pin_toggle(BLUE);
-			}
+    struct Rotor r1 = Rotor_init(&r_map, MOTOR_0_PIN, -15,  15);
+    struct Rotor r2 = Rotor_init(&r_map, MOTOR_1_PIN,  15,  15);
+    struct Rotor r3 = Rotor_init(&r_map, MOTOR_2_PIN, -15, -15);
+    struct Rotor r4 = Rotor_init(&r_map, MOTOR_3_PIN, -15,  15);
 
-			adc_request_sample();
-			read_baro();
+    struct IMU imu = IMU_init();
 
-			printf("%10ld | ", get_time_us());
-			printf("%3d %3d %3d %3d | ",ae[0], ae[1], ae[2], ae[3]);
-			printf("%6d %6d %6d | ", phi, theta, psi);
-			printf("%6d %6d %6d | ", sp, sq, sr);
-			printf("%4d | %4ld | %6ld \n", bat_volt, temperature, pressure);
+    struct FlightController fc = FlightController_init(&imu, { &r1, &r2, &r3, &r4 }, 4);
 
-			clear_timer_flag();
-		}
+//    struct Comms ble_comms BLE_init();
+//    struct Comms serial_comms Serial_init(115200);
+//
+//    struct Comm_Handler comm_handler = CommHandler_init(COMM_SERIAL, &fc);
+//
+//    CommHandler_add_comms(&comm_handler, &serial_comms, COMM_SERIAL);
+//    CommHandler_add_comms(&comm_handler, &ble_comms, COMM_BLE);
 
-		if (check_sensor_int_flag()) {
-			get_sensor_data();
-			run_filters_and_control();
-		}
+	while (running)
+	{
+        LoopHandler_loop(&lh, LH_LINK(fc), 0);
+
+        LoopHandler_loop(&lh, LH_LINK(r1), 100);
+        LoopHandler_loop(&lh, LH_LINK(r2), 100);
+        LoopHandler_loop(&lh, LH_LINK(r3), 100);
+        LoopHandler_loop(&lh, LH_LINK(r4), 100);
+
+        LoopHandler_loop(&lh, LH_LINK(serial_comms), 100);
+        LoopHandler_loop(&lh, LH_LINK(ble_comms), 50);
+
+        LoopHandler_loop(&lh, LH_LINK(comm_handler), 100);
 	}	
 
 	printf("\n\t Goodbye \n\n");

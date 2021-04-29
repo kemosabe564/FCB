@@ -18,6 +18,7 @@
 
 static volatile bool sent = false;
 static volatile bool read = false;
+static bool twi_init_done = false;
 
 bool i2c_read(uint8_t slave_addr, uint8_t reg_addr, uint8_t data_length, uint8_t *data)
 {
@@ -108,6 +109,11 @@ void SPI0_TWI0_IRQHandler(void)
 
 void twi_init(void)
 {
+    if (twi_init_done)
+    {
+        return;
+    }
+
 	nrf_gpio_cfg(TWI_SCL, NRF_GPIO_PIN_DIR_INPUT, NRF_GPIO_PIN_INPUT_CONNECT, NRF_GPIO_PIN_PULLUP, NRF_GPIO_PIN_S0D1, NRF_GPIO_PIN_NOSENSE); 
 	nrf_gpio_cfg(TWI_SDA, NRF_GPIO_PIN_DIR_INPUT, NRF_GPIO_PIN_INPUT_CONNECT, NRF_GPIO_PIN_PULLUP, NRF_GPIO_PIN_S0D1, NRF_GPIO_PIN_NOSENSE); 
 
@@ -124,4 +130,6 @@ void twi_init(void)
 	NVIC_ClearPendingIRQ(SPI0_TWI0_IRQn);
 	NVIC_SetPriority(SPI0_TWI0_IRQn, 3);
 	NVIC_EnableIRQ(SPI0_TWI0_IRQn);
+
+	twi_init_done = true;
 }

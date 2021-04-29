@@ -15,8 +15,15 @@
 #define MOTOR_2_PIN	25
 #define MOTOR_3_PIN	29
 
+static bool gpio_init_done = false;
+
 void gpio_init(void)
 {
+    if (gpio_init_done)
+    {
+        return;
+    }
+
 	//motors
 	NRF_GPIOTE->CONFIG[0] = GPIOTE_CONFIG_MODE_Msk | (MOTOR_0_PIN<<GPIOTE_CONFIG_PSEL_Pos) | GPIOTE_CONFIG_POLARITY_Msk | GPIOTE_CONFIG_OUTINIT_Msk;
 	NRF_GPIOTE->CONFIG[1] = GPIOTE_CONFIG_MODE_Msk | (MOTOR_1_PIN<<GPIOTE_CONFIG_PSEL_Pos) | GPIOTE_CONFIG_POLARITY_Msk | GPIOTE_CONFIG_OUTINIT_Msk;
@@ -40,5 +47,7 @@ void gpio_init(void)
 	
 	// dmp interrupt 
 	nrf_gpio_cfg_input(INT_PIN, 0);
+
+    gpio_init_done = true;
 }
 

@@ -10,28 +10,31 @@
 #include "Rotor.h"
 #include "IMU.h"
 
-#define FC_MODE_INIT 1
-#define FC_MODE_SAFE 2
-#define FC_MODE_PANIC 3
-#define FC_MODE_MANUAL 4
-#define FC_MODE_CALIBRATE 5
-#define FC_MODE_YAW 6
-#define FC_MODE_FULL 7
-#define FC_MODE_RAW 8
-#define FC_MODE_HOLD_HEIGHT 9
-#define FC_MODE_WIRELESS 10
+enum FlightControllerMode
+{
+    Init,
+    Safe,
+    Panic,
+    Manual,
+    Calibrate,
+    Yaw,
+    Full,
+    Raw,
+    HoldHeight
+};
 
 struct FlightController
 {
     struct Rotor **rotors;
     uint8_t num_rotors;
-    struct LoopHandler_cb loop;
+    enum FlightControllerMode mode;
+    struct IMU *imu;
 
-    uint8_t mode;
+    struct LoopHandlerControlBlock loop;
 };
 
-struct FlightController FlightController_init(struct IMU *imu, struct Rotor **rotors, uint8_t num_rotors);
-
-void FlightController_loop(void *context, int delta_ms);
+struct FlightController *FlightController_create(struct IMU *imu, struct Rotor **rotors, uint8_t num_rotors);
+void FlightController_loop(void *context, uint32_t delta_us);
+void FlightController_destroy(struct FlightController *self);
 
 #endif //QUADCOPTER_FCB_FLIGHTCONTROLLER_H

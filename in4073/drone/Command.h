@@ -7,27 +7,25 @@
 
 #include <stdint.h>
 
-#define S_CONTROLS 1
-
 #define COMMAND_TYPE_MASK = 0b11111000
 
-struct Command_Type_Control {
+enum CommandType {
+    SetControl = 0
+};
+
+struct CommandControlData {
     uint16_t yaw_rate;
     uint16_t roll_rate;
-    ....
+    uint16_t pitch_rate;
+    uint16_t climb_rate;
 };
 
 struct Command {
-    uint8_t type;
+    enum CommandType type;
     void *data;
 };
 
-Control = yaw, pitch, roll, thrust etc
-Change communication = serial, wireless
-Change mode = yaw, height, manual
-Logging level = debug, normal
-Enable logging = start, stop
-
-struct command Command_make(uint8_t *data);
+struct Command *Command_create(uint8_t *data);
+void Command_destroy(struct Command *self);
 
 #endif //QUADCOPTER_FCB_COMMAND_H

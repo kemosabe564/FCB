@@ -31,7 +31,10 @@
 #include "utils/quad_ble.h"
 
 #include "drone/LoopHandler.h"
+#include "drone/CommandHandler.h"
+#include "drone/RotorMap.h"
 #include "drone/Rotor.h"
+#include "drone/Serial.h"
 #include "drone/IMU.h"
 #include "drone/FlightController.h"
 
@@ -40,49 +43,59 @@ bool demo_done;
 #define COMM_SERIAL 0
 #define COMM_BLE    1
 
-/*------------------------------------------------------------------
- * main -- everything you need is here :)
- *------------------------------------------------------------------
- */
+void command_handler_function(struct Command *command)
+{
+    switch (command->type)
+    {
+        case SetControl: {
+            struct CommandControlData *data = (struct CommandControlData *)command->data;
+
+            printf("Yaw %d, Pitch %d, Roll %d \n", data->yaw_rate, data->pitch_rate, data->roll_rate);
+        }
+            break;
+    }
+}
+
 int main(void)
 {
     bool running = true;
 
-    struct LoopHandler lh = LoopHandler_init();
+    struct LoopHandler *lh = LoopHandler_create();
 
-    struct RotorMap r_map = RotorMap_init(0, 10000);
-
-    struct Rotor r1 = Rotor_init(&r_map, MOTOR_0_PIN, -15,  15);
-    struct Rotor r2 = Rotor_init(&r_map, MOTOR_1_PIN,  15,  15);
-    struct Rotor r3 = Rotor_init(&r_map, MOTOR_2_PIN, -15, -15);
-    struct Rotor r4 = Rotor_init(&r_map, MOTOR_3_PIN, -15,  15);
-
-    struct IMU imu = IMU_init();
-
-    struct FlightController fc = FlightController_init(&imu, { &r1, &r2, &r3, &r4 }, 4);
+//    struct RotorMap *r_map = RotorMap_create(0, 10000);
+//
+//    struct Rotor *r1 = Rotor_create(r_map, MOTOR_0_PIN, -15,  15);
+//    struct Rotor *r2 = Rotor_create(r_map, MOTOR_1_PIN,  15,  15);
+//    struct Rotor *r3 = Rotor_create(r_map, MOTOR_2_PIN, -15, -15);
+//    struct Rotor *r4 = Rotor_create(r_map, MOTOR_3_PIN, -15,  15);
+//
+//    struct IMU *imu = IMU_create();
+//
+//    struct FlightController *fc = FlightController_create(imu, { r1, r2, r3, r4 }, 4);
 
 //    struct Comms ble_comms BLE_init();
-//    struct Comms serial_comms Serial_init(115200);
-//
-//    struct Comm_Handler comm_handler = CommHandler_init(COMM_SERIAL, &fc);
-//
-//    CommHandler_add_comms(&comm_handler, &serial_comms, COMM_SERIAL);
-//    CommHandler_add_comms(&comm_handler, &ble_comms, COMM_BLE);
+    struct Comms *serial_comms = Serial_create(115200);
+
+    struct CommandHandler *comm_handler = CommandHandler_create(COMM_SERIAL, command_handler_function);
+
+    CommandHandler_add_comms(comm_handler, COMM_SERIAL, serial_comms);
+//    CommandHandler_add_comms(comm_handler, ble_comms, COMM_BLE);
+
 
 	while (running)
 	{
-        LoopHandler_loop(&lh, LH_LINK(fc), 0);
+//        LoopHandler_loop(lh, LH_LINK(fc), 0);
 
-        LoopHandler_loop(&lh, LH_LINK(r1), 100);
-        LoopHandler_loop(&lh, LH_LINK(r2), 100);
-        LoopHandler_loop(&lh, LH_LINK(r3), 100);
-        LoopHandler_loop(&lh, LH_LINK(r4), 100);
+//        LoopHandler_loop(lh, LH_LINK(r1), LH_HZ_TO_PERIOD(100));
+//        LoopHandler_loop(lh, LH_LINK(r2), LH_HZ_TO_PERIOD(100));
+//        LoopHandler_loop(lh, LH_LINK(r3), LH_HZ_TO_PERIOD(100));
+//        LoopHandler_loop(lh, LH_LINK(r4), LH_HZ_TO_PERIOD(100));
 
-        LoopHandler_loop(&lh, LH_LINK(serial_comms), 100);
-        LoopHandler_loop(&lh, LH_LINK(ble_comms), 50);
+        LoopHandler_loop(lh, LH_LINK(serial_comms), LH_HZ_TO_PERIOD(20));
+//        LoopHandler_loop(lh, LH_LINK(ble_comms), LH_HZ_TO_PERIOD(50));
 
-        LoopHandler_loop(&lh, LH_LINK(comm_handler), 100);
-	}	
+        LoopHandler_loop(lh, LH_LINK(comm_handler), LH_HZ_TO_PERIOD(100));
+	}
 
 	printf("\n\t Goodbye \n\n");
 	nrf_delay_ms(100);

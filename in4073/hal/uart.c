@@ -24,6 +24,7 @@ Queue rx_queue;
 Queue tx_queue;
 
 static bool txd_available = true;
+static bool uart_init_done = false;
 
 void uart_put(uint8_t byte)
 {
@@ -76,6 +77,11 @@ void UART0_IRQHandler(void)
 
 void uart_init(void)
 {
+    if (uart_init_done)
+    {
+        return;
+    }
+
 	init_queue(&rx_queue); // Initialize receive queue
 	init_queue(&tx_queue); // Initialize transmit queue
 
@@ -99,4 +105,6 @@ void uart_init(void)
 	NVIC_ClearPendingIRQ(UART0_IRQn);
 	NVIC_SetPriority(UART0_IRQn, 3);
 	NVIC_EnableIRQ(UART0_IRQn);
+
+	uart_init_done = true;
 }

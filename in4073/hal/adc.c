@@ -14,6 +14,8 @@
 
 uint16_t bat_volt;
 
+static bool adc_init_done = false;
+
 //#define BATTERY_VOLTAGE 4 //these are AIN, not ports p0.01 = ain2
 //#define BATTERY_AMPERAGE 2
 
@@ -30,6 +32,11 @@ void ADC_IRQHandler(void)
 
 void adc_init(void)
 {
+    if (adc_init_done)
+    {
+        return;
+    }
+
 	// VREF = BandGap = 1.2V | 2/3 scaling of input | 8bit resolution | AIN2 & AIN4 are connected on board
 	NRF_ADC->CONFIG = (ADC_CONFIG_PSEL_AnalogInput4 << ADC_CONFIG_PSEL_Pos) 
 							| (ADC_CONFIG_INPSEL_AnalogInputTwoThirdsPrescaling << ADC_CONFIG_INPSEL_Pos);
@@ -41,6 +48,8 @@ void adc_init(void)
 	NRF_ADC->INTENSET = ADC_INTENSET_END_Msk;
 	NVIC_SetPriority(ADC_IRQn, 3);
 	NVIC_EnableIRQ(ADC_IRQn);
+
+	adc_init_done = true;
 }
 
 

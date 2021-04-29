@@ -6,54 +6,61 @@
 #include <stdlib.h>
 #include <string.h>
 
-void FlightController_loop(void *context, int delta_ms)
+void FlightController_loop(void *context, uint32_t delta_us)
 {
     struct FlightController *fc = (struct FlightController *)context;
 
     switch (fc->mode) {
-        case FC_MODE_INIT:
+        case Init:
 
             break;
-        case FC_MODE_SAFE:
+        case Safe:
 
             break;
-        case FC_MODE_PANIC:
+        case Panic:
 
             break;
-        case FC_MODE_MANUAL:
+        case Manual:
 
             break;
-        case FC_MODE_CALIBRATE:
+        case Calibrate:
 
             break;
-        case FC_MODE_YAW:
+        case Yaw:
 
             break;
-        case FC_MODE_FULL:
+        case Full:
 
             break;
-        case FC_MODE_RAW:
+        case Raw:
 
             break;
-        case FC_MODE_HOLD_HEIGHT:
-
-            break;
-        case FC_MODE_WIRELESS:
+        case HoldHeight:
 
             break;
     }
 }
 
-struct FlightController FlightController_init(struct IMU *imu, struct Rotor **rotors, uint8_t num_rotors)
+struct FlightController *FlightController_create(struct IMU *imu, struct Rotor **rotors, uint8_t num_rotors)
 {
-    struct FlightController fc = {
-            .imu = imu,
-            .num_rotors = num_rotors,
-            .loop = {
-                .func = FlightController_loop
-            }
-    };
+    struct FlightController *result = (struct FlightController *)malloc(sizeof(struct FlightController));
 
-    fc.rotors = malloc(num_rotors * sizeof(Rotor *));
-    memcpy(&fc.rotors, rotors, num_rotors * sizeof(Rotor *));
+    if (result)
+    {
+        result->imu = imu;
+        result->loop = LoopHandler_init_controlblock(FlightController_loop);
+
+        result->rotors = (struct Rotor **)malloc(num_rotors * sizeof(struct Rotor *));
+        memcpy(result->rotors, rotors, num_rotors * sizeof(struct Rotor *));
+    }
+
+    return result;
+}
+
+void FlightController_destroy(struct FlightController *self)
+{
+    if (self)
+    {
+        free(self);
+    }
 }

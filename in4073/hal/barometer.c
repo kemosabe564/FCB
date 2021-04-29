@@ -23,6 +23,7 @@ static uint8_t loop_count = 0;
 static uint32_t D1, D2;
 static uint8_t data[3] = {0};
 static uint32_t initTime = 0;
+static bool baro_init_done = false;
 
 void read_baro(void)
 {
@@ -75,7 +76,12 @@ void read_baro(void)
 }
 
 void baro_init(void)
-{	
+{
+    if (baro_init_done)
+    {
+        return;
+    }
+
 	static uint8_t data[2] = {0};
 	
 	for (uint8_t c=0;c<8;c++)
@@ -84,6 +90,7 @@ void baro_init(void)
 		prom[c] = (uint16_t)((data[0] << 8) | data[1]); 
 	}
 
+	baro_init_done = true;
 }
 
 

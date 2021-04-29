@@ -47,6 +47,15 @@ $(abspath ./hal/twi.c) \
 $(abspath ./hal/adc.c) \
 $(abspath ./hal/barometer.c) \
 $(abspath ./hal/spi_flash.c) \
+$(abspath ./drone/Command.c) \
+$(abspath ./drone/CommandHandler.c) \
+$(abspath ./drone/Comms.c) \
+$(abspath ./drone/FlightController.c) \
+$(abspath ./drone/IMU.c) \
+$(abspath ./drone/LoopHandler.c) \
+$(abspath ./drone/Rotor.c) \
+$(abspath ./drone/RotorMap.c) \
+$(abspath ./drone/Serial.c) \
 $(abspath ./utils/quad_ble.c) \
 $(abspath ./utils/queue.c) \
 $(abspath ./mpu6050/inv_mpu.c) \
@@ -74,6 +83,7 @@ INC_PATHS += -I$(abspath ./mpu6050)
 INC_PATHS += -I$(abspath ./utils/config)
 INC_PATHS += -I$(abspath ./utils)
 INC_PATHS += -I$(abspath ./hal)
+INC_PATHS += -I$(abspath ./drone)
 INC_PATHS += -I$(abspath ../components/device)
 INC_PATHS += -I$(abspath ../components/toolchain/gcc)
 INC_PATHS += -I$(abspath ../components/toolchain)
@@ -90,6 +100,7 @@ INC_PATHS += -I$(abspath ../components/drivers_nrf/common)
 INC_PATHS += -I$(abspath ../components/ble/ble_advertising)
 INC_PATHS += -I$(abspath ../components/libraries/trace)
 INC_PATHS += -I$(abspath ../components/softdevice/common/softdevice_handler)
+
 
 
 OBJECT_DIRECTORY = _build

@@ -25,6 +25,7 @@
 
 static uint32_t global_time;
 static bool timer_flag;
+static bool timers_init_done = false;
 
 void TIMER2_IRQHandler(void)
 {
@@ -81,9 +82,13 @@ void quadrupel_timer_handler(void *p_context)
 	timer_flag = true;
 }
 
-
 void timers_init(void)
 {
+    if (timers_init_done)
+    {
+        return;
+    }
+
 	global_time = 0;
 	timer_flag = false;
 
@@ -147,4 +152,6 @@ void timers_init(void)
 	APP_TIMER_DEF(quadrupel_timer);
 	app_timer_create(&quadrupel_timer, APP_TIMER_MODE_REPEATED, quadrupel_timer_handler);
 	app_timer_start(quadrupel_timer, QUADRUPEL_TIMER_PERIOD, NULL);
+
+	timers_init_done = true;
 }

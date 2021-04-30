@@ -39,11 +39,11 @@ void Serial_loop(void *context, uint32_t delta_us)
 
         if (b == '\n')
         {
+            printf("Serial string: '%s'\n", raw_str);
             Comms_enqueue_command(self, Command_create(raw_str));
             char_id = 0;
         }
     }
-    printf("Serial_loop \n");
 }
 
 void Serial_destroy(struct Comms *self)

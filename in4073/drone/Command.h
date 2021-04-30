@@ -10,7 +10,10 @@
 #define COMMAND_TYPE_MASK = 0b11111000
 
 enum CommandType {
-    SetControl = 0
+    SetModeSafe = '0',
+    SetModePanic = '1',
+    SetModeManual = '2',
+    SetControl = ' ',
 };
 
 struct CommandControlData {

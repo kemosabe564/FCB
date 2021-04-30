@@ -43,10 +43,31 @@ bool demo_done;
 #define COMM_SERIAL 0
 #define COMM_BLE    1
 
+struct FlightController *fc = NULL;
+
 void command_handler_function(struct Command *command)
 {
+    printf("Command->type = %d \n", command->type);
     switch (command->type)
     {
+        case SetModeSafe:
+        {
+            printf("SetModeSafe \n");
+            FlightController_change_mode(fc, Safe);
+        }
+            break;
+        case SetModePanic:
+        {
+            printf("SetModePanic \n");
+            FlightController_change_mode(fc, Panic);
+        }
+            break;
+        case SetModeManual:
+        {
+            printf("SetModeManual \n");
+            FlightController_change_mode(fc, Manual);
+        }
+            break;
         case SetControl: {
             struct CommandControlData *data = (struct CommandControlData *)command->data;
 
@@ -62,16 +83,16 @@ int main(void)
 
     struct LoopHandler *lh = LoopHandler_create();
 
-//    struct RotorMap *r_map = RotorMap_create(0, 10000);
-//
-//    struct Rotor *r1 = Rotor_create(r_map, MOTOR_0_PIN, -15,  15);
-//    struct Rotor *r2 = Rotor_create(r_map, MOTOR_1_PIN,  15,  15);
-//    struct Rotor *r3 = Rotor_create(r_map, MOTOR_2_PIN, -15, -15);
-//    struct Rotor *r4 = Rotor_create(r_map, MOTOR_3_PIN, -15,  15);
-//
-//    struct IMU *imu = IMU_create();
-//
-//    struct FlightController *fc = FlightController_create(imu, { r1, r2, r3, r4 }, 4);
+    struct RotorMap *r_map = RotorMap_create(0, 10000);
+
+    struct Rotor *r1 = Rotor_create(r_map, 0, -15,  15);
+    struct Rotor *r2 = Rotor_create(r_map, 1,  15,  15);
+    struct Rotor *r3 = Rotor_create(r_map, 2, -15, -15);
+    struct Rotor *r4 = Rotor_create(r_map, 3, -15,  15);
+
+    struct IMU *imu = IMU_create();
+
+    fc = FlightController_create(imu, (struct Rotor *[]){ r1, r2, r3, r4 }, 4);
 
 //    struct Comms ble_comms BLE_init();
     struct Comms *serial_comms = Serial_create(115200);
@@ -84,12 +105,13 @@ int main(void)
 
 	while (running)
 	{
-//        LoopHandler_loop(lh, LH_LINK(fc), 0);
+        LoopHandler_loop(lh, LH_LINK(fc), LH_HZ_TO_PERIOD(10));
 
-//        LoopHandler_loop(lh, LH_LINK(r1), LH_HZ_TO_PERIOD(100));
-//        LoopHandler_loop(lh, LH_LINK(r2), LH_HZ_TO_PERIOD(100));
-//        LoopHandler_loop(lh, LH_LINK(r3), LH_HZ_TO_PERIOD(100));
-//        LoopHandler_loop(lh, LH_LINK(r4), LH_HZ_TO_PERIOD(100));
+        LoopHandler_loop(lh, LH_LINK(r1), LH_HZ_TO_PERIOD(100));
+        LoopHandler_loop(lh, LH_LINK(r2), LH_HZ_TO_PERIOD(100));
+        LoopHandler_loop(lh, LH_LINK(r3), LH_HZ_TO_PERIOD(100));
+        LoopHandler_loop(lh, LH_LINK(r4), LH_HZ_TO_PERIOD(100));
+
 
         LoopHandler_loop(lh, LH_LINK(serial_comms), LH_HZ_TO_PERIOD(20));
 //        LoopHandler_loop(lh, LH_LINK(ble_comms), LH_HZ_TO_PERIOD(50));

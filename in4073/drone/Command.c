@@ -5,12 +5,12 @@
 #include "Command.h"
 #include <stdlib.h>
 
+#include <stdio.h>
+
 struct Command *Command_create(uint8_t *data)
 {
 //    uint8_t type = (data[0] && COMMAND_TYPE_MASK) >> 3;
-//    enum CommandType type = (enum CommandType) data[0];
-
-    enum CommandType type = (enum CommandType)0;
+    enum CommandType type = (enum CommandType) data[0];
 
     struct Command *result = (struct Command *)malloc(sizeof(struct Command));
 
@@ -34,6 +34,8 @@ struct Command *Command_create(uint8_t *data)
                 result->data = (void *)data;
             }
                 break;
+            default:
+                break;
         }
     }
 
@@ -47,6 +49,8 @@ void Command_destroy(struct Command *self)
         switch (self->type)
         {
             case SetControl: free((struct CommandControlData *) self->data); break;
+            default:
+                break;
         }
 
         free(self);

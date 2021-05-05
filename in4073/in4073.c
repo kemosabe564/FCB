@@ -19,12 +19,12 @@
 #include "nrf_gpio.h"
 #include "nrf_delay.h"
 #include "app_util_platform.h"
-#include "adc.h"
-#include "barometer.h"
-#include "gpio.h"
-#include "spi_flash.h"
-#include "timers.h"
-#include "twi.h"
+#include "hal/adc.h"
+#include "hal/barometer.h"
+#include "hal/gpio.h"
+#include "hal/spi_flash.h"
+#include "hal/timers.h"
+#include "hal/twi.h"
 #include "hal/uart.h"
 #include "control.h"
 #include "mpu6050/mpu6050.h"
@@ -74,12 +74,42 @@ void command_handler_function(struct Command *command)
             printf("Yaw %d, Pitch %d, Roll %d \n", data->yaw_rate, data->pitch_rate, data->roll_rate);
         }
             break;
+        case Invalid:
+            printf("Invalid command");
+            break;
+        case Corrupted:
+            printf("Corrupted command");
+            break;
+        default:
+            break;
     }
 }
+
+void heartbeat(void *context, uint32_t delta_us)
+{
+    static int num = 0;
+    printf("Heartbeat %d \n", num++);
+}
+
+struct LoopHandlerControlBlock heartbeat_cb = {
+    .func = heartbeat
+};
 
 int main(void)
 {
     bool running = true;
+
+
+    uart_init();
+    gpio_init();
+    timers_init();
+    adc_init();
+    twi_init();
+    imu_init(true, 100);
+    baro_init();
+    spi_flash_init();
+    quad_ble_init();
+
 
     struct LoopHandler *lh = LoopHandler_create();
 
@@ -103,6 +133,8 @@ int main(void)
 //    CommandHandler_add_comms(comm_handler, ble_comms, COMM_BLE);
 
 
+
+
 	while (running)
 	{
         LoopHandler_loop(lh, LH_LINK(fc), LH_HZ_TO_PERIOD(10));
@@ -117,6 +149,8 @@ int main(void)
 //        LoopHandler_loop(lh, LH_LINK(ble_comms), LH_HZ_TO_PERIOD(50));
 
         LoopHandler_loop(lh, LH_LINK(comm_handler), LH_HZ_TO_PERIOD(100));
+
+        LoopHandler_loop(lh, &heartbeat_cb, (void *) NULL, LH_HZ_TO_PERIOD(1));
 	}
 
 	printf("\n\t Goodbye \n\n");

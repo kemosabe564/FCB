@@ -13,6 +13,8 @@
 #include <string.h>
 #include <inttypes.h>
 
+#include "../drone/Command.h"
+
 /*------------------------------------------------------------
  * console I/O
  *------------------------------------------------------------
@@ -186,11 +188,24 @@ int main(int argc, char **argv)
 
 	term_puts("Type ^C to exit\n");
 
+    struct CommandControlData command_data = {
+        .yaw_rate = 123,
+        .pitch_rate = 456,
+        .roll_rate = 789,
+        .climb_rate = 159,
+    };
+
+	uint8_t *data = Command_encode(SetControl, &command_data);
+
 	/* send & receive
 	 */
 	for (;;) {
 		if ((c = term_getchar_nb()) != -1) {
-			serial_port_putchar(c);
+//			serial_port_putchar(c);
+
+            for (uint16_t i = 0; i < strlen((char *)data) + 1; i += 1)
+                serial_port_putchar(data[i]);
+
 		}
 		if ((c = serial_port_getchar()) != -1) {
 			term_putchar(c);

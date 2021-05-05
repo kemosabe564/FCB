@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include "../control.h"
 #include "../hal/timers.h"
+#include "../hal/gpio.h"
 #include <stdio.h>
 
 void Rotor_loop(void *context, uint32_t delta_us)
@@ -25,6 +26,7 @@ struct Rotor *Rotor_create(struct RotorMap *map, uint8_t motor_idx, int x_offset
     if (result)
     {
         timers_init();
+        gpio_init();
 
         result->x_offset = x_offset;
         result->y_offset = y_offset;

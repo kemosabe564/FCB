@@ -7,27 +7,35 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "../control.h"
+
 #include "../hal/adc.h"
 
 void FlightController_loop(void *context, uint32_t delta_us)
 {
     struct FlightController *self = (struct FlightController *)context;
 
-    static int check = 0;
-    printf("FlightController_loop %d - Bat %4d - Mode::%s \n", check++, bat_volt, FlightControllerMode_to_str(self->mode));
+//    static int check = 0;
+//    printf("FlightController_loop %d - Bat %4d - Motor %d - Mode::%s \n", check++, bat_volt, motor[0], FlightControllerMode_to_str(self->mode));
+//
+//    static int incrementing = 1;
 
     switch (self->mode) {
         case Init:
             self->debug_mode = (bat_volt == 0);
 
             FlightController_change_mode(self, Safe);
-
-            Rotor_set_rpm(self->rotors[0], 10);
-
             break;
         case Safe:
 
-            Rotor_set_rpm(self->rotors[0], self->rotors[0]->actual_rpm - 1);
+//
+//            Rotor_set_rpm(self->rotors[0], self->rotors[0]->actual_rpm + (incrementing ? 10 : -10));
+//
+//            if (self->rotors[0]->actual_rpm >= 250)
+//                incrementing = 0;
+//
+//            if (self->rotors[0]->actual_rpm <= 50)
+//                incrementing = 1;
 
 //            if (FlightController_check_rotors_safe(self))
 //                FlightController_change_mode(self,Safe);

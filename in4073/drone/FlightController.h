@@ -13,7 +13,7 @@
 
 enum FlightControllerMode
 {
-    Init,
+    Init = 0,
     Safe,
     Panic,
     Manual,

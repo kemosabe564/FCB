@@ -47,25 +47,14 @@ struct FlightController *fc = NULL;
 
 void command_handler_function(struct Command *command)
 {
-    printf("Command->type = %d \n", command->type);
     switch (command->type)
     {
-        case SetModeSafe:
+        case SetOrQueryMode:
         {
-            printf("SetModeSafe \n");
-            FlightController_change_mode(fc, Safe);
-        }
-            break;
-        case SetModePanic:
-        {
-            printf("SetModePanic \n");
-            FlightController_change_mode(fc, Panic);
-        }
-            break;
-        case SetModeManual:
-        {
-            printf("SetModeManual \n");
-            FlightController_change_mode(fc, Manual);
+            printf("SetOrQueryMode \n");
+            enum FlightControllerMode *mode = (enum FlightControllerMode *)command->data;
+
+            FlightController_change_mode(fc, *mode);
         }
             break;
         case SetControl: {
@@ -76,9 +65,6 @@ void command_handler_function(struct Command *command)
             break;
         case Invalid:
             printf("Invalid command");
-            break;
-        case Corrupted:
-            printf("Corrupted command");
             break;
         default:
             break;
@@ -150,7 +136,7 @@ int main(void)
 
         LoopHandler_loop(lh, LH_LINK(comm_handler), LH_HZ_TO_PERIOD(100));
 
-        LoopHandler_loop(lh, &heartbeat_cb, (void *) NULL, LH_HZ_TO_PERIOD(1));
+        LoopHandler_loop(lh, &heartbeat_cb, (void *) NULL, 5000000);
 	}
 
 	printf("\n\t Goodbye \n\n");

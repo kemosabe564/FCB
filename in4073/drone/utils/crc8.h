@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+// Look up table to speed up CRC calculation
 static const uint8_t crc8_lut[] = {
     0x00, 0x31, 0x62, 0x53, 0xc4, 0xf5, 0xa6, 0x97, 0xb9, 0x88, 0xdb, 0xea, 0x7d,
     0x4c, 0x1f, 0x2e, 0x43, 0x72, 0x21, 0x10, 0x87, 0xb6, 0xe5, 0xd4, 0xfa, 0xcb,
@@ -32,6 +33,6 @@ static const uint8_t crc8_lut[] = {
 };
 
 uint8_t crc8_fast(uint8_t *data, uint16_t n);
-bool crc8_fast_check(uint8_t crc, uint8_t *data, uint16_t n);
+bool crc8_fast_compare(uint8_t crc, uint8_t *data, uint16_t n);
 
 #endif //QUADCOPTER_FCB_CRC8_H

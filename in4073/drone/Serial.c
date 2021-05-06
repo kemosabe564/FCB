@@ -29,21 +29,34 @@ void Serial_loop(void *context, uint32_t delta_us)
 {
     struct Comms *self = (struct Comms *)context;
 
-    static uint8_t raw_str[20] = { 0 };
+    // These static values should be placed somewhere else
+    // static so they keep there value upon next loop iteration
+    static uint8_t raw_str[256] = { 0 };
     static uint16_t char_id = 0;
+    static uint8_t data_len = 0;
 
     while (rx_queue.count)
     {
         uint8_t b = dequeue(&rx_queue);
+        raw_str[char_id] = b;
 
-        printf("Adding char '%c' at place %d \n", b, char_id);
-        raw_str[char_id++] = b;
-
-        if (b == '\n')
+        if (char_id == 0) // Header byte
         {
-            printf("Serial string: '%s' \n", raw_str);
-            Comms_enqueue_command(self, Command_decode(raw_str));
-            char_id = 0;
+            data_len = Command_data_len(b);
+            char_id++;
+        }
+        else // Remaining bytes
+        {
+            if (data_len == 0) // CRC byte
+            {
+                Comms_enqueue_command(self, Command_decode(raw_str));
+                char_id = 0;
+            }
+            else // Data bytes
+            {
+                data_len--;
+                char_id++;
+            }
         }
     }
 }

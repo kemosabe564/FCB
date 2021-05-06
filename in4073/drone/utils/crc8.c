@@ -16,7 +16,7 @@ uint8_t crc8_fast(uint8_t *data, uint16_t n) {
     return crc;
 }
 
-bool crc8_fast_check(uint8_t crc, uint8_t *data, uint16_t n)
+bool crc8_fast_compare(uint8_t crc, uint8_t *data, uint16_t n)
 {
     return crc == crc8_fast(data, n);
 }

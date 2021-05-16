@@ -245,5 +245,8 @@ upload-run: default pc
 	dfu_serial/./serial_dfu.py  _build/in4073.bin
 	cd pc_terminal/; make run
 
+upload-run-python: upload
+	cd pc_terminal_python/; make run
+
 ble:
 	cd pc_terminal/; make run-ble

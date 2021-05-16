@@ -37,6 +37,8 @@
 #define SPI_BITORDER_MSB_LSB  0x00
 #define SPI_MODE              0x00
 
+static bool spi_flash_init_done = false;
+
 typedef struct
 {
     union
@@ -555,6 +557,10 @@ bool flash_read_bytes(uint32_t address, uint8_t *buffer, uint32_t count)
  */
 bool spi_flash_init(void)
 {
+    if (spi_flash_init_done)
+    {
+        return true;
+    }
 //	uint8_t data = 0xFF;
     // Set up the SPI configuration parameters
     SPI_config_t spi_config =  {.pin_SCK                 = SPI_SCK, 
@@ -593,5 +599,8 @@ bool spi_flash_init(void)
 	{
 		return false;
 	}
+
+	spi_flash_init_done = true;
+
     return true;
 }

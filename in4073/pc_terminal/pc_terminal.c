@@ -12,6 +12,9 @@
 #include <unistd.h>
 #include <string.h>
 #include <inttypes.h>
+#include <stdlib.h>
+
+#include "../drone/Command.h"
 
 /*------------------------------------------------------------
  * console I/O
@@ -149,7 +152,7 @@ uint8_t serial_port_getchar()
 }
 
 
-int serial_port_putchar(char c)
+int serial_port_putchar(uint8_t c)
 {
 	int result;
 
@@ -159,6 +162,12 @@ int serial_port_putchar(char c)
 
 	assert(result == 1);
 	return result;
+}
+
+void serial_port_put(uint8_t *str, int n)
+{
+    for (int i = 0; i < n; i += 1)
+        serial_port_putchar(str[i]);
 }
 
 
@@ -186,11 +195,50 @@ int main(int argc, char **argv)
 
 	term_puts("Type ^C to exit\n");
 
+
 	/* send & receive
 	 */
 	for (;;) {
 		if ((c = term_getchar_nb()) != -1) {
-			serial_port_putchar(c);
+
+            switch (c)
+            {
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                    printf("> SetMode: '%c' \n", c);
+                    uint8_t *encoded = Command_encode_set_mode(c - '0');
+                    serial_port_put(encoded, 2);
+                    free(encoded);
+                    break;
+                case 'c':
+                {
+                    printf("> SetControl \n");
+
+                    struct CommandControlData data = {
+                            .yaw_rate = 101,
+                            .pitch_rate = 102,
+                            .roll_rate = 103,
+                            .climb_rate = 104,
+                    };
+                    struct Command cmd = {
+                            .type = SetControl,
+                            .data = (void *)&data,
+                    };
+
+                    uint8_t *cmd_encoded = Command_encode(&cmd);
+                    serial_port_put(cmd_encoded, 10);
+                    free(cmd_encoded);
+                }
+                    break;
+                default:
+                    printf("Unknown Command \n");
+                    break;
+            }
+
 		}
 		if ((c = serial_port_getchar()) != -1) {
 			term_putchar(c);

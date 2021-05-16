@@ -19,114 +19,125 @@
 #include "nrf_gpio.h"
 #include "nrf_delay.h"
 #include "app_util_platform.h"
-#include "adc.h"
-#include "barometer.h"
-#include "gpio.h"
-#include "spi_flash.h"
-#include "timers.h"
-#include "twi.h"
+#include "hal/adc.h"
+#include "hal/barometer.h"
+#include "hal/gpio.h"
+#include "hal/spi_flash.h"
+#include "hal/timers.h"
+#include "hal/twi.h"
 #include "hal/uart.h"
 #include "control.h"
 #include "mpu6050/mpu6050.h"
 #include "utils/quad_ble.h"
 
+#include "drone/LoopHandler.h"
+#include "drone/CommandHandler.h"
+#include "drone/RotorMap.h"
+#include "drone/Rotor.h"
+#include "drone/Serial.h"
+#include "drone/IMU.h"
+#include "drone/FlightController.h"
+
 bool demo_done;
 
+#define COMM_SERIAL 0
+#define COMM_BLE    1
 
-/*------------------------------------------------------------------
- * process_key -- process command keys
- *------------------------------------------------------------------
- */
-void process_key(uint8_t c)
+struct FlightController *fc = NULL;
+
+void command_handler_function(struct Command *command)
 {
-	switch (c) {
-	case 'q':
-		ae[0] += 10;
-		break;
-	case 'a':
-		ae[0] -= 10;
-		if (ae[0] < 0) ae[0] = 0;
-		break;
-	case 'w':
-		ae[1] += 10;
-		break;
-	case 's':
-		ae[1] -= 10;
-		if (ae[1] < 0) ae[1] = 0;
-		break;
-	case 'e':
-		ae[2] += 10;
-		break;
-	case 'd':
-		ae[2] -= 10;
-		if (ae[2] < 0) ae[2] = 0;
-		break;
-	case 'r':
-		ae[3] += 10;
-		break;
-	case 'f':
-		ae[3] -= 10;
-		if (ae[3] < 0) ae[3] = 0;
-		break;
-	case 27:
-		demo_done = true;
-		break;
-	default:
-		nrf_gpio_pin_toggle(RED);
-	}
+    switch (command->type)
+    {
+        case SetOrQueryMode:
+        {
+            printf("SetOrQueryMode \n");
+            enum FlightControllerMode *mode = (enum FlightControllerMode *)command->data;
+
+            FlightController_change_mode(fc, *mode);
+        }
+            break;
+        case SetControl: {
+            struct CommandControlData *data = (struct CommandControlData *)command->data;
+
+            printf("Yaw %d, Pitch %d, Roll %d \n", data->yaw_rate, data->pitch_rate, data->roll_rate);
+        }
+            break;
+        case Invalid:
+            printf("Invalid command");
+            break;
+        default:
+            break;
+    }
 }
 
+void heartbeat(void *context, uint32_t delta_us)
+{
+    static int num = 0;
+    printf("Heartbeat %d \n", num++);
+}
 
-/*------------------------------------------------------------------
- * main -- everything you need is here :)
- *------------------------------------------------------------------
- */
+struct LoopHandlerControlBlock heartbeat_cb = {
+    .func = heartbeat
+};
+
 int main(void)
 {
-	uart_init();
-	gpio_init();
-	timers_init();
-	adc_init();
-	twi_init();
-	imu_init(true, 100);
-	baro_init();
-	spi_flash_init();
-	quad_ble_init();
+    bool running = true;
 
-	uint32_t counter = 0;
-	demo_done = false;
-	wireless_mode = false;
 
-	while (!demo_done) {
-		if (rx_queue.count) {
-			process_key(dequeue(&rx_queue));
-		}
-		if (ble_rx_queue.count) {
-			process_key(dequeue(&ble_rx_queue));
-		}
+    uart_init();
+    gpio_init();
+    timers_init();
+    adc_init();
+    twi_init();
+    imu_init(true, 100);
+    baro_init();
+    spi_flash_init();
+    quad_ble_init();
 
-		if (check_timer_flag()) {
-			if (counter++%20 == 0) {
-				nrf_gpio_pin_toggle(BLUE);
-			}
 
-			adc_request_sample();
-			read_baro();
+    struct LoopHandler *lh = LoopHandler_create();
 
-			printf("%10ld | ", get_time_us());
-			printf("%3d %3d %3d %3d | ",ae[0], ae[1], ae[2], ae[3]);
-			printf("%6d %6d %6d | ", phi, theta, psi);
-			printf("%6d %6d %6d | ", sp, sq, sr);
-			printf("%4d | %4ld | %6ld \n", bat_volt, temperature, pressure);
+    struct RotorMap *r_map = RotorMap_create(0, 10000);
 
-			clear_timer_flag();
-		}
+    struct Rotor *r1 = Rotor_create(r_map, 0, -15,  15);
+    struct Rotor *r2 = Rotor_create(r_map, 1,  15,  15);
+    struct Rotor *r3 = Rotor_create(r_map, 2, -15, -15);
+    struct Rotor *r4 = Rotor_create(r_map, 3, -15,  15);
 
-		if (check_sensor_int_flag()) {
-			get_sensor_data();
-			run_filters_and_control();
-		}
-	}	
+    struct IMU *imu = IMU_create();
+
+    fc = FlightController_create(imu, (struct Rotor *[]){ r1, r2, r3, r4 }, 4);
+
+//    struct Comms ble_comms BLE_init();
+    struct Comms *serial_comms = Serial_create(115200);
+
+    struct CommandHandler *comm_handler = CommandHandler_create(COMM_SERIAL, command_handler_function);
+
+    CommandHandler_add_comms(comm_handler, COMM_SERIAL, serial_comms);
+//    CommandHandler_add_comms(comm_handler, ble_comms, COMM_BLE);
+
+
+
+
+	while (running)
+	{
+        LoopHandler_loop(lh, LH_LINK(fc), LH_HZ_TO_PERIOD(10));
+
+        LoopHandler_loop(lh, LH_LINK(r1), LH_HZ_TO_PERIOD(100));
+        LoopHandler_loop(lh, LH_LINK(r2), LH_HZ_TO_PERIOD(100));
+        LoopHandler_loop(lh, LH_LINK(r3), LH_HZ_TO_PERIOD(100));
+        LoopHandler_loop(lh, LH_LINK(r4), LH_HZ_TO_PERIOD(100));
+
+
+        LoopHandler_loop(lh, LH_LINK(serial_comms), LH_HZ_TO_PERIOD(20));
+//        LoopHandler_loop(lh, LH_LINK(ble_comms), LH_HZ_TO_PERIOD(50));
+
+        LoopHandler_loop(lh, LH_LINK(comm_handler), LH_HZ_TO_PERIOD(100));
+
+        LoopHandler_loop(lh, &heartbeat_cb, (void *) NULL, 5000000);
+	}
 
 	printf("\n\t Goodbye \n\n");
 	nrf_delay_ms(100);

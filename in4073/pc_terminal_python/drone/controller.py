@@ -13,6 +13,7 @@ class Controller:
         self.drone = drone
 
         self.terminate = False
+        self.joystick_isAvailable = False
 
         #this is done in gui already
         # pygame.init()
@@ -22,22 +23,24 @@ class Controller:
 
         # Initialize the joysticks
         pygame.joystick.init()
-        #self.joystick_count = pygame.joystick.get_count()
-        #Assuming there is only one joystick (should handle an exception if not)
-        self.joystick = pygame.joystick.Joystick(0)
-        self.joystick.init()
-        self.axes = self.joystick.get_numaxes() #not really required but anyway
+        self.joystick_count = pygame.joystick.get_count()
+        if (self.joystick_count == 1):
+            #Assuming there is only one joystick (should handle an exception if not)
+            self.joystick = pygame.joystick.Joystick(0)
+            self.joystick.init()
+            self.joystick_isAvailable = True
+            self.axes = self.joystick.get_numaxes() #not really required but anyway
 
-        #tested on the lab joystick
-        #axis[0] = roll : left =-1 and right =+1
-        #axis[1] = pitch : forward =-1 and backward =+1
-        #axis[2] = yaw : cw = 1 and ccw= -1
-        #axis[3] = Throttle : zero =1 and full = -1
+            #tested on the lab joystick
+            #axis[0] = roll : left =-1 and right =+1
+            #axis[1] = pitch : forward =-1 and backward =+1
+            #axis[2] = yaw : cw = 1 and ccw= -1
+            #axis[3] = Throttle : zero =1 and full = -1
 
-        self.input_roll = self.joystick.get_axis(0)
-        self.input_pitch = self.joystick.get_axis(1)
-        self.input_yaw = self.joystick.get_axis(2)
-        self.input_throttle = self.joystick.get_axis(3)
+            self.input_roll = self.joystick.get_axis(0)
+            self.input_pitch = self.joystick.get_axis(1)
+            self.input_yaw = self.joystick.get_axis(2)
+            self.input_throttle = self.joystick.get_axis(3)
 
         self.offset_yaw = 0
 
@@ -67,16 +70,22 @@ class Controller:
                     offset_roll = self.inc_check_limits(offset_roll)
 
     #TODO: This needs to be changed to limit to [-1,+1]
+    #TODO: Check what this needs to be mapped to
     def update_inputs(self):
         self.input_roll = self.joystick.get_axis(0)
         self.input_pitch = self.joystick.get_axis(1)
         self.input_yaw = self.joystick.get_axis(2) + self.offset_yaw
         self.input_throttle = self.joystick.get_axis(3)
 
+
     def thread_function(self):
         while not self.terminate:
-            self.update_keys()
-            self.update_inputs()
+            if (self.joystick_isAvailable):
+                self.update_keys()
+                self.update_inputs()
+                #TODO: Implement this sending
+                self.drone.set_control(self.input_yaw,self.input_roll,self.input_pitch,self.input_throttle)
+
             time.sleep(0.01)
             # controller reading and parsing loop
 

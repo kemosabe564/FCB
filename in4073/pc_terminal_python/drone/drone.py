@@ -18,14 +18,17 @@ class FlightMode(Enum):
 class Drone:
     def __init__(self, serial: Serial):
         self.serial = serial
-        # self.serial.add_command_handler(self.handle_command)
+        self.serial.add_command_handler(self.handle_command)
 
         self.mode = None
         self.phi = 0
         self.theta = 0
         self.psi = 0
 
-    def handle_command(self, command: Command):
+    def handle_command(self, command):
+        if type(command) != Command:
+            return
+
         if command.type == CommandType.CurrentMode:
             self.mode = FlightMode(command.get_data("argument"))
 

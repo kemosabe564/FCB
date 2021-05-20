@@ -26,6 +26,7 @@ struct CommandHandler
 struct CommandHandler *CommandHandler_create(uint8_t active_comms, CommandHandlerFunction handler);
 void CommandHandler_add_comms(struct CommandHandler *self, uint8_t id, struct Comms *comms);
 struct Comms *CommandHandler_get_active_comms(struct CommandHandler *self);
+void CommandHandler_send_command(struct CommandHandler *self, struct Command *command);
 void CommandHandler_loop(void *context, uint32_t delta_us);
 void CommandHandler_destroy(struct CommandHandler *self);
 

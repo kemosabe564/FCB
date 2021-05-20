@@ -15,9 +15,9 @@ struct Comms *Serial_create(int32_t baud_rate)
     {
         uart_init();
 
-        result->first = 0;
-        result->last = COMMS_QUEUE_LEN - 1;
-        result->count = 0;
+        CommandQueue_init(&result->send_queue);
+        CommandQueue_init(&result->receive_queue);
+
         result->loop = LoopHandler_init_controlblock(Serial_loop);
 
         // send protocol enable message to terminal
@@ -53,7 +53,7 @@ void Serial_loop(void *context, uint32_t delta_us)
         {
             if (data_len == 0) // CRC byte
             {
-                Comms_enqueue_command(self, Command_decode(raw_str));
+                CommandQueue_push(&self->receive_queue, Command_decode(raw_str));
                 char_id = 0;
             }
             else // Data bytes
@@ -62,6 +62,17 @@ void Serial_loop(void *context, uint32_t delta_us)
                 char_id++;
             }
         }
+    }
+
+    while(!CommandQueue_empty(&self->send_queue))
+    {
+        struct Command *command = CommandQueue_pop(&self->send_queue);
+        struct EncodedCommand encoded = Command_encode(command);
+
+        uart_put_n(encoded.data, encoded.size);
+
+        free(encoded.data);
+        Command_destroy(command);
     }
 }
 

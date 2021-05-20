@@ -95,7 +95,9 @@ protocol(boolean) = enable or disable the protocol manually
         """)
 
     def stop(self):
-        self.terminate = True
+        if not self.terminate:
+            print("Exiting application...")
+            self.terminate = True
 
     def join(self):
         return self.thread.join()

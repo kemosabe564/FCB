@@ -37,11 +37,16 @@ struct Command {
     void *data;
 };
 
+struct EncodedCommand {
+    uint8_t *data;
+    uint16_t size;
+};
+
 struct Command *Command_decode(uint8_t *data);
+struct EncodedCommand Command_encode(struct Command *command);
 uint8_t Command_data_len(uint8_t header);
 
-uint8_t *Command_encode(struct Command *command);
-uint8_t *Command_encode_current_mode(uint8_t mode);
+struct Command *Command_make_current_mode(uint8_t mode);
 
 void Command_destroy(struct Command *self);
 

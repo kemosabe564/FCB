@@ -8,17 +8,13 @@
 #include <stdbool.h>
 #include "Command.h"
 #include "LoopHandler.h"
-
-#define COMMS_QUEUE_LEN 100
+#include "CommandQueue.h"
 
 struct Comms {
-    struct Command *commands[COMMS_QUEUE_LEN];
     struct LoopHandlerControlBlock loop;
-//    void *data;
 
-    uint16_t first;
-    uint16_t last;
-    uint16_t count;
+    struct CommandQueue send_queue;
+    struct CommandQueue receive_queue;
 };
 
 void Comms_enqueue_command(struct Comms* self, struct Command *command);

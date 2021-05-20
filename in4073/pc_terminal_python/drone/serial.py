@@ -8,11 +8,12 @@ from drone.command import Command, SerialCommandDecoder
 
 
 class Serial:
-    def __init__(self, port: str, baud: int, command_handler: Callable):
+    def __init__(self, port: str, baud: int, command_handler: Callable = None):
         self.port = port
         self.baud = baud
-        self.command_handler = command_handler
-        self.terminate = False
+        self.command_handlers = []
+        if command_handler is not None:
+            self.add_command_handler(command_handler)
 
         self.ascii_buffer = bytearray()
         self.protocol_enabled = False
@@ -22,6 +23,7 @@ class Serial:
 
         self.serial = serial.Serial(self.port, self.baud, timeout=1)
 
+        self.terminate = False
         # separate send and receive threads since pyserial busywaits for characters
         self.send_thread = threading.Thread(target=self.send_thread_function)
         self.send_thread.start()
@@ -54,6 +56,13 @@ class Serial:
 
                 time.sleep(0.01)
 
+    def add_command_handler(self, handler: Callable):
+        self.command_handlers.append(handler)
+
+    def __dispatch_command(self, command: Command):
+        for handler in self.command_handlers:
+            handler(command)
+
     def set_protocol(self, enabled):
         if enabled:
             print('Protocol enabled')
@@ -75,7 +84,7 @@ class Serial:
             return
 
         if byte == 10:  # ASCII \n = 10
-            self.command_handler(self.ascii_buffer)
+            self.__dispatch_command(self.ascii_buffer)
             self.ascii_buffer.clear()
 
     def __handle_protocol_data(self, byte):
@@ -83,7 +92,7 @@ class Serial:
 
         while not self.decoder.empty():
             command = self.decoder.get()
-            self.command_handler(command)
+            self.__dispatch_command(command)
             print("<< {}".format(command))
 
     def send_command(self, command: Command):

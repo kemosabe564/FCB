@@ -55,10 +55,8 @@ void command_handler_function(struct Command *command)
         case SetOrQueryMode:
         {
             uint8_t *mode = (uint8_t *)command->data;
-            if (mode > 0)
+            if (*mode > 0)
                 FlightController_change_mode(fc, *mode);
-
-            Comms_enqueue(  )
 
             uint8_t *str = Command_encode_current_mode((uint8_t) fc->mode);
             uart_put_n(str, 2);

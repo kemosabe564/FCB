@@ -4,10 +4,12 @@ from drone.serial import Serial
 from drone.cli import CLI, CLIAction
 from drone.drone import Drone
 from drone.controller import Controller
+from drone.gui import GUI
 
 ser = None
 cli = None
 controller = None
+gui = None
 
 
 def new_cmd_handler(data):
@@ -15,14 +17,20 @@ def new_cmd_handler(data):
     pass
 
 
+def on_quit():
+    print("Exiting application...")
+    ser.stop()
+    cli.stop()
+    controller.stop()
+    gui.stop()
+
+
 def new_action_handler(action, data=None):
     if action == CLIAction.SendCommand:
         ser.send_command(data)
 
     if action == CLIAction.Exit:
-        ser.stop()
-        cli.stop()
-        controller.stop()
+        on_quit()
 
     if action == CLIAction.SetProtocol:
         ser.set_protocol(data)
@@ -39,8 +47,14 @@ if __name__ == "__main__":
     ser = Serial(port=args.port, baud=args.baud, command_handler=new_cmd_handler)
     cli = CLI(action_handler=new_action_handler)
     drone = Drone(ser)
+
+    gui = GUI((800, 480), drone)
+    gui.set_on_quit(on_quit)
+
     controller = Controller(drone)
 
+    # PyGame needs to run on the main thread...
+    gui.main_loop()
 
     cli.join()
     ser.join()

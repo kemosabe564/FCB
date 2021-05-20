@@ -1,5 +1,6 @@
 import pygame
 import threading
+import time
 
 from drone.drone import Drone
 
@@ -16,6 +17,7 @@ class Controller:
 
     def thread_function(self):
         while not self.terminate:
+            time.sleep(0.01)
             # controller reading and parsing loop
             # if KEYEVENT = '1'
             #     drone.change_mode(1)

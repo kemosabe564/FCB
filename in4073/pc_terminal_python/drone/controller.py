@@ -55,7 +55,7 @@ class Controller:
             value = value + self.step
         return value
 
-    def dec_check_limits(self,value):
+    def dec_check_limits(self, value):
         if (value - self.step > -1):
             value = value - self.step
         return value
@@ -68,6 +68,21 @@ class Controller:
                     offset_yaw = self.dec_check_limits(offset_yaw)
                 if event.key == pygame.K_w: #yaw up
                     offset_roll = self.inc_check_limits(offset_roll)
+                if event.key == pygame.K_0: #safe mode
+                    #TODO:Send cmod command
+                    pass
+                if event.key == pygame.K_1: #panic mode
+                    #TODO:Send cmod command
+                    pass
+                if event.key == pygame.K_2: #manual mode
+                    #TODO:Send cmod command
+                    pass
+                if event.key == pygame.K_3: #calibration
+                    #TODO:Send cmod command
+                    pass
+                if event.key == pygame.K_4: #yaw rate
+                    #TODO:Send cmod command
+                    pass
 
     #TODO: This needs to be changed to limit to [-1,+1]
     #TODO: Check what this needs to be mapped to
@@ -84,7 +99,7 @@ class Controller:
                 self.update_keys()
                 self.update_inputs()
                 #TODO: Implement this sending
-                self.drone.set_control(self.input_yaw,self.input_roll,self.input_pitch,self.input_throttle)
+                self.drone.set_control(self.input_yaw, self.input_roll, self.input_pitch, self.input_throttle)
 
             time.sleep(0.01)
             # controller reading and parsing loop

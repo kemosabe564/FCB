@@ -78,14 +78,16 @@ struct Command *Command_decode(uint8_t *data)
     return result;
 }
 
-uint8_t *Command_encode(struct Command *command)
+struct EncodedCommand Command_encode(struct Command *command)
 {
     uint8_t *encoded = NULL;
+    uint16_t size = 0;
 
     switch (command->type)
     {
         case CurrentMode: {
-            encoded = (uint8_t *)malloc((1 + 0 + 1) * sizeof(uint8_t));
+            size = (1 + 0 + 1);
+            encoded = (uint8_t *)malloc(size * sizeof(uint8_t));
 
             uint8_t *mode = (uint8_t *)command->data;
             encoded[0] = ((command->type << 4) | *mode);
@@ -97,17 +99,41 @@ uint8_t *Command_encode(struct Command *command)
             break;
     }
 
-    return encoded;
-}
-
-uint8_t *Command_encode_current_mode(uint8_t mode)
-{
-    struct Command cmd = {
-        .type = CurrentMode,
-        .data = (void *) &mode
+    struct EncodedCommand handle = {
+        .data = encoded,
+        .size = size
     };
 
-    return Command_encode(&cmd);
+    return handle;
+}
+
+struct Command *Command_make_current_mode(uint8_t mode)
+{
+    struct Command *cmd = (struct Command *)malloc(sizeof(struct Command));
+
+    // Only continue if cmd != NULL
+    // which means malloc was successful
+    if (cmd)
+    {
+        cmd->type = CurrentMode;
+
+        uint8_t *data = (uint8_t *)malloc(sizeof(uint8_t));
+
+        // same as with previous malloc
+        if (data)
+        {
+            // allocation successful, so set data!
+            *data = mode;
+            cmd->data = (void *)data;
+
+            return cmd;
+        }
+
+        // since second malloc failed, free previously allocated memory
+        free(cmd);
+    }
+
+    return NULL;
 }
 
 uint8_t Command_data_len(uint8_t header)
@@ -147,8 +173,11 @@ void Command_destroy(struct Command *self)
     {
         switch (self->type)
         {
-            case SetOrQueryMode: free((uint8_t *) self->data); break;
-            case SetControl: free((struct CommandControlData *) self->data); break;
+            case SetOrQueryMode:
+            case CurrentMode:
+                free((uint8_t *) self->data); break;
+            case SetControl:
+                free((struct CommandControlData *) self->data); break;
             default:
                 break;
         }

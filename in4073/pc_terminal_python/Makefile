@@ -42,3 +42,6 @@ venv-deps-add: venv-setup
 
 run: venv-setup
 	@$(PYTHON_EXE) ./pc_terminal.py
+
+run-headless: venv-setup
+	@$(PYTHON_EXE) ./pc_terminal.py --no-gui

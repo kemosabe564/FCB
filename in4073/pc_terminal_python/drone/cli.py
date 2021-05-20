@@ -5,7 +5,7 @@ from enum import Enum
 from queue import Queue
 import re
 
-from communication.command import Command, CommandType
+from drone.command import Command, CommandType
 
 
 class CLIAction(Enum):
@@ -55,6 +55,11 @@ class CLI:
                         command.set_data(argument=0)
 
                         self.action_handler(CLIAction.SendCommand, command)
+                    elif cmd == 'setcontrol':
+                        command = Command(CommandType.SetControl)
+                        command.set_data(argument=0, yaw=1, pitch=2, roll=3, throttle=4)
+
+                        self.action_handler(CLIAction.SendCommand, command)
                     elif cmd == 'protocol':
                         if match.group(2) == 'true':
                             self.action_handler(CLIAction.SetProtocol, True)
@@ -95,7 +100,9 @@ protocol(boolean) = enable or disable the protocol manually
         """)
 
     def stop(self):
-        self.terminate = True
+        if not self.terminate:
+            print("Exiting application...")
+            self.terminate = True
 
     def join(self):
         return self.thread.join()

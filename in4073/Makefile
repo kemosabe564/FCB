@@ -48,6 +48,7 @@ $(abspath ./hal/adc.c) \
 $(abspath ./hal/barometer.c) \
 $(abspath ./hal/spi_flash.c) \
 $(abspath ./drone/Command.c) \
+$(abspath ./drone/CommandQueue.c) \
 $(abspath ./drone/CommandHandler.c) \
 $(abspath ./drone/Comms.c) \
 $(abspath ./drone/FlightController.c) \

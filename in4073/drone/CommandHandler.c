@@ -27,9 +27,9 @@ void CommandHandler_loop(void *context, uint32_t delta_us)
     struct CommandHandler *self = (struct CommandHandler *)context;
     struct Comms *comms = CommandHandler_get_active_comms(self);
 
-    if(Comms_available(comms))
+    if(!CommandQueue_empty(&comms->receive_queue))
     {
-        struct Command *command = Comms_dequeue_command(comms);
+        struct Command *command = CommandQueue_pop(&comms->receive_queue);
         self->handler(command);
         Command_destroy(command);
     }
@@ -53,10 +53,21 @@ struct Comms *CommandHandler_get_active_comms(struct CommandHandler *self)
     return NULL;
 }
 
+void CommandHandler_send_command(struct CommandHandler *self, struct Command *command)
+{
+    if (self && command)
+    {
+        struct Comms *comms = CommandHandler_get_active_comms(self);
+
+        CommandQueue_push(&comms->send_queue, command);
+    }
+}
+
 void CommandHandler_destroy(struct CommandHandler *self)
 {
     if (self)
     {
+        // Also empty queues...
         free(self);
     }
 }

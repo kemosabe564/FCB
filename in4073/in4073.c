@@ -39,14 +39,13 @@
 #include "drone/IMU.h"
 #include "drone/FlightController.h"
 
-//#include "app_uart.h"
-
 bool demo_done;
 
 #define COMM_SERIAL 0
 #define COMM_BLE    1
 
 struct FlightController *fc = NULL;
+struct CommandHandler *ch = NULL;
 
 void command_handler_function(struct Command *command)
 {
@@ -55,22 +54,22 @@ void command_handler_function(struct Command *command)
         case SetOrQueryMode:
         {
             uint8_t *mode = (uint8_t *)command->data;
-            if (mode > 0)
+
+            if (*mode > 0)
                 FlightController_change_mode(fc, *mode);
 
-            uint8_t *str = Command_encode_current_mode((uint8_t) fc->mode);
-            uart_put_n(str, 2);
-            free(str);
+            CommandHandler_send_command(ch, Command_make_current_mode((uint8_t) fc->mode));
         }
             break;
         case SetControl: {
 //            struct CommandControlData *data = (struct CommandControlData *)command->data;
 
-//            printf("Yaw %d, Pitch %d, Roll %d \n", data->yaw_rate, data->pitch_rate, data->roll_rate);
+            // DO SOMETHING WITH data
+            // data->yaw_rate
         }
             break;
         case Invalid:
-//            printf("Invalid command");
+            printf("Invalid command");
             break;
         default:
             break;
@@ -109,9 +108,9 @@ int main(void)
 //    struct Comms ble_comms BLE_init();
     struct Comms *serial_comms = Serial_create(115200);
 
-    struct CommandHandler *comm_handler = CommandHandler_create(COMM_SERIAL, command_handler_function);
+    ch = CommandHandler_create(COMM_SERIAL, command_handler_function);
 
-    CommandHandler_add_comms(comm_handler, COMM_SERIAL, serial_comms);
+    CommandHandler_add_comms(ch, COMM_SERIAL, serial_comms);
 //    CommandHandler_add_comms(comm_handler, ble_comms, COMM_BLE);
 
 
@@ -128,7 +127,7 @@ int main(void)
         LoopHandler_loop(lh, LH_LINK(serial_comms), LH_HZ_TO_PERIOD(20));
 //        LoopHandler_loop(lh, LH_LINK(ble_comms), LH_HZ_TO_PERIOD(50));
 
-        LoopHandler_loop(lh, LH_LINK(comm_handler), LH_HZ_TO_PERIOD(100));
+        LoopHandler_loop(lh, LH_LINK(ch), LH_HZ_TO_PERIOD(100));
 	}
 
 	printf("\n\t Goodbye \n\n");

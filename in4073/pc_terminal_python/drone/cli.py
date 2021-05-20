@@ -5,7 +5,7 @@ from enum import Enum
 from queue import Queue
 import re
 
-from communication.command import Command, CommandType
+from drone.command import Command, CommandType
 
 
 class CLIAction(Enum):

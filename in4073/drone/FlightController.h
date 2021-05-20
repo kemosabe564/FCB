@@ -32,6 +32,11 @@ struct FlightController
     struct IMU *imu;
     bool debug_mode;
 
+    uint8_t target_yaw;
+    uint8_t target_roll;
+    uint8_t target_pitch;
+    uint
+
     struct LoopHandlerControlBlock loop;
 };
 

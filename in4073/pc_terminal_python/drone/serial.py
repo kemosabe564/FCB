@@ -4,7 +4,7 @@ import serial
 import time
 from typing import Callable
 
-from communication.command import Command, SerialCommandDecoder
+from drone.command import Command, SerialCommandDecoder
 
 
 class Serial:

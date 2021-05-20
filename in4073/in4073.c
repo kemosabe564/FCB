@@ -58,6 +58,8 @@ void command_handler_function(struct Command *command)
             if (mode > 0)
                 FlightController_change_mode(fc, *mode);
 
+            Comms_enqueue(  )
+
             uint8_t *str = Command_encode_current_mode((uint8_t) fc->mode);
             uart_put_n(str, 2);
             free(str);

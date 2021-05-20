@@ -1,5 +1,5 @@
 from enum import Enum
-from communication.crc8 import crc8
+from drone.crc8 import crc8
 from queue import Queue
 
 
@@ -34,8 +34,8 @@ class Command:
     def __set_datum(self, key: str, value):
         if key in self.args:
             self.data[key] = value
-
-        # TODO: raise exception
+        else:
+            raise NameError("Command does not contain field '{}'".format(key))
 
     def __str__(self):
         parts = []
@@ -44,18 +44,18 @@ class Command:
 
         return "Command(type={}, data=({}))".format(self.type.name, ", ".join(parts))
 
-    def get(self, key: str):
+    def get_data(self, key: str):
         if key in self.args:
             return self.data[key]
 
-        return None  # TODO: raise exception
+        raise NameError("Command does not contain field '{}'".format(key))
 
     def encode(self):
         buffer = bytearray()
         crc_len = 1
 
         if self.type == CommandType.SetOrQueryMode:
-            buffer.append((self.type.value << 4) | (self.get("argument") & 0b1111))
+            buffer.append((self.type.value << 4) | (self.get_data("argument") & 0b1111))
 
         buffer.append(crc8(buffer, crc_len))
 

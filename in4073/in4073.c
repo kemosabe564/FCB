@@ -64,11 +64,12 @@ void command_handler_function(struct Command *command)
         case SetControl: {
 //            struct CommandControlData *data = (struct CommandControlData *)command->data;
 
-//            printf("Yaw %d, Pitch %d, Roll %d \n", data->yaw_rate, data->pitch_rate, data->roll_rate);
+            // DO SOMETHING WITH data
+            // data->yaw_rate
         }
             break;
         case Invalid:
-//            printf("Invalid command");
+            printf("Invalid command");
             break;
         default:
             break;

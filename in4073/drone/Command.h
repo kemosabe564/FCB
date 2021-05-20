@@ -13,15 +13,15 @@
 
 enum CommandType {
     Invalid = 0,
-    SetOrQueryMode,
-    CurrentMode,
-    SetControl,
-    AckControl,
-    QueryForces,
-    CurrentForces,
-    DebugMsg,
-    SetParam,
-    AckParam,
+    SetOrQueryMode = 0b0001,
+    CurrentMode = 0b0010,
+    SetControl = 0b0011,
+    AckControl = 0b0100,
+    QueryForces = 0b0101,
+    CurrentForces = 0b0110,
+    DebugMessage = 0b0111,
+    SetParam = 0b1000,
+    AckParam = 0b1001,
     LastCommand // Used for checking if command in valid range
 };
 

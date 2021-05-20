@@ -111,19 +111,25 @@ struct Command *Command_make_current_mode(uint8_t mode)
 {
     struct Command *cmd = (struct Command *)malloc(sizeof(struct Command));
 
+    // Only continue if cmd != NULL
+    // which means malloc was successful
     if (cmd)
     {
-        uint8_t *data = (uint8_t *)malloc(sizeof(uint8_t));
         cmd->type = CurrentMode;
 
+        uint8_t *data = (uint8_t *)malloc(sizeof(uint8_t));
+
+        // same as with previous malloc
         if (data)
         {
+            // allocation successful, so set data!
             *data = mode;
-
             cmd->data = (void *)data;
+
             return cmd;
         }
 
+        // since second malloc failed, free previously allocated memory
         free(cmd);
     }
 

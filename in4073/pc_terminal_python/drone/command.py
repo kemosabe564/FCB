@@ -27,6 +27,9 @@ class Command:
         if self.type == CommandType.CurrentMode:
             self.args = ["argument"]
 
+        if self.type == CommandType.SetControl:
+            self.args = ["argument", "yaw", "pitch", "roll", "throttle"]
+
     def set_data(self, **kwargs):
         for key, value in kwargs.items():
             self.__set_datum(key, value)
@@ -56,6 +59,14 @@ class Command:
 
         if self.type == CommandType.SetOrQueryMode:
             buffer.append((self.type.value << 4) | (self.get_data("argument") & 0b1111))
+
+        if self.type == CommandType.SetControl:
+            buffer.append((self.type.value << 4) | (self.get_data("argument") & 0b1111))
+            buffer.append(self.get_data("yaw") & 0b11111111)
+            buffer.append(self.get_data("pitch") & 0b11111111)
+            buffer.append(self.get_data("roll") & 0b11111111)
+            buffer.append(self.get_data("throttle") & 0b11111111)
+            crc_len = 5
 
         buffer.append(crc8(buffer, crc_len))
 

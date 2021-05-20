@@ -12,8 +12,8 @@ MODE > 0000 -> Set Mode
        MODE
 
 ## 3 > SetControl
-| 0011 XXXX | XXXX XXXX | XXXX XXXX | XXXX XXXX | XXXX XXXX | XXXX XXXX | XXXX XXXX | XXXX XXXX | XXXX XXXX | 8 BIT CRC |
-       MODE   YAW MSB     YAW LSB     PITCH MSB   PITCH LSB   ROLL MSB    ROLL LSB    CLIMB MSB   CLIMB LSB
+| 0011 XXXX | XXXX XXXX | XXXX XXXX | XXXX XXXX | XXXX XXXX | 8 BIT CRC |
+       MODE   YAW         PITCH       ROLL        CLIMB
 
 MODE -> Control mode check
 	If it doesn't correspond with current mode then 

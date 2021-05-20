@@ -13,7 +13,7 @@
 
 enum FlightControllerMode
 {
-    Init = 0,
+    Init = 1,
     Safe,
     Panic,
     Manual,
@@ -39,7 +39,7 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
 
 char *FlightControllerMode_to_str(enum FlightControllerMode mode);
 
-void FlightController_change_mode(struct FlightController *self, enum FlightControllerMode mode);
+bool FlightController_change_mode(struct FlightController *self, enum FlightControllerMode mode);
 bool FlightController_check_rotors_safe(struct FlightController *self);
 void FlightController_loop(void *context, uint32_t delta_us);
 void FlightController_destroy(struct FlightController *self);

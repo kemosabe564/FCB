@@ -14,6 +14,7 @@
 struct Comms {
     struct Command *commands[COMMS_QUEUE_LEN];
     struct LoopHandlerControlBlock loop;
+//    void *data;
 
     uint16_t first;
     uint16_t last;

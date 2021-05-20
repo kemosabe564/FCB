@@ -18,8 +18,12 @@ struct Comms *Serial_create(int32_t baud_rate)
         result->first = 0;
         result->last = COMMS_QUEUE_LEN - 1;
         result->count = 0;
-
         result->loop = LoopHandler_init_controlblock(Serial_loop);
+
+        // send protocol enable message to terminal
+        for (uint8_t i = 0; i < 10; i += 1)
+            uart_put(0xff);
+
     }
 
     return result;

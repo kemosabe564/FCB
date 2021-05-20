@@ -1,16 +1,20 @@
+import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 import argparse
 
 from communication.serial import Serial
-from communication.command import Command, CommandType
+from communication.command import Command, CommandType, SerialCommandDecoder
 from communication.cli import CLI, CLIAction
+from communication.crc8 import crc8
 
 ser = None
 cli = None
 
 
 def new_cmd_handler(data):
-    cli.to_cli(data)
+    # cli.to_cli(data)
+    pass
 
 
 def new_action_handler(action, data=None):
@@ -20,6 +24,9 @@ def new_action_handler(action, data=None):
     if action == CLIAction.Exit:
         ser.stop()
         cli.stop()
+
+    if action == CLIAction.SetProtocol:
+        ser.set_protocol(data)
 
 
 if __name__ == "__main__":

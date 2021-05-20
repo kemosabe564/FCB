@@ -26,6 +26,12 @@ Queue tx_queue;
 static bool txd_available = true;
 static bool uart_init_done = false;
 
+void uart_put_n(uint8_t *bytes, uint16_t n)
+{
+    for (int i = 0; i < n; i += 1)
+        uart_put(bytes[i]);
+}
+
 void uart_put(uint8_t byte)
 {
 	if (wireless_mode) {

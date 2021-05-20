@@ -22,7 +22,7 @@ CRC8_LUT = [
 ]
 
 
-def crc8(bytes: bytearray, n=None):
+def crc8(bytes, n=None):
     if n is None:
         n = len(bytes)
 

@@ -41,21 +41,21 @@ struct Command *Command_decode(uint8_t *data)
                 result->data = (void *)data;
             }
                 break;
-            case CurrentMode:
+            case CurrentMode: // Doesn't need to be decoded on drone side
                 break;
             case SetControl: {
                 // Do something with the remaining data
-                struct CommandControlData *data = (struct CommandControlData *)malloc(sizeof(struct CommandControlData));
+                struct CommandControlData *control_data = (struct CommandControlData *)malloc(sizeof(struct CommandControlData));
 
                 if (data)
                 {
-                    data->yaw_rate      = *((uint16_t *)&data[2]);
-                    data->pitch_rate    = *((uint16_t *)&data[4]);
-                    data->roll_rate     = *((uint16_t *)&data[6]);
-                    data->climb_rate    = *((uint16_t *)&data[8]);
+                    control_data->yaw_rate      = data[1];
+                    control_data->pitch_rate    = data[2];
+                    control_data->roll_rate     = data[3];
+                    control_data->climb_rate    = data[4];
                 }
 
-                result->data = (void *)data;
+                result->data = (void *)control_data;
             }
                 break;
             case AckControl:
@@ -80,26 +80,17 @@ struct Command *Command_decode(uint8_t *data)
 
 uint8_t *Command_encode(struct Command *command)
 {
-    uint8_t data_len = Command_data_len(command->type);
     uint8_t *encoded = NULL;
 
     switch (command->type)
     {
-        case SetControl: {
-            struct CommandControlData *d = (struct CommandControlData *)command->data;
-            encoded = (uint8_t *)malloc((1 + data_len + 1) * sizeof(uint8_t));
+        case CurrentMode: {
+            encoded = (uint8_t *)malloc((1 + 0 + 1) * sizeof(uint8_t));
 
-            encoded[0] = (command->type << 4);
-            encoded[1] = ((d->yaw_rate & 0xFF00) >> 8);
-            encoded[2] = (d->yaw_rate & 0x00FF);
-            encoded[3] = ((d->pitch_rate & 0xFF00) >> 8);
-            encoded[4] = (d->pitch_rate & 0x00FF);
-            encoded[5] = ((d->roll_rate & 0xFF00) >> 8);
-            encoded[6] = (d->roll_rate & 0x00FF);
-            encoded[7] = ((d->climb_rate & 0xFF00) >> 8);
-            encoded[8] = (d->climb_rate & 0x00FF);
+            uint8_t *mode = (uint8_t *)command->data;
+            encoded[0] = ((command->type << 4) | *mode);
 
-            encoded[9] = crc8_fast(encoded, 1 + data_len);
+            encoded[1] = crc8_fast(encoded, 1);
         }
             break;
         default:
@@ -109,34 +100,15 @@ uint8_t *Command_encode(struct Command *command)
     return encoded;
 }
 
-uint8_t *Command_encode_set_mode(uint8_t mode)
-{
-    return (mode < 16) ? Command_encode_simple(SetOrQueryMode, mode) : NULL;
-}
-
-uint8_t *Command_encode_query_mode()
-{
-    return Command_encode_set_mode(0);
-}
 uint8_t *Command_encode_current_mode(uint8_t mode)
 {
-    return Command_encode_simple(CurrentMode, mode);
+    struct Command cmd = {
+        .type = CurrentMode,
+        .data = (void *) &mode
+    };
+
+    return Command_encode(&cmd);
 }
-
-uint8_t *Command_encode_simple(enum CommandType type, uint8_t argument)
-{
-    uint8_t *command = (uint8_t *)malloc(2);
-
-    if (command)
-    {
-        command[0] = (type << 4 | argument);
-        command[1] = crc8_fast(command, 1);
-    }
-
-    return command;
-}
-
-//uint8_t *Command_encode_extended(enum CommandType type, uint8_t argument, uint8_t n);
 
 uint8_t Command_data_len(uint8_t header)
 {
@@ -149,7 +121,7 @@ uint8_t Command_data_len(uint8_t header)
         case CurrentMode:
             return 0;
         case SetControl:
-            return 8;
+            return 4;
         case AckControl:
             return 0;
         case QueryForces:
@@ -175,6 +147,7 @@ void Command_destroy(struct Command *self)
     {
         switch (self->type)
         {
+            case SetOrQueryMode: free((uint8_t *) self->data); break;
             case SetControl: free((struct CommandControlData *) self->data); break;
             default:
                 break;

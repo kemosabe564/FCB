@@ -29,6 +29,7 @@
 #include "control.h"
 #include "mpu6050/mpu6050.h"
 #include "utils/quad_ble.h"
+#include <stdlib.h>
 
 #include "drone/LoopHandler.h"
 #include "drone/CommandHandler.h"
@@ -37,6 +38,8 @@
 #include "drone/Serial.h"
 #include "drone/IMU.h"
 #include "drone/FlightController.h"
+
+//#include "app_uart.h"
 
 bool demo_done;
 
@@ -51,35 +54,28 @@ void command_handler_function(struct Command *command)
     {
         case SetOrQueryMode:
         {
-            printf("SetOrQueryMode \n");
-            enum FlightControllerMode *mode = (enum FlightControllerMode *)command->data;
+            uint8_t *mode = (uint8_t *)command->data;
+            if (mode > 0)
+                FlightController_change_mode(fc, *mode);
 
-            FlightController_change_mode(fc, *mode);
+            uint8_t *str = Command_encode_current_mode((uint8_t) fc->mode);
+            uart_put_n(str, 2);
+            free(str);
         }
             break;
         case SetControl: {
-            struct CommandControlData *data = (struct CommandControlData *)command->data;
+//            struct CommandControlData *data = (struct CommandControlData *)command->data;
 
-            printf("Yaw %d, Pitch %d, Roll %d \n", data->yaw_rate, data->pitch_rate, data->roll_rate);
+//            printf("Yaw %d, Pitch %d, Roll %d \n", data->yaw_rate, data->pitch_rate, data->roll_rate);
         }
             break;
         case Invalid:
-            printf("Invalid command");
+//            printf("Invalid command");
             break;
         default:
             break;
     }
 }
-
-void heartbeat(void *context, uint32_t delta_us)
-{
-    static int num = 0;
-    printf("Heartbeat %d \n", num++);
-}
-
-struct LoopHandlerControlBlock heartbeat_cb = {
-    .func = heartbeat
-};
 
 int main(void)
 {
@@ -119,8 +115,6 @@ int main(void)
 //    CommandHandler_add_comms(comm_handler, ble_comms, COMM_BLE);
 
 
-
-
 	while (running)
 	{
         LoopHandler_loop(lh, LH_LINK(fc), LH_HZ_TO_PERIOD(10));
@@ -135,8 +129,6 @@ int main(void)
 //        LoopHandler_loop(lh, LH_LINK(ble_comms), LH_HZ_TO_PERIOD(50));
 
         LoopHandler_loop(lh, LH_LINK(comm_handler), LH_HZ_TO_PERIOD(100));
-
-        LoopHandler_loop(lh, &heartbeat_cb, (void *) NULL, 5000000);
 	}
 
 	printf("\n\t Goodbye \n\n");

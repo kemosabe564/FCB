@@ -95,24 +95,21 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
     return result;
 }
 
-void FlightController_change_mode(struct FlightController *self, enum FlightControllerMode mode)
+bool FlightController_change_mode(struct FlightController *self, enum FlightControllerMode mode)
 {
     if (self)
     {
-        printf("Attempting to change mode \n");
         if (self->mode != mode && (FlightController_check_rotors_safe(self) || mode == Panic))
         {
             // We can only change from panic over to safe
             if (self->mode != Panic || (self->mode == Panic && mode == Safe))
             {
-                printf("Changing mode from %s to %s \n",
-                       FlightControllerMode_to_str(self->mode),
-                       FlightControllerMode_to_str(mode));
-
                 self->mode = mode;
+                return true;
             }
         }
     }
+    return false;
 }
 
 bool FlightController_check_rotors_safe(struct FlightController *self)
@@ -123,12 +120,10 @@ bool FlightController_check_rotors_safe(struct FlightController *self)
         {
             if (self->rotors[i]->actual_rpm)
             {
-                printf("Not safe\n");
                 return false;
             }
         }
     }
-    printf("Safe\n");
     return true;
 }
 

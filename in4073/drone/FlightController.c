@@ -10,6 +10,7 @@
 #include "../control.h"
 
 #include "../hal/adc.h"
+#include "../mpu6050/mpu6050.h"
 
 void FlightController_loop(void *context, uint32_t delta_us)
 {
@@ -76,6 +77,15 @@ void FlightController_loop(void *context, uint32_t delta_us)
 
             break;
         case Yaw:
+            //TODO: check if we need to add minus or plus sr
+            int p_yaw = 1;
+            int compensation_yaw = p_yaw * sr ;
+            int base_rpm =250;
+            Rotor_set_rpm(self->rotors[0], base_rpm);
+            Rotor_set_rpm(self->rotors[1],base_rpm + compensation_yaw);
+            Rotor_set_rpm(self->rotors[2], base_rpm);
+            Rotor_set_rpm(self->rotors[3],base_rpm + compensation_yaw);
+
 
             break;
         case Full:

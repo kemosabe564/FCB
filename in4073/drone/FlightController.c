@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #include "../control.h"
 
@@ -28,9 +29,10 @@ void FlightController_loop(void *context, uint32_t delta_us)
             FlightController_change_mode(self, Safe);
             break;
         case Safe:
-            //TODO:nathan please check
-            for (int i =0; i <self->num_rotors;i++)
-                Rotor_set_rpm(&self->rotors[i],0)
+            for (int i =0; i <self->num_rotors; i++)
+            {
+                Rotor_set_rpm(self->rotors[i],0);
+            }
 
 //
 //            Rotor_set_rpm(self->rotors[0], self->rotors[0]->actual_rpm + (incrementing ? 10 : -10));
@@ -48,35 +50,38 @@ void FlightController_loop(void *context, uint32_t delta_us)
 //                Rotor_set_rpm(self->rotors[i], 0);
 
             break;
-        case Panic:
-            //TODO:Nathan please check
+        case Panic: {
+            bool check_if_all_zero = true;
             for (int i = 0; i < self->num_rotors; i++)
-                if (self->rotors[i]->actual_rpm>0) {
+            {
+                if (self->rotors[i]->actual_rpm > 0)
+                {
                     Rotor_set_rpm(self->rotors[i], self->rotors[i]->actual_rpm - 1);
+                    check_if_all_zero = false;
                 }
-            int check_if_all_zero = 0;
-            for (int i = 0; i < self->num_rotors; i++)
-                if (self->rotors[i]->actual_rpm > 0 ){
-                    check_if_all_zero =1;
-                }
-            if (check_if_all_zero){
+            }
+
+            if (check_if_all_zero)
+            {
                 FlightController_change_mode(self,Safe);
             }
+        }
             break;
-        case Manual:
+        case Manual: {
             //TODO:Check if this simulates yawing
             int base_rpm =250;
             int additional_rpm =5;
+
             Rotor_set_rpm(self->rotors[0], base_rpm);
             Rotor_set_rpm(self->rotors[1],base_rpm + additional_rpm);
             Rotor_set_rpm(self->rotors[2], base_rpm);
             Rotor_set_rpm(self->rotors[3],base_rpm + additional_rpm);
-
+        }
             break;
         case Calibrate:
 
             break;
-        case Yaw:
+        case Yaw: {
             //TODO: check if we need to add minus or plus sr
             int p_yaw = 1;
             int compensation_yaw = p_yaw * sr ;
@@ -85,8 +90,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
             Rotor_set_rpm(self->rotors[1],base_rpm + compensation_yaw);
             Rotor_set_rpm(self->rotors[2], base_rpm);
             Rotor_set_rpm(self->rotors[3],base_rpm + compensation_yaw);
-
-
+        }
             break;
         case Full:
 

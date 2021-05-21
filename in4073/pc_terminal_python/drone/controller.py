@@ -16,7 +16,7 @@ class Controller:
         self.joystick_isAvailable = False
 
         #this is done in gui already
-        # pygame.init()
+        pygame.init()
         # size = [500, 700]
         # self.screen = pygame.display.set_mode(size)
         #pygame.display.set_caption("My Quadruple game")
@@ -65,9 +65,9 @@ class Controller:
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q: #yaw down
-                    offset_yaw = self.dec_check_limits(offset_yaw)
+                    self.offset_yaw = self.dec_check_limits(self.offset_yaw)
                 if event.key == pygame.K_w: #yaw up
-                    offset_roll = self.inc_check_limits(offset_roll)
+                    self.offset_yaw = self.inc_check_limits(self.offset_yaw)
                 if event.key == pygame.K_0: #safe mode
                     #TODO:Send cmod command
                     pass

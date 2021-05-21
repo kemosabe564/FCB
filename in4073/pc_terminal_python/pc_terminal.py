@@ -53,6 +53,7 @@ if __name__ == "__main__":
 
     if not args.no_gui:
         gui = GUI((800, 480), drone)
+        gui.set_on_event(handler=lambda event: controller.handle_event(event))
         gui.set_on_quit(on_quit)
 
         # PyGame needs to run on the main thread...

@@ -2,6 +2,7 @@ import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 from typing import Callable
+from queue import Queue
 
 from drone.drone import Drone
 
@@ -15,9 +16,13 @@ class GUI:
         self.screen = pygame.display.set_mode(size)
 
         self.on_quit = None
+        self.on_event = None
 
     def set_on_quit(self, handler: Callable):
         self.on_quit = handler
+
+    def set_on_event(self, handler: Callable):
+        self.on_event = handler
 
     def main_loop(self):
 
@@ -31,6 +36,9 @@ class GUI:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.__quit()
+            else:
+                if self.on_event:
+                    self.on_event(event)
 
     def __draw_loop(self):
         width, height = self.screen_size

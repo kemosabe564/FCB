@@ -3,7 +3,7 @@ import threading
 import time
 
 
-from drone.drone import Drone
+from drone.drone import Drone, FlightMode
 
 # Joystick and keyboard stuff
 
@@ -60,29 +60,46 @@ class Controller:
             value = value - self.step
         return value
 
+    def handle_event(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_q:  # yaw down
+                self.offset_yaw = self.dec_check_limits(self.offset_yaw)
+            if event.key == pygame.K_w:  # yaw up
+                self.offset_yaw = self.inc_check_limits(self.offset_yaw)
+            if event.key == pygame.K_0:  # safe mode
+                self.drone.change_mode(FlightMode.Safe)
+            if event.key == pygame.K_1:  # panic mode
+                self.drone.change_mode(FlightMode.Panic)
+            if event.key == pygame.K_2:  # manual mode
+                self.drone.change_mode(FlightMode.Manual)
+            if event.key == pygame.K_3:  # calibration
+                self.drone.change_mode(FlightMode.Calibrate)
+            if event.key == pygame.K_4:  # yaw rate
+                self.drone.change_mode(FlightMode.Yaw)
 
     def update_keys(self):
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_q: #yaw down
-                    self.offset_yaw = self.dec_check_limits(self.offset_yaw)
-                if event.key == pygame.K_w: #yaw up
-                    self.offset_yaw = self.inc_check_limits(self.offset_yaw)
-                if event.key == pygame.K_0: #safe mode
-                    #TODO:Send cmod command
-                    pass
-                if event.key == pygame.K_1: #panic mode
-                    #TODO:Send cmod command
-                    pass
-                if event.key == pygame.K_2: #manual mode
-                    #TODO:Send cmod command
-                    pass
-                if event.key == pygame.K_3: #calibration
-                    #TODO:Send cmod command
-                    pass
-                if event.key == pygame.K_4: #yaw rate
-                    #TODO:Send cmod command
-                    pass
+        pass
+        # for event in pygame.event.get():
+        #     if event.type == pygame.KEYDOWN:
+        #         if event.key == pygame.K_q: #yaw down
+        #             self.offset_yaw = self.dec_check_limits(self.offset_yaw)
+        #         if event.key == pygame.K_w: #yaw up
+        #             self.offset_yaw = self.inc_check_limits(self.offset_yaw)
+        #         if event.key == pygame.K_0: #safe mode
+        #             #TODO:Send cmod command
+        #             pass
+        #         if event.key == pygame.K_1: #panic mode
+        #             #TODO:Send cmod command
+        #             pass
+        #         if event.key == pygame.K_2: #manual mode
+        #             #TODO:Send cmod command
+        #             pass
+        #         if event.key == pygame.K_3: #calibration
+        #             #TODO:Send cmod command
+        #             pass
+        #         if event.key == pygame.K_4: #yaw rate
+        #             #TODO:Send cmod command
+        #             pass
 
     #TODO: This needs to be changed to limit to [-1,+1]
     #TODO: Check what this needs to be mapped to

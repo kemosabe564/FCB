@@ -11,7 +11,7 @@ class FlightMode(Enum):
     Manual = 4
     Calibrate = 5
     Full = 6
-    Raw = 7
+    Yaw = 7
     HoldHeight = 8
 
 
@@ -35,8 +35,11 @@ class Drone:
     def get_angles(self):
         return self.phi, self.theta, self.psi
 
-    def change_mode(self, mode):
-        pass
+    def change_mode(self, mode: FlightMode):
+        command = Command(CommandType.SetOrQueryMode)
+        command.set_data(argument=mode.value)
+
+        self.serial.send_command(command)
 
     def set_control(self, yaw, pitch, roll, throttle):
         pass

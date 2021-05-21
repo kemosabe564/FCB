@@ -64,7 +64,7 @@ struct Command *Command_decode(uint8_t *data)
                 break;
             case CurrentForces:
                 break;
-            case DebugMsg:
+            case DebugMessage:
                 break;
             case SetParam:
                 break;
@@ -154,7 +154,7 @@ uint8_t Command_data_len(uint8_t header)
             return 0;
         case CurrentForces:
             return 6;
-        case DebugMsg:
+        case DebugMessage:
             return (header & HEADER_DATA_MASK);
         case SetParam:
             return 2;

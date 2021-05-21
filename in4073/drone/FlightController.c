@@ -30,7 +30,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
         case Safe:
             //TODO:nathan please check
             for (int i =0; i <self->num_rotors;i++)
-            Rotor_set_rpm(self->rotor[i]),0)
+                Rotor_set_rpm(&self->rotors[i],0)
 
 //
 //            Rotor_set_rpm(self->rotors[0], self->rotors[0]->actual_rpm + (incrementing ? 10 : -10));

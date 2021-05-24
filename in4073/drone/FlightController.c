@@ -13,14 +13,17 @@
 #include "../hal/adc.h"
 #include "../mpu6050/mpu6050.h"
 
+
+
 void FlightController_loop(void *context, uint32_t delta_us)
 {
     struct FlightController *self = (struct FlightController *)context;
-
+    self->current_psi = psi;
 //    static int check = 0;
 //    printf("FlightController_loop %d - Bat %4d - Motor %d - Mode::%s \n", check++, bat_volt, motor[0], FlightControllerMode_to_str(self->mode));
 //
 //    static int incrementing = 1;
+
 
     switch (self->mode) {
         case Init:
@@ -68,28 +71,33 @@ void FlightController_loop(void *context, uint32_t delta_us)
         }
             break;
         case Manual: {
-            //TODO:Check if this simulates yawing
-//            int base_rpm = 200;
-////            int additional_rpm = 100;
 
-            Rotor_set_rpm(self->rotors[0], self->throttle + self->pitch_rate - self->yaw_rate);
-            Rotor_set_rpm(self->rotors[1], self->throttle + self->roll_rate  + self->yaw_rate);
-            Rotor_set_rpm(self->rotors[2], self->throttle - self->pitch_rate - self->yaw_rate);
-            Rotor_set_rpm(self->rotors[3], self->throttle - self->roll_rate  + self->yaw_rate);
+            int t = FlightController_map_throttle(self);
+
+            Rotor_set_rpm(self->rotors[0], t + self->pitch_rate - self->yaw_rate);
+            Rotor_set_rpm(self->rotors[1], t + self->roll_rate  + self->yaw_rate);
+            Rotor_set_rpm(self->rotors[2], t - self->pitch_rate - self->yaw_rate);
+            Rotor_set_rpm(self->rotors[3], t - self->roll_rate  + self->yaw_rate);
         }
             break;
         case Calibrate:
 
             break;
         case Yaw: {
-            //TODO: check if we need to add minus or plus sr
-            int p_yaw = 1;
-            int compensation_yaw = p_yaw * sr ;
-            int base_rpm = 200;
-            Rotor_set_rpm(self->rotors[0], base_rpm);
-            Rotor_set_rpm(self->rotors[1],base_rpm + compensation_yaw);
-            Rotor_set_rpm(self->rotors[2], base_rpm);
-            Rotor_set_rpm(self->rotors[3],base_rpm + compensation_yaw);
+            int16_t t = FlightController_map_throttle(self);
+            //get set point
+            int16_t setPoint = self->yaw_rate;
+            //get sensor reading
+            int16_t  psi_rate = (self-> current_psi - self->previous_psi )/(delta_us * 1000);
+            //calculate error
+            int16_t yaw_error = setPoint - psi_rate;
+            //calculate compensation and apply
+            int16_t yaw_compensation = YAW_P * yaw_error;
+
+            Rotor_set_rpm(self->rotors[0], t + self->pitch_rate - yaw_compensation);
+            Rotor_set_rpm(self->rotors[1], t + self->roll_rate  + yaw_compensation);
+            Rotor_set_rpm(self->rotors[2], t - self->pitch_rate - yaw_compensation);
+            Rotor_set_rpm(self->rotors[3], t - self->roll_rate  + yaw_compensation);
         }
             break;
         case Full:
@@ -102,6 +110,9 @@ void FlightController_loop(void *context, uint32_t delta_us)
 
             break;
     }
+    self->previous_psi = self->current_psi;
+
+
 }
 
 struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *rotors[], uint8_t num_rotors)
@@ -120,6 +131,8 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
         result->num_rotors = num_rotors;
         result->rotors = (struct Rotor **)malloc(num_rotors * sizeof(struct Rotor *));
         memcpy(result->rotors, rotors, num_rotors * sizeof(struct Rotor *));
+        result->current_psi = psi;
+        result->previous_psi = psi;
     }
 
     return result;
@@ -187,7 +200,8 @@ void FlightController_set_controls(struct FlightController *self, int16_t yaw_ra
         self->yaw_rate = yaw_rate - 127;
         self->pitch_rate = pitch_rate - 127;
         self->roll_rate = roll_rate - 127;
-        self->throttle = throttle + 150;
+        self->throttle = throttle;
+
     }
 }
 
@@ -213,4 +227,27 @@ void FlightController_destroy(struct FlightController *self)
     {
         free(self);
     }
+}
+
+int FlightController_map_throttle(struct  FlightController *self)
+{
+    int t;
+    if (self->throttle >10)
+    {
+        t= (self->throttle + 80) * 2;
+    }
+    else
+    {
+        t=0;
+    }
+    return t;
+}
+
+void FlightController_set_limited_rpm(struct FlightController *self, int rid ,int rpm)
+{
+    if (rpm < MINIMUM_RPM)
+    {
+        rpm = MINIMUM_RPM;
+    }
+    Rotor_set_rpm(self->rotors[rid],rpm);
 }

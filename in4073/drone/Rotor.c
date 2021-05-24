@@ -42,9 +42,9 @@ struct Rotor *Rotor_create(struct RotorMap *map, uint8_t motor_idx, int x_offset
 void Rotor_set_rpm(struct Rotor *self, uint16_t rpm) {
     if (self)
     {
-        if (rpm >= 400)
+        if (rpm >= SAFE_RPM_LIMIT)
         {
-            rpm = 400;
+            rpm = SAFE_RPM_LIMIT;
         }
 
         self->target_rpm = rpm;

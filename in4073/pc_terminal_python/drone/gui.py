@@ -25,7 +25,6 @@ class GUI:
         self.on_event = handler
 
     def main_loop(self):
-
         while not self.terminate:
             self.__event_loop()
             self.__draw_loop()

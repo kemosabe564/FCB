@@ -5,14 +5,16 @@ from drone.command import Command, CommandType
 
 
 class FlightMode(Enum):
+    Invalid = 0
     Init = 1
     Safe = 2
     Panic = 3
     Manual = 4
     Calibrate = 5
-    Full = 6
-    Yaw = 7
-    HoldHeight = 8
+    Yaw = 6
+    Full = 7
+    Raw = 8
+    HoldHeight = 9
 
 
 class Drone:
@@ -42,4 +44,7 @@ class Drone:
         self.serial.send_command(command)
 
     def set_control(self, yaw, pitch, roll, throttle):
-        pass
+        command = Command(CommandType.SetControl)
+        command.set_data(argument=self.mode.value, yaw=yaw, pitch=pitch, roll=roll, throttle=throttle)
+
+        self.serial.send_command(command)

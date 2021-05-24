@@ -7,7 +7,6 @@ from drone.drone import Drone, FlightMode
 
 # Joystick and keyboard stuff
 
-
 class Controller:
     def __init__(self, drone: Drone):
         self.drone = drone
@@ -71,11 +70,16 @@ class Controller:
             if event.key == pygame.K_1:  # panic mode
                 self.drone.change_mode(FlightMode.Panic)
             if event.key == pygame.K_2:  # manual mode
-                self.drone.change_mode(FlightMode.Manual)
+                if self.drone.mode == FlightMode.Safe and self.input_safe():
+                    self.drone.change_mode(FlightMode.Manual)
+                else:
+                    print("NOT SAFE")
             if event.key == pygame.K_3:  # calibration
-                self.drone.change_mode(FlightMode.Calibrate)
+                # self.drone.change_mode(FlightMode.Calibrate)
+                pass
             if event.key == pygame.K_4:  # yaw rate
-                self.drone.change_mode(FlightMode.Yaw)
+                # self.drone.change_mode(FlightMode.Yaw)
+                pass
 
     def update_keys(self):
         pass
@@ -104,21 +108,42 @@ class Controller:
     #TODO: This needs to be changed to limit to [-1,+1]
     #TODO: Check what this needs to be mapped to
     def update_inputs(self):
-        self.input_roll = self.joystick.get_axis(0)
-        self.input_pitch = self.joystick.get_axis(1)
-        self.input_yaw = self.joystick.get_axis(2) + self.offset_yaw
-        self.input_throttle = self.joystick.get_axis(3)
+        self.input_roll = self.map(self.joystick.get_axis(0))
+        self.input_pitch = self.map(self.joystick.get_axis(1))
+        yaw = self.joystick.get_axis(2) + self.offset_yaw
+        if yaw >= 1:
+            yaw = 1
+        elif yaw <= -1:
+            yaw = -1
+        self.input_yaw = self.map(yaw)
+        self.input_throttle = self.map(-self.joystick.get_axis(3))
 
+        # print(self.input_throttle, self.input_roll, self.input_pitch, self.input_yaw)
+
+        if self.drone.mode == FlightMode.Manual:
+            self.drone.set_control(yaw=self.input_yaw, pitch=self.input_pitch, roll=self.input_roll, throttle=self.input_throttle)
+
+    def at_deadpoint(self, x):
+        if (x > 120) and (x < 134):
+            return True
+        return False
+
+    def input_safe(self):
+        return (self.input_throttle <= 10) and self.at_deadpoint(self.input_yaw) and self.at_deadpoint(self.input_pitch) and self.at_deadpoint(self.input_roll)
+
+    def map(self, x):
+        return int((x + 1) * 127)
 
     def thread_function(self):
         while not self.terminate:
-            if (self.joystick_isAvailable):
+            if self.joystick_isAvailable:
                 self.update_keys()
                 self.update_inputs()
                 #TODO: Implement this sending
-                self.drone.set_control(self.input_yaw, self.input_roll, self.input_pitch, self.input_throttle)
 
-            time.sleep(0.01)
+                # self.drone.set_control(self.input_yaw, self.input_roll, self.input_pitch, self.input_throttle)
+
+            time.sleep(0.02)
             # controller reading and parsing loop
 
             # if KEYEVENT = '1'

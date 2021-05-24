@@ -47,6 +47,11 @@ bool demo_done;
 struct FlightController *fc = NULL;
 struct CommandHandler *ch = NULL;
 
+void changed_mode_handler(enum FlightControllerMode new_mode, enum FlightControllerMode old_mode)
+{
+    CommandHandler_send_command(ch, Command_make_current_mode((uint8_t) new_mode));
+}
+
 void command_handler_function(struct Command *command)
 {
     switch (command->type)
@@ -56,16 +61,19 @@ void command_handler_function(struct Command *command)
             uint8_t *mode = (uint8_t *)command->data;
 
             if (*mode > 0)
+            {
                 FlightController_change_mode(fc, *mode);
-
-            CommandHandler_send_command(ch, Command_make_current_mode((uint8_t) fc->mode));
+            }
+            else
+            {
+                CommandHandler_send_command(ch, Command_make_current_mode((uint8_t) fc->mode));
+            }
         }
             break;
         case SetControl: {
-//            struct CommandControlData *data = (struct CommandControlData *)command->data;
+            struct CommandControlData *data = (struct CommandControlData *)command->data;
 
-            // DO SOMETHING WITH data
-            // data->yaw_rate
+            FlightController_set_controls(fc, data->yaw_rate, data->pitch_rate, data->roll_rate, data->climb_rate);
         }
             break;
         case Invalid:
@@ -104,6 +112,7 @@ int main(void)
     struct IMU *imu = IMU_create();
 
     fc = FlightController_create(imu, (struct Rotor *[]){ r1, r2, r3, r4 }, 4);
+    FlightController_set_on_change_mode(fc, changed_mode_handler);
 
 //    struct Comms ble_comms BLE_init();
     struct Comms *serial_comms = Serial_create(115200);

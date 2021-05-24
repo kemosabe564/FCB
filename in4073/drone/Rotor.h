@@ -8,6 +8,8 @@
 #include <stdint.h>
 #include "LoopHandler.h"
 
+#define SAFE_RPM_LIMIT 400
+
 struct Rotor
 {
     int x_offset;

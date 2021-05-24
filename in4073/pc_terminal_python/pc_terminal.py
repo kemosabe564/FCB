@@ -2,7 +2,7 @@ import argparse
 
 from drone.serial import Serial
 from drone.cli import CLI, CLIAction
-from drone.command import Command
+from drone.command import Command, CommandType
 from drone.drone import Drone
 from drone.controller import Controller
 from drone.gui import GUI
@@ -16,6 +16,9 @@ gui = None
 def new_cmd_handler(data):
     if type(data) != Command:
         cli.to_cli(data)
+    else:
+        if data.type == CommandType.DebugMessage:
+            cli.to_cli("[drone debug] {}".format(data.get_data("message")))
 
 
 def on_quit():

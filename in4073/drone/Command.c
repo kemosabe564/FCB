@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <stdarg.h>
+#include <string.h>
 
 #include "utils/crc8.h"
 
@@ -95,6 +97,26 @@ struct EncodedCommand Command_encode(struct Command *command)
             encoded[1] = crc8_fast(encoded, 1);
         }
             break;
+        case DebugMessage: {
+            struct CommandDebugMessage *data = (struct CommandDebugMessage *)command->data;
+            uint16_t message_size = data->size;
+
+            // protocol only allows for 256 characters per debug command
+            if (message_size > 17)
+                message_size = 17;
+
+            // allocate space for encoded command string
+            size = (1 + message_size + 1); // header + size of message + [message] + crc
+            encoded = (uint8_t *)malloc(size * sizeof(uint8_t));
+
+            // set header
+            encoded[0] = ((command->type << 4) | ((message_size - 1) & 0b1111));
+            // copy debug message to the remaining buffer
+            memcpy(&encoded[1], data->message, message_size);
+
+            // setting last buffer element to CRC
+            encoded[size - 1] = crc8_fast(encoded, size - 1);
+        }
         default:
             break;
     }
@@ -130,6 +152,45 @@ struct Command *Command_make_current_mode(uint8_t mode)
         }
 
         // since second malloc failed, free previously allocated memory
+        free(cmd);
+    }
+
+    return NULL;
+}
+
+struct Command *Command_make_debug_msg(const char *format, ...)
+{
+    struct Command *cmd = (struct Command *)malloc(sizeof(struct Command));
+
+    if (cmd)
+    {
+        cmd->type = DebugMessage;
+        struct CommandDebugMessage *data = (struct CommandDebugMessage *)malloc(sizeof(struct CommandDebugMessage));
+
+        if (data)
+        {
+            va_list args;
+            va_start(args, format);
+            uint16_t size = vsprintf(NULL, format, args);
+
+            if (size > 0)
+            {
+                char *message = (char *)malloc(size * sizeof(char));
+                vsprintf(message, format, args);
+
+                data->size = size;
+                data->message = message;
+
+                cmd->data = (void *)data;
+
+                return cmd;
+            }
+
+            // Allocation of message failed
+            free(data);
+        }
+
+        // Allocation of data struct failed
         free(cmd);
     }
 
@@ -175,9 +236,17 @@ void Command_destroy(struct Command *self)
         {
             case SetOrQueryMode:
             case CurrentMode:
-                free((uint8_t *) self->data); break;
+                free((uint8_t *) self->data);
+                break;
             case SetControl:
-                free((struct CommandControlData *) self->data); break;
+                free((struct CommandControlData *) self->data);
+                break;
+            case DebugMessage: {
+                struct CommandDebugMessage *data = (struct CommandDebugMessage *)self->data;
+                free(data->message);
+                free(data);
+            }
+                break;
             default:
                 break;
         }

@@ -30,6 +30,9 @@ class Command:
         if self.type == CommandType.SetControl:
             self.args = ["argument", "yaw", "pitch", "roll", "throttle"]
 
+        if self.type == CommandType.DebugMessage:
+            self.args = ["argument", "message"]
+
     def set_data(self, **kwargs):
         for key, value in kwargs.items():
             self.__set_datum(key, value)
@@ -59,8 +62,7 @@ class Command:
 
         if self.type == CommandType.SetOrQueryMode:
             buffer.append((self.type.value << 4) | (self.get_data("argument") & 0b1111))
-
-        if self.type == CommandType.SetControl:
+        elif self.type == CommandType.SetControl:
             buffer.append((self.type.value << 4) | (self.get_data("argument") & 0b1111))
             buffer.append(self.get_data("yaw") & 0b11111111)
             buffer.append(self.get_data("pitch") & 0b11111111)
@@ -112,6 +114,14 @@ class SerialCommandDecoder:
         if type == CommandType.CurrentMode:
             cmd.set_data(argument=(header & 0b1111))
 
+        if type == CommandType.DebugMessage:
+            message = bytearray()
+            size = (header & 0b1111) + 2 # add 2 since the data is offset by 1 byte and python slicing notation goes until the second index
+            for byte in self.buffer[1:size]:
+                message.append(byte)
+
+            cmd.set_data(argument=size, message=message.decode('utf-8'))
+
         self.commands.put(cmd)
         self.clear_buffer()
 
@@ -126,6 +136,9 @@ class SerialCommandDecoder:
 
         if type == CommandType.CurrentMode.value:
             return 0
+
+        if type == CommandType.DebugMessage.value:
+            return (header & 0b1111) + 1
 
         print("unknown header type..")
         return 0

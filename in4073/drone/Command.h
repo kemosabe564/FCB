@@ -32,6 +32,11 @@ struct CommandControlData {
     uint8_t climb_rate;
 };
 
+struct CommandDebugMessage {
+    char *message;
+    uint16_t size;
+};
+
 struct Command {
     enum CommandType type;
     void *data;
@@ -47,6 +52,7 @@ struct EncodedCommand Command_encode(struct Command *command);
 uint8_t Command_data_len(uint8_t header);
 
 struct Command *Command_make_current_mode(uint8_t mode);
+struct Command *Command_make_debug_msg(const char *format, ...);
 
 void Command_destroy(struct Command *self);
 

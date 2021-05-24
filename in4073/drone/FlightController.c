@@ -72,12 +72,12 @@ void FlightController_loop(void *context, uint32_t delta_us)
             break;
         case Manual: {
 
-            int t = FlightController_map_throttle(self);
+            uint16_t t = FlightController_map_throttle(self);
 
-            Rotor_set_rpm(self->rotors[0], t + self->pitch_rate - self->yaw_rate);
-            Rotor_set_rpm(self->rotors[1], t + self->roll_rate  + self->yaw_rate);
-            Rotor_set_rpm(self->rotors[2], t - self->pitch_rate - self->yaw_rate);
-            Rotor_set_rpm(self->rotors[3], t - self->roll_rate  + self->yaw_rate);
+            Rotor_set_rpm(self->rotors[0], FlightController_set_limited_rpm(t + self->pitch_rate - self->yaw_rate));
+            Rotor_set_rpm(self->rotors[1], FlightController_set_limited_rpm(t + self->roll_rate  + self->yaw_rate));
+            Rotor_set_rpm(self->rotors[2], FlightController_set_limited_rpm(t - self->pitch_rate - self->yaw_rate));
+            Rotor_set_rpm(self->rotors[3], FlightController_set_limited_rpm(t - self->roll_rate  + self->yaw_rate));
         }
             break;
         case Calibrate:
@@ -229,9 +229,9 @@ void FlightController_destroy(struct FlightController *self)
     }
 }
 
-int FlightController_map_throttle(struct  FlightController *self)
+uint16_t FlightController_map_throttle(struct  FlightController *self)
 {
-    int t;
+    uint16_t t;
     if (self->throttle >10)
     {
         t= (self->throttle + 80) * 2;
@@ -243,11 +243,11 @@ int FlightController_map_throttle(struct  FlightController *self)
     return t;
 }
 
-void FlightController_set_limited_rpm(struct FlightController *self, int rid ,int rpm)
+uint16_t FlightController_set_limited_rpm(uint16_t rpm)
 {
     if (rpm < MINIMUM_RPM)
     {
         rpm = MINIMUM_RPM;
     }
-    Rotor_set_rpm(self->rotors[rid],rpm);
+    return rpm;
 }

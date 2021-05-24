@@ -63,7 +63,7 @@ void FlightController_set_throttle(struct FlightController *self, uint16_t throt
 void FlightController_set_controls(struct FlightController *self, int16_t yaw_rate, int16_t pitch_rate, int16_t roll_rate, uint16_t throttle);
 void FlightController_loop(void *context, uint32_t delta_us);
 void FlightController_destroy(struct FlightController *self);
-void FlightController_set_limited_rpm(struct FlightController *self, int rid ,int rpm);
-int FlightController_map_throttle(struct  FlightController *self);
+uint16_t FlightController_set_limited_rpm(uint16_t rpm);
+uint16_t FlightController_map_throttle(struct  FlightController *self);
 
 #endif //QUADCOPTER_FCB_FLIGHTCONTROLLER_H

@@ -17,8 +17,4 @@ struct Comms {
     struct CommandQueue receive_queue;
 };
 
-void Comms_enqueue_command(struct Comms* self, struct Command *command);
-struct Command *Comms_dequeue_command(struct Comms* self);
-bool Comms_available(struct Comms* self);
-
 #endif //QUADCOPTER_FCB_COMMS_H

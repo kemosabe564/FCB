@@ -15,6 +15,7 @@ class Controller:
 
         self.keyboard.set_on_event(self.handle_keyboard_event)
         self.joystick.set_on_button_event(self.handle_joystick_button_event)
+        self.joystick.set_on_disconnect_event(self.handle_joystick_disconnect_event)
 
         self.terminate = False
 
@@ -37,6 +38,11 @@ class Controller:
 
     def handle_joystick_button_event(self, button: JoystickButton, active: bool):
         if button == JoystickButton.Trigger and active and self.drone.mode != FlightMode.Safe:
+            self.drone.change_mode(FlightMode.Panic)
+
+    def handle_joystick_disconnect_event(self):
+        if self.drone.mode != FlightMode.Safe:
+            print("Joystick disconnected...")
             self.drone.change_mode(FlightMode.Panic)
 
     def handle_keyboard_event(self, event):

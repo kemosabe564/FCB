@@ -68,6 +68,8 @@ class Joystick:
         self.__init_joystick()
 
         self.__on_button_event = None
+        self.__on_disconnect_event = None
+        self.__on_connect_event = None
 
     def __init_joystick(self):
         pygame.joystick.init()
@@ -107,17 +109,35 @@ class Joystick:
         return parsed
 
     def __handle_event(self, event):
-        if self.__on_button_event:
-            if event.type == pygame.JOYBUTTONDOWN:
+        if event.type == pygame.JOYBUTTONDOWN:
+            if self.__on_button_event:
                 self.__on_button_event(JoystickButton(event.button), True)
-            if event.type == pygame.JOYBUTTONUP:
+        elif event.type == pygame.JOYBUTTONUP:
+            if self.__on_button_event:
                 self.__on_button_event(JoystickButton(event.button), False)
+        elif event.type == pygame.JOYDEVICEREMOVED:
+            self.__available = False
+
+            if self.__on_disconnect_event:
+                self.__on_disconnect_event()
+
+        elif event.type == pygame.JOYDEVICEADDED:
+            self.__init_joystick()
+
+            if self.__on_connect_event:
+                self.__on_connect_event()
 
     def pass_event(self, event):
         self.__handle_event(event)
 
     def set_on_button_event(self, handler):
         self.__on_button_event = handler
+
+    def set_on_disconnect_event(self, handler):
+        self.__on_disconnect_event = handler
+
+    def set_on_connect_event(self, handler):
+        self.__on_connect_event = handler
 
     def update(self):
         if self.available:

@@ -34,13 +34,12 @@ class Serial:
     def send_thread_function(self):
         with self.serial as ser:
             while not self.terminate:
-                while not self.send_queue.empty():
-                    command = self.send_queue.get()
-                    ser.write(command.encode())
+                command = self.send_queue.get()
+                ser.write(command.encode())
 
-                    print(">> {}".format(command))
-
-                time.sleep(0.01)
+                print(">> {}".format(command))
+                # removed sleep since thread will sleep on get()
+                # time.sleep(0.01)
 
     def receive_thread_function(self):
         with self.serial as ser:
@@ -53,8 +52,8 @@ class Serial:
                         self.__handle_ascii_data(byte)
                     else:
                         self.__handle_protocol_data(byte)
-
-                time.sleep(0.01)
+                # removed sleep since thread will sleep on read()
+                # time.sleep(0.01)
 
     def add_command_handler(self, handler: Callable):
         self.command_handlers.append(handler)

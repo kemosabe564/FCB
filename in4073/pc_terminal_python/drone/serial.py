@@ -36,6 +36,7 @@ class Serial:
             while not self.terminate:
                 command = self.send_queue.get()
                 ser.write(command.encode())
+                ser.flushOutput()
 
                 print(">> {}".format(command))
                 # removed sleep since thread will sleep on get()

@@ -34,21 +34,6 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 Rotor_set_rpm(self->rotors[i],0);
             }
 
-//
-//            Rotor_set_rpm(self->rotors[0], self->rotors[0]->actual_rpm + (incrementing ? 10 : -10));
-//
-//            if (self->rotors[0]->actual_rpm >= 250)
-//                incrementing = 0;
-//
-//            if (self->rotors[0]->actual_rpm <= 50)
-//                incrementing = 1;
-
-//            if (FlightController_check_rotors_safe(self))
-//                FlightController_change_mode(self,Safe);
-
-//            for (int i = 0; i < self->num_rotors; i++)
-//                Rotor_set_rpm(self->rotors[i], 0);
-
             break;
         case Panic: {
             bool check_if_all_zero = true;

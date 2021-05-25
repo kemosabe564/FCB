@@ -50,6 +50,28 @@ struct CommandHandler *ch = NULL;
 void changed_mode_handler(enum FlightControllerMode new_mode, enum FlightControllerMode old_mode)
 {
     CommandHandler_send_command(ch, Command_make_current_mode((uint8_t) new_mode));
+
+    if (new_mode == Safe)
+    {
+        nrf_gpio_pin_set(RED);
+        nrf_gpio_pin_set(YELLOW);
+        nrf_gpio_pin_clear(GREEN);
+        nrf_gpio_pin_set(BLUE);
+    }
+    else if (new_mode == Panic)
+    {
+        nrf_gpio_pin_clear(RED);
+        nrf_gpio_pin_set(YELLOW);
+        nrf_gpio_pin_set(GREEN);
+        nrf_gpio_pin_set(BLUE);
+    }
+    else if (new_mode == Manual)
+    {
+        nrf_gpio_pin_set(RED);
+        nrf_gpio_pin_clear(YELLOW);
+        nrf_gpio_pin_set(GREEN);
+        nrf_gpio_pin_set(BLUE);
+    }
 }
 
 void command_handler_function(struct Command *command)

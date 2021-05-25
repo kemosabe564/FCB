@@ -72,7 +72,7 @@ class Controller:
 
     def input_safe(self):
         self.update_inputs()
-        return (self.input_throttle <= 10) and self.at_deadpoint(self.input_yaw) and self.at_deadpoint(self.input_pitch) and self.at_deadpoint(self.input_roll)
+        return (self.input_throttle == 0) and self.at_deadpoint(self.input_yaw) and self.at_deadpoint(self.input_pitch) and self.at_deadpoint(self.input_roll)
 
     def map(self, x):
         return int((x + 1) * 127)

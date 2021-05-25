@@ -12,6 +12,7 @@
 
 #include "../hal/adc.h"
 #include "../mpu6050/mpu6050.h"
+#include "../hal/timers.h"
 
 void FlightController_loop(void *context, uint32_t delta_us)
 {
@@ -53,6 +54,13 @@ void FlightController_loop(void *context, uint32_t delta_us)
         }
             break;
         case Manual: {
+            uint32_t now = get_time_us();
+
+            if (self->input_ts != 0 && (now - self->input_ts > 50000))
+            {
+                FlightController_change_mode(self,Panic);
+            }
+
             //TODO:Check if this simulates yawing
 //            int base_rpm = 200;
 ////            int additional_rpm = 100;
@@ -103,6 +111,7 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
         result->debug_mode = false;
         result->on_changed_mode = NULL;
         result->num_rotors = num_rotors;
+        result->input_ts = 0;
         result->rotors = (struct Rotor **)malloc(num_rotors * sizeof(struct Rotor *));
         memcpy(result->rotors, rotors, num_rotors * sizeof(struct Rotor *));
     }
@@ -123,6 +132,9 @@ bool FlightController_change_mode(struct FlightController *self, enum FlightCont
                 {
                     self->on_changed_mode(mode, self->mode);
                 }
+
+                // might not be necessary
+                self->input_ts = 0;
 
                 self->mode = mode;
                 return true;
@@ -173,6 +185,8 @@ void FlightController_set_controls(struct FlightController *self, int16_t yaw_ra
         self->pitch_rate = pitch_rate - 127;
         self->roll_rate = roll_rate - 127;
         self->throttle = throttle + 150;
+
+        self->input_ts = get_time_us();
     }
 }
 

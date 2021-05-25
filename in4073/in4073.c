@@ -68,6 +68,8 @@ void command_handler_function(struct Command *command)
             {
                 CommandHandler_send_command(ch, Command_make_current_mode((uint8_t) fc->mode));
             }
+
+            CommandHandler_send_command(ch, Command_make_debug_msg("Mode=%d\n", *mode));
         }
             break;
         case SetControl: {
@@ -125,7 +127,7 @@ int main(void)
 
 	while (running)
 	{
-        LoopHandler_loop(lh, LH_LINK(fc), LH_HZ_TO_PERIOD(10));
+        LoopHandler_loop(lh, LH_LINK(fc), LH_HZ_TO_PERIOD(100));
 
         LoopHandler_loop(lh, LH_LINK(r1), LH_HZ_TO_PERIOD(100));
         LoopHandler_loop(lh, LH_LINK(r2), LH_HZ_TO_PERIOD(100));
@@ -133,7 +135,7 @@ int main(void)
         LoopHandler_loop(lh, LH_LINK(r4), LH_HZ_TO_PERIOD(100));
 
 
-        LoopHandler_loop(lh, LH_LINK(serial_comms), LH_HZ_TO_PERIOD(20));
+        LoopHandler_loop(lh, LH_LINK(serial_comms), LH_HZ_TO_PERIOD(100));
 //        LoopHandler_loop(lh, LH_LINK(ble_comms), LH_HZ_TO_PERIOD(50));
 
         LoopHandler_loop(lh, LH_LINK(ch), LH_HZ_TO_PERIOD(100));

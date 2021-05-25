@@ -33,10 +33,12 @@ ACK = 0001 -> Wrong flightmode
 | 0110 0000 | PHI, THETA, PSI ETC | 8 BIT CRC |
 
 ## 7 < DebugMsg
-| 0111 XXXX | ........ | 8 BIT CRC |
-       N
+| 0111 XXXX | XXXX XXXX | ........ | 8 BIT CRC |
+       ID     N
        
-N -> 4 bit message length. Starts at 1 up to 17 since 0 size is nonsensical
+ID -> Identifying location
+N -> 4 bit for message length in * 8 characters. Starts at 1 up to 17 since 0 size is nonsensical
+
 
 ## 8 > SetParam
 | 1000 XXXX | XXXX XXXX | 8 BIT CRC |

@@ -6,11 +6,14 @@ from drone.command import Command, CommandType
 from drone.drone import Drone
 from drone.controller import Controller
 from drone.gui import GUI
+from drone.joystick import Joystick, JoystickAxis
+from drone.eventloop import Eventloop
 
 ser = None
 cli = None
 controller = None
 gui = None
+running = True
 
 
 def new_cmd_handler(data):
@@ -25,8 +28,9 @@ def on_quit():
     ser.stop()
     cli.stop()
     controller.stop()
-    if gui:
-        gui.stop()
+
+    global running
+    running = False
 
 
 def new_action_handler(action, data=None):
@@ -49,18 +53,25 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    eventloop = Eventloop()
+
+    joystick = eventloop.joystick()
+    keyboard = eventloop.keyboard()
+
     ser = Serial(port=args.port, baud=args.baud, command_handler=new_cmd_handler)
     cli = CLI(action_handler=new_action_handler)
+
     drone = Drone(ser)
-    controller = Controller(drone)
+    controller = Controller(drone, joystick, keyboard)
 
     if not args.no_gui:
         gui = GUI((800, 480), drone)
-        gui.set_on_event(handler=lambda event: controller.handle_event(event))
-        gui.set_on_quit(on_quit)
 
-        # PyGame needs to run on the main thread...
-        gui.main_loop()
+    while running:
+        if gui:
+            gui.draw()
+
+        eventloop.update()
 
     cli.join()
     ser.join()

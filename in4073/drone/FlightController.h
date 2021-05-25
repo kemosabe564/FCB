@@ -43,6 +43,7 @@ struct FlightController
     int16_t pitch_rate;
     int16_t roll_rate;
     uint16_t throttle;
+    uint32_t input_ts;
 
     int16_t current_psi;
     int16_t previous_psi;

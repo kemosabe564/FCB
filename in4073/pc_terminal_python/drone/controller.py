@@ -3,7 +3,7 @@ import threading
 import time
 
 from drone.drone import Drone, FlightMode
-from drone.joystick import Joystick, JoystickAxis
+from drone.joystick import Joystick, JoystickAxis, JoystickButton
 from drone.keyboard import Keyboard
 
 
@@ -14,6 +14,8 @@ class Controller:
         self.keyboard = keyboard
 
         self.keyboard.set_on_event(self.handle_keyboard_event)
+        self.joystick.set_on_button_event(self.handle_joystick_button_event)
+        self.joystick.set_on_disconnect_event(self.handle_joystick_disconnect_event)
 
         self.terminate = False
 
@@ -33,6 +35,15 @@ class Controller:
         if (value - self.step) > -1:
             value = value - self.step
         return value
+
+    def handle_joystick_button_event(self, button: JoystickButton, active: bool):
+        if button == JoystickButton.Trigger and active and self.drone.mode != FlightMode.Safe:
+            self.drone.change_mode(FlightMode.Panic)
+
+    def handle_joystick_disconnect_event(self):
+        if self.drone.mode != FlightMode.Safe:
+            print("Joystick disconnected...")
+            self.drone.change_mode(FlightMode.Panic)
 
     def handle_keyboard_event(self, event):
         if event.type == pygame.KEYDOWN:

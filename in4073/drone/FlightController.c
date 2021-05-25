@@ -12,6 +12,7 @@
 
 #include "../hal/adc.h"
 #include "../mpu6050/mpu6050.h"
+#include "../hal/timers.h"
 
 
 
@@ -37,21 +38,6 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 Rotor_set_rpm(self->rotors[i],0);
             }
 
-//
-//            Rotor_set_rpm(self->rotors[0], self->rotors[0]->actual_rpm + (incrementing ? 10 : -10));
-//
-//            if (self->rotors[0]->actual_rpm >= 250)
-//                incrementing = 0;
-//
-//            if (self->rotors[0]->actual_rpm <= 50)
-//                incrementing = 1;
-
-//            if (FlightController_check_rotors_safe(self))
-//                FlightController_change_mode(self,Safe);
-
-//            for (int i = 0; i < self->num_rotors; i++)
-//                Rotor_set_rpm(self->rotors[i], 0);
-
             break;
         case Panic: {
             bool check_if_all_zero = true;
@@ -71,6 +57,12 @@ void FlightController_loop(void *context, uint32_t delta_us)
         }
             break;
         case Manual: {
+            uint32_t now = get_time_us();
+
+            if (self->input_ts != 0 && (now - self->input_ts > 50000))
+            {
+                FlightController_change_mode(self,Panic);
+            }
 
             uint16_t t = FlightController_map_throttle(self);
 
@@ -129,6 +121,7 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
         result->debug_mode = false;
         result->on_changed_mode = NULL;
         result->num_rotors = num_rotors;
+        result->input_ts = 0;
         result->rotors = (struct Rotor **)malloc(num_rotors * sizeof(struct Rotor *));
         memcpy(result->rotors, rotors, num_rotors * sizeof(struct Rotor *));
         result->current_psi = psi;
@@ -151,6 +144,9 @@ bool FlightController_change_mode(struct FlightController *self, enum FlightCont
                 {
                     self->on_changed_mode(mode, self->mode);
                 }
+
+                // might not be necessary
+                self->input_ts = 0;
 
                 self->mode = mode;
                 return true;
@@ -202,6 +198,7 @@ void FlightController_set_controls(struct FlightController *self, int16_t yaw_ra
         self->roll_rate = roll_rate - 127;
         self->throttle = throttle;
 
+        self->input_ts = get_time_us();
     }
 }
 

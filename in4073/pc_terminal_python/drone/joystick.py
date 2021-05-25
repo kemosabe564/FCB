@@ -67,7 +67,7 @@ class Joystick:
 
         self.__init_joystick()
 
-        self.__on_event = None
+        self.__on_button_event = None
 
     def __init_joystick(self):
         pygame.joystick.init()
@@ -106,17 +106,24 @@ class Joystick:
 
         return parsed
 
-    def pass_event(self, event):
-        if self.__on_event:
-            self.__on_event(event)
+    def __handle_event(self, event):
+        if self.__on_button_event:
+            if event.type == pygame.JOYBUTTONDOWN:
+                self.__on_button_event(JoystickButton(event.button), True)
+            if event.type == pygame.JOYBUTTONUP:
+                self.__on_button_event(JoystickButton(event.button), False)
 
-    def set_on_event(self, handler):
-        self.__on_event = handler
+    def pass_event(self, event):
+        self.__handle_event(event)
+
+    def set_on_button_event(self, handler):
+        self.__on_button_event = handler
 
     def update(self):
         if self.available:
             if self.get_events:
-                pygame.event.get()
+                for event in pygame.event.get():
+                    self.__handle_event(event)
 
             for i in range(self.__num_axis):
                 self.__raw_axis[i] = self.__joystick.get_axis(i)

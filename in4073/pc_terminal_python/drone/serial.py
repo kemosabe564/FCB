@@ -34,7 +34,7 @@ class Serial:
     def send_thread_function(self):
         with self.serial as ser:
             while not self.terminate:
-                if not self.send_queue.empty():
+                while not self.send_queue.empty():
                     command = self.send_queue.get()
                     ser.write(command.encode())
 

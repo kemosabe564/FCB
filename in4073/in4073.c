@@ -126,7 +126,7 @@ int main(void)
 
 	while (running)
 	{
-        LoopHandler_loop(lh, LH_LINK(fc), LH_HZ_TO_PERIOD(10));
+        LoopHandler_loop(lh, LH_LINK(fc), LH_HZ_TO_PERIOD(2));
 
         LoopHandler_loop(lh, LH_LINK(r1), LH_HZ_TO_PERIOD(100));
         LoopHandler_loop(lh, LH_LINK(r2), LH_HZ_TO_PERIOD(100));

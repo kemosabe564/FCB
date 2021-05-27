@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include "../mpu6050/inv_mpu_dmp_motion_driver.h"
 
 
 #include "../control.h"
@@ -20,6 +21,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
 {
     struct FlightController *self = (struct FlightController *)context;
     self->current_psi = psi;
+
 //    static int check = 0;
 //    printf("FlightController_loop %d - Bat %4d - Motor %d - Mode::%s \n", check++, bat_volt, motor[0], FlightControllerMode_to_str(self->mode));
 //
@@ -82,15 +84,26 @@ void FlightController_loop(void *context, uint32_t delta_us)
         }
             break;
         case Calibrate:
+            //dmp_enable_gyro_cal(1);
+            get_sensor_data();
+            CommandHandler_send_command(self->ch, Command_make_debug_msg("Psi %d\n",psi));
+            CommandHandler_send_command(self->ch, Command_make_debug_msg("Phi %d\n",phi));
+            CommandHandler_send_command(self->ch, Command_make_debug_msg("Theta %d\n",theta));
 
             break;
         case Yaw: {
+            //TODO: change to set limited
+            get_sensor_data();
             int16_t t = FlightController_map_throttle(self);
             //get set point
             int16_t setPoint = self->yaw_rate;
             //get sensor reading
+            //TODO:Divide by time
             int16_t  psi_rate = (self-> current_psi - self->previous_psi );
-            CommandHandler_send_command(self->ch, Command_make_debug_msg("Psi %d\n",psi_rate));
+            //CommandHandler_send_command(self->ch, Command_make_debug_msg("sr %d\n",sr));
+            CommandHandler_send_command(self->ch, Command_make_debug_msg("Psi old %d\n",self->previous_psi));
+            CommandHandler_send_command(self->ch, Command_make_debug_msg("Psi new %d\n",self->current_psi));
+            CommandHandler_send_command(self->ch, Command_make_debug_msg("dPsi %d\n",psi_rate));
             //calculate error
             int16_t yaw_error = setPoint - psi_rate;
             //calculate compensation and apply
@@ -235,7 +248,7 @@ void FlightController_destroy(struct FlightController *self)
 uint16_t FlightController_map_throttle(struct  FlightController *self)
 {
     uint16_t t;
-    if (self->throttle >10)
+    if (self->throttle >0)
     {
         t= (self->throttle + 80) * 2;
     }

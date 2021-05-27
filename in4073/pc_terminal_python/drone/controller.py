@@ -75,7 +75,7 @@ class Controller:
                 else:
                     print("NOT SAFE")
             if event.key == pygame.K_3:  # calibration
-                # self.drone.change_mode(FlightMode.Calibrate)
+                self.drone.change_mode(FlightMode.Calibrate)
                 pass
             if event.key == pygame.K_4:  # yaw rate
                 self.drone.change_mode(FlightMode.Yaw)

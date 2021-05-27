@@ -88,7 +88,7 @@ class Serial:
             self.ascii_buffer.clear()
 
     def __handle_protocol_data(self, byte):
-        print(byte)
+        # print(byte)
         self.decoder.append(byte)
 
         while not self.decoder.empty():

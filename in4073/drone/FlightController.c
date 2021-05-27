@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+
 #include "../control.h"
 
 #include "../hal/adc.h"
@@ -88,7 +89,8 @@ void FlightController_loop(void *context, uint32_t delta_us)
             //get set point
             int16_t setPoint = self->yaw_rate;
             //get sensor reading
-            int16_t  psi_rate = (self-> current_psi - self->previous_psi )/(delta_us * 1000);
+            int16_t  psi_rate = (self-> current_psi - self->previous_psi );
+            CommandHandler_send_command(self->ch, Command_make_debug_msg("Psi %d\n",psi_rate));
             //calculate error
             int16_t yaw_error = setPoint - psi_rate;
             //calculate compensation and apply
@@ -115,7 +117,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
 
 }
 
-struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *rotors[], uint8_t num_rotors)
+struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *rotors[], uint8_t num_rotors, struct CommandHandler *ch)
 {
     struct FlightController *result = (struct FlightController *)malloc(sizeof(struct FlightController));
 
@@ -133,6 +135,7 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
         memcpy(result->rotors, rotors, num_rotors * sizeof(struct Rotor *));
         result->current_psi = psi;
         result->previous_psi = psi;
+        result->ch =ch;
     }
 
     return result;

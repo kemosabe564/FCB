@@ -78,8 +78,7 @@ class Controller:
                 # self.drone.change_mode(FlightMode.Calibrate)
                 pass
             if event.key == pygame.K_4:  # yaw rate
-                # self.drone.change_mode(FlightMode.Yaw)
-                pass
+                self.drone.change_mode(FlightMode.Yaw)
 
     def update_keys(self):
         pass

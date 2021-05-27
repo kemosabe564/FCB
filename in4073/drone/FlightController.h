@@ -10,6 +10,9 @@
 #include "LoopHandler.h"
 #include "Rotor.h"
 #include "IMU.h"
+#include "CommandHandler.h"
+#include "Command.h"
+
 #define MINIMUM_RPM 180
 
 #define  YAW_P 1
@@ -48,12 +51,14 @@ struct FlightController
     int16_t current_psi;
     int16_t previous_psi;
 
+    struct CommandHandler *ch;
+
     FlightControllerChangedMode on_changed_mode;
 
     struct LoopHandlerControlBlock loop;
 };
 
-struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *rotors[], uint8_t num_rotors);
+struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *rotors[], uint8_t num_rotors,struct CommandHandler *ch);
 
 char *FlightControllerMode_to_str(enum FlightControllerMode mode);
 

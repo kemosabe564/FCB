@@ -135,13 +135,14 @@ int main(void)
 
     struct IMU *imu = IMU_create();
 
-    fc = FlightController_create(imu, (struct Rotor *[]){ r1, r2, r3, r4 }, 4);
-    FlightController_set_on_change_mode(fc, changed_mode_handler);
 
 //    struct Comms ble_comms BLE_init();
     struct Comms *serial_comms = Serial_create(115200);
 
     ch = CommandHandler_create(COMM_SERIAL, command_handler_function);
+
+    fc = FlightController_create(imu, (struct Rotor *[]){ r1, r2, r3, r4 }, 4, ch);
+    FlightController_set_on_change_mode(fc, changed_mode_handler);
 
     CommandHandler_add_comms(ch, COMM_SERIAL, serial_comms);
 //    CommandHandler_add_comms(comm_handler, ble_comms, COMM_BLE);

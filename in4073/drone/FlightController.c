@@ -76,11 +76,29 @@ void FlightController_loop(void *context, uint32_t delta_us)
         }
             break;
         case Calibrate:
-            //dmp_enable_gyro_cal(1);
+            //dmp_enable_gyro_cal(1); //not required
+
+            //turning down all the motors
+            for (int i =0; i <self->num_rotors; i++)
+            {
+                Rotor_set_rpm(self->rotors[i],0);
+            }
+
             get_sensor_data();
-            CommandHandler_send_command(self->ch, Command_make_debug_msg("Psi %d\n",psi));
-            CommandHandler_send_command(self->ch, Command_make_debug_msg("Phi %d\n",phi));
-            CommandHandler_send_command(self->ch, Command_make_debug_msg("Theta %d\n",theta));
+            //If you dont actually need to check ,just get the values here and wait manually
+            if (self->is_calibrating)
+            {
+                CommandHandler_send_command(self->ch, Command_make_debug_msg("Cal Start\n"));
+                self->calibrate_start_time=get_time_us();
+                //TODO:This is terrible but anyway
+                while(get_time_us() < (self->calibrate_start_time + CALIBRATION_WAIT_TIME_US));
+                get_sensor_data();
+                self->theta_offset = theta;
+                self->phi_offset = phi;
+                CommandHandler_send_command(self->ch, Command_make_debug_msg("Cal End\n"));
+                self->is_calibrating=false;
+            }
+
 
             break;
         case Yaw: {
@@ -129,6 +147,7 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
     if (result)
     {
         adc_init();
+        get_sensor_data();
 
         result->imu = imu;
         result->loop = LoopHandler_init_controlblock(FlightController_loop);
@@ -142,6 +161,9 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
         result->current_psi = psi;
         result->previous_psi = psi;
         result->ch =ch;
+        result->phi_offset = phi;
+        result->theta_offset=theta;
+        result->is_calibrating=false;
     }
 
     return result;
@@ -167,6 +189,10 @@ bool FlightController_change_mode(struct FlightController *self, enum FlightCont
                 self->mode = mode;
                 return true;
             }
+        }
+        if(self-> != mode && mode == Calibrate)
+        {
+            self->is_calibrating=true;
         }
     }
     return false;

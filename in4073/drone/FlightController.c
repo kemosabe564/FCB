@@ -102,7 +102,6 @@ void FlightController_loop(void *context, uint32_t delta_us)
 
             break;
         case Yaw: {
-            //TODO: change to set limited
             get_sensor_data();
             int16_t t = FlightController_map_throttle(self);
             //get set point
@@ -111,21 +110,28 @@ void FlightController_loop(void *context, uint32_t delta_us)
             //TODO:Divide by time
             int16_t  psi_rate = (self-> current_psi - self->previous_psi );
             //CommandHandler_send_command(self->ch, Command_make_debug_msg("sr %d\n",sr));
-            CommandHandler_send_command(self->ch, Command_make_debug_msg("Psi old %d\n",self->previous_psi));
-            CommandHandler_send_command(self->ch, Command_make_debug_msg("Psi new %d\n",self->current_psi));
-            CommandHandler_send_command(self->ch, Command_make_debug_msg("dPsi %d\n",psi_rate));
+//            CommandHandler_send_command(self->ch, Command_make_debug_msg("Psi old %d\n",self->previous_psi));
+//            CommandHandler_send_command(self->ch, Command_make_debug_msg("Psi new %d\n",self->current_psi));
+//            CommandHandler_send_command(self->ch, Command_make_debug_msg("dPsi %d\n",psi_rate));
             //calculate error
             int16_t yaw_error = setPoint - psi_rate;
             //calculate compensation and apply
             int16_t yaw_compensation = YAW_P * yaw_error;
 
-            Rotor_set_rpm(self->rotors[0], t + self->pitch_rate - yaw_compensation);
-            Rotor_set_rpm(self->rotors[1], t + self->roll_rate  + yaw_compensation);
-            Rotor_set_rpm(self->rotors[2], t - self->pitch_rate - yaw_compensation);
-            Rotor_set_rpm(self->rotors[3], t - self->roll_rate  + yaw_compensation);
+            Rotor_set_rpm(self->rotors[0], FlightController_set_limited_rpm(t + self->pitch_rate - yaw_compensation));
+            Rotor_set_rpm(self->rotors[1], FlightController_set_limited_rpm(t + self->roll_rate  + yaw_compensation));
+            Rotor_set_rpm(self->rotors[2], FlightController_set_limited_rpm(t - self->pitch_rate - yaw_compensation));
+            Rotor_set_rpm(self->rotors[3], FlightController_set_limited_rpm(t - self->roll_rate  + yaw_compensation));
         }
             break;
         case Full:
+            get_sensor_data();
+            //get throttle 0-255
+            int16_t t = FlightController_map_throttle(self);
+            //get set points
+            int16_t phi_setPoint = FlightController_roll_over_angle(self->phi_offset/256 + self->roll_angle);
+            int16_t theta_setPoint = FlightController_roll_over_angle(self->theta_offset/256 + self->pitch_angle);
+
 
             break;
         case Raw:
@@ -236,8 +242,8 @@ void FlightController_set_controls(struct FlightController *self, int16_t yaw_ra
     if (self)
     {
         self->yaw_rate = yaw_rate - 127;
-        self->pitch_rate = pitch_rate - 127;
-        self->roll_rate = roll_rate - 127;
+        self->pitch_angle = pitch_rate - 127;
+        self->roll_angle = roll_rate - 127;
         self->throttle = throttle;
 
         self->input_ts = get_time_us();
@@ -289,4 +295,17 @@ uint16_t FlightController_set_limited_rpm(uint16_t rpm)
         rpm = MINIMUM_RPM;
     }
     return rpm;
+}
+
+int16_t FlightController_roll_over_angle(int16_t angle)
+{
+    if(angle > 127)
+    {
+        angle = -127 + angle - 127;
+    }
+    if (angle<-127)
+    {
+        angle = 127 + angle + 127;
+    }
+    return angle;
 }

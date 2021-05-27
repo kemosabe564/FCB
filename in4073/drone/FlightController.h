@@ -45,8 +45,8 @@ struct FlightController
     bool debug_mode;
 
     int16_t yaw_rate;
-    int16_t pitch_rate;
-    int16_t roll_rate;
+    int16_t pitch_angle;
+    int16_t roll_angle;
     uint16_t throttle;
     uint32_t input_ts;
 
@@ -54,8 +54,8 @@ struct FlightController
     int16_t previous_psi;
 
     uint32_t calibrate_start_time;
-    uint16_t phi_offset;
-    uint16_t theta_offset;
+    int16_t phi_offset;
+    int16_t theta_offset;
     bool is_calibrating;
 
     struct CommandHandler *ch;
@@ -78,5 +78,6 @@ void FlightController_loop(void *context, uint32_t delta_us);
 void FlightController_destroy(struct FlightController *self);
 uint16_t FlightController_set_limited_rpm(uint16_t rpm);
 uint16_t FlightController_map_throttle(struct  FlightController *self);
+int16_t FlightController_roll_over_angle(int16_t angle);
 
 #endif //QUADCOPTER_FCB_FLIGHTCONTROLLER_H

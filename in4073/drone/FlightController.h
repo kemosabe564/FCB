@@ -15,7 +15,7 @@
 
 #define MINIMUM_RPM 180
 
-#define  YAW_P 1
+#define  YAW_P 10
 #define  FULL_P1 1
 #define FULL_P2 4
 #define SQRT_SCALE_BACK 17

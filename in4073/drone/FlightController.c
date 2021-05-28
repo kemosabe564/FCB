@@ -79,20 +79,12 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 }
             }
             else{
-
-
-
                 uint16_t rpm0 = SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(FlightController_set_limited_rpm(t + self->pitch_angle - self->yaw_rate))];
                 uint16_t rpm1 = SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(FlightController_set_limited_rpm(t + self->roll_angle + self->yaw_rate))];
                 uint16_t rpm2 = SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(FlightController_set_limited_rpm(t - self->pitch_angle - self->yaw_rate))];
                 uint16_t rpm3 = SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(FlightController_set_limited_rpm(t - self->pitch_angle + self->yaw_rate))];
 
-                CommandHandler_send_command(self->ch, Command_make_debug_msg("rpm0 %d\n",rpm0));
-                CommandHandler_send_command(self->ch, Command_make_debug_msg("rpm1 %d\n",rpm1));
-                CommandHandler_send_command(self->ch, Command_make_debug_msg("rpm2 %d\n",rpm2));
-                CommandHandler_send_command(self->ch, Command_make_debug_msg("rpm3 %d\n",rpm3));
-
-
+                //CommandHandler_send_command(self->ch, Command_make_debug_msg("rpm0 %d\n",rpm0));
 
                 Rotor_set_rpm(self->rotors[0], rpm0);
                 Rotor_set_rpm(self->rotors[1], rpm1);
@@ -130,12 +122,19 @@ void FlightController_loop(void *context, uint32_t delta_us)
 
             break;
         case Yaw: {
+
+            uint32_t now = get_time_us();
+
+            if (self->input_ts != 0 && (now - self->input_ts > 50000))
+            {
+                FlightController_change_mode(self,Panic);
+            }
+
             get_sensor_data();
             int16_t t = FlightController_map_throttle(self);
             //get set point
             int16_t setPoint = self->yaw_rate;
             //get sensor reading
-            //TODO:Divide by time
             int16_t  psi_rate = (self-> current_psi - self->previous_psi );
             //CommandHandler_send_command(self->ch, Command_make_debug_msg("sr %d\n",sr));
 //            CommandHandler_send_command(self->ch, Command_make_debug_msg("Psi old %d\n",self->previous_psi));
@@ -146,10 +145,33 @@ void FlightController_loop(void *context, uint32_t delta_us)
             //calculate compensation and apply
             int16_t yaw_compensation = YAW_P * yaw_error;
 
-            Rotor_set_rpm(self->rotors[0], FlightController_set_limited_rpm(t + self->pitch_angle - yaw_compensation));
-            Rotor_set_rpm(self->rotors[1], FlightController_set_limited_rpm(t + self->roll_angle  + yaw_compensation));
-            Rotor_set_rpm(self->rotors[2], FlightController_set_limited_rpm(t - self->pitch_angle - yaw_compensation));
-            Rotor_set_rpm(self->rotors[3], FlightController_set_limited_rpm(t - self->roll_angle  + yaw_compensation));
+            if (t<1)
+            {
+                for (int i =0; i <self->num_rotors; i++)
+                {
+                    Rotor_set_rpm(self->rotors[i],0);
+                }
+            }
+
+            else
+            {
+                uint16_t rpm0 = SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(FlightController_set_limited_rpm(t + self->pitch_angle - yaw_compensation))];
+                uint16_t rpm1 = SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(FlightController_set_limited_rpm(t + self->roll_angle + yaw_compensation))];
+                uint16_t rpm2 = SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(FlightController_set_limited_rpm(t - self->pitch_angle - yaw_compensation))];
+                uint16_t rpm3 = SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(FlightController_set_limited_rpm(t - self->pitch_angle + yaw_compensation))];
+
+//                CommandHandler_send_command(self->ch, Command_make_debug_msg("rpm0 %d\n",rpm0));
+//                CommandHandler_send_command(self->ch, Command_make_debug_msg("rpm1 %d\n",rpm1));
+//                CommandHandler_send_command(self->ch, Command_make_debug_msg("rpm2 %d\n",rpm2));
+//                CommandHandler_send_command(self->ch, Command_make_debug_msg("rpm3 %d\n",rpm3));
+
+                Rotor_set_rpm(self->rotors[0], rpm0);
+                Rotor_set_rpm(self->rotors[1], rpm1);
+                Rotor_set_rpm(self->rotors[2], rpm2);
+                Rotor_set_rpm(self->rotors[3], rpm3);
+            }
+
+
         }
             break;
         case Full:

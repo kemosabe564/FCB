@@ -158,7 +158,7 @@ int main(void)
         LoopHandler_loop(lh, LH_LINK(r4), LH_HZ_TO_PERIOD(100));
 
 
-        LoopHandler_loop(lh, LH_LINK(serial_comms), LH_HZ_TO_PERIOD(100));
+        LoopHandler_loop(lh, LH_LINK(serial_comms), 0);
 //        LoopHandler_loop(lh, LH_LINK(ble_comms), LH_HZ_TO_PERIOD(50));
 
         LoopHandler_loop(lh, LH_LINK(ch), LH_HZ_TO_PERIOD(100));

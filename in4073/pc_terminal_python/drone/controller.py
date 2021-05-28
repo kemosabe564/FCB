@@ -94,7 +94,7 @@ class Controller:
                 if self.drone.mode == FlightMode.Manual:
                     self.update_inputs()
 
-                    self.drone.set_control(self.input_roll, self.input_pitch, self.input_yaw, self.input_throttle)
+                    self.drone.set_control(yaw=self.input_yaw, pitch=self.input_pitch, roll=self.input_roll, throttle=self.input_throttle)
 
             time.sleep(0.01)
 

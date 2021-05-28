@@ -14,6 +14,8 @@
 #include "../mpu6050/mpu6050.h"
 #include "../hal/timers.h"
 
+#include "IMU.h"
+
 
 
 void FlightController_loop(void *context, uint32_t delta_us)

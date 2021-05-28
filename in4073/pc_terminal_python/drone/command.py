@@ -90,6 +90,7 @@ class SerialCommandDecoder:
         self.commands = Queue()
 
     def append(self, byte):
+        print(byte)
         self.buffer.append(byte)
 
         if self.pos == 0:

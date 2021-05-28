@@ -38,6 +38,7 @@
 #include "drone/Serial.h"
 #include "drone/IMU.h"
 #include "drone/FlightController.h"
+#include "drone/Debug.h"
 
 bool demo_done;
 
@@ -91,7 +92,7 @@ void command_handler_function(struct Command *command)
                 CommandHandler_send_command(ch, Command_make_current_mode((uint8_t) fc->mode));
             }
 
-            CommandHandler_send_command(ch, Command_make_debug_msg("Mode=%d\n", *mode));
+            CommandHandler_send_command(ch, Command_make_debug_format("Mode=%d\n", *mode));
         }
             break;
         case SetControl: {
@@ -112,6 +113,7 @@ int main(void)
 {
     bool running = true;
 
+    DEBUG_SET_CHANNEL(&ch);
 
     uart_init();
     gpio_init();
@@ -133,7 +135,7 @@ int main(void)
     struct Rotor *r3 = Rotor_create(r_map, 2, -15, -15);
     struct Rotor *r4 = Rotor_create(r_map, 3, -15,  15);
 
-    struct IMU *imu = IMU_create();
+    struct IMU *imu = IMU_create(true, 100);
 
     fc = FlightController_create(imu, (struct Rotor *[]){ r1, r2, r3, r4 }, 4);
     FlightController_set_on_change_mode(fc, changed_mode_handler);
@@ -146,6 +148,7 @@ int main(void)
     CommandHandler_add_comms(ch, COMM_SERIAL, serial_comms);
 //    CommandHandler_add_comms(comm_handler, ble_comms, COMM_BLE);
 
+    DEBUG("This is a very long debug message with a variable %d \n", 1);
 
 	while (running)
 	{
@@ -156,6 +159,7 @@ int main(void)
         LoopHandler_loop(lh, LH_LINK(r3), LH_HZ_TO_PERIOD(100));
         LoopHandler_loop(lh, LH_LINK(r4), LH_HZ_TO_PERIOD(100));
 
+//        LoopHandler_loop(lh, LH_LINK(imu), LH_HZ_TO_PERIOD(1));
 
         LoopHandler_loop(lh, LH_LINK(serial_comms), LH_HZ_TO_PERIOD(100));
 //        LoopHandler_loop(lh, LH_LINK(ble_comms), LH_HZ_TO_PERIOD(50));

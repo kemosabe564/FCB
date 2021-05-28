@@ -173,7 +173,7 @@ struct Command *Command_make_current_mode(uint8_t mode)
 }
 
 // allocate and initialize a formatted string command on the heap
-struct Command *Command_make_debug_msg(const char *format, ...)
+struct Command *Command_make_debug_format(const char *format, ...)
 {
     struct Command *cmd = (struct Command *)malloc(sizeof(struct Command));
 
@@ -194,6 +194,43 @@ struct Command *Command_make_debug_msg(const char *format, ...)
                 vsprintf(message, format, args);
 
                 data->size = size;
+                data->message = message;
+
+                cmd->data = (void *)data;
+
+                return cmd;
+            }
+
+            // Allocation of message failed
+            free(data);
+        }
+
+        // Allocation of data struct failed
+        free(cmd);
+    }
+
+    return NULL;
+}
+
+// allocate and initialize a formatted string command on the heap
+struct Command *Command_make_debug_n(const char *string, uint16_t n)
+{
+    struct Command *cmd = (struct Command *)malloc(sizeof(struct Command));
+
+    if (cmd)
+    {
+        cmd->type = DebugMessage;
+        struct CommandDebugMessage *data = (struct CommandDebugMessage *)malloc(sizeof(struct CommandDebugMessage));
+
+        if (data)
+        {
+            char *message = (char *)malloc(n * sizeof(char));
+
+            if (message)
+            {
+                memcpy(message, string, n);
+
+                data->size = n;
                 data->message = message;
 
                 cmd->data = (void *)data;

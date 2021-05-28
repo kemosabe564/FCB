@@ -71,10 +71,16 @@ void FlightController_loop(void *context, uint32_t delta_us)
 
             uint16_t t = FlightController_map_throttle(self);
 
-            Rotor_set_rpm(self->rotors[0], FlightController_set_limited_rpm(t + self->pitch_rate - self->yaw_rate));
-            Rotor_set_rpm(self->rotors[1], FlightController_set_limited_rpm(t + self->roll_rate  + self->yaw_rate));
-            Rotor_set_rpm(self->rotors[2], FlightController_set_limited_rpm(t - self->pitch_rate - self->yaw_rate));
-            Rotor_set_rpm(self->rotors[3], FlightController_set_limited_rpm(t - self->roll_rate  + self->yaw_rate));
+            uint16_t rpm0 = SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(FlightController_set_limited_rpm(t + self->pitch_angle - self->yaw_rate))];
+            uint16_t rpm1 = SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(FlightController_set_limited_rpm(t + self->roll_angle + self->yaw_rate))];
+            uint16_t rpm2 = SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(FlightController_set_limited_rpm(t - self->pitch_angle - self->yaw_rate))];
+            uint16_t rpm3 = SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(FlightController_set_limited_rpm(t - self->pitch_angle + self->yaw_rate))];
+
+
+            Rotor_set_rpm(self->rotors[0], rpm0);
+            Rotor_set_rpm(self->rotors[1], rpm1);
+            Rotor_set_rpm(self->rotors[2], rpm2);
+            Rotor_set_rpm(self->rotors[3], rpm3);
         }
             break;
         case Calibrate:
@@ -120,10 +126,10 @@ void FlightController_loop(void *context, uint32_t delta_us)
             //calculate compensation and apply
             int16_t yaw_compensation = YAW_P * yaw_error;
 
-            Rotor_set_rpm(self->rotors[0], FlightController_set_limited_rpm(t + self->pitch_rate - yaw_compensation));
-            Rotor_set_rpm(self->rotors[1], FlightController_set_limited_rpm(t + self->roll_rate  + yaw_compensation));
-            Rotor_set_rpm(self->rotors[2], FlightController_set_limited_rpm(t - self->pitch_rate - yaw_compensation));
-            Rotor_set_rpm(self->rotors[3], FlightController_set_limited_rpm(t - self->roll_rate  + yaw_compensation));
+            Rotor_set_rpm(self->rotors[0], FlightController_set_limited_rpm(t + self->pitch_angle - yaw_compensation));
+            Rotor_set_rpm(self->rotors[1], FlightController_set_limited_rpm(t + self->roll_angle  + yaw_compensation));
+            Rotor_set_rpm(self->rotors[2], FlightController_set_limited_rpm(t - self->pitch_angle - yaw_compensation));
+            Rotor_set_rpm(self->rotors[3], FlightController_set_limited_rpm(t - self->roll_angle  + yaw_compensation));
         }
             break;
         case Full:
@@ -344,4 +350,15 @@ int16_t FlightController_roll_over_angle(int16_t angle)
         angle = 127 + angle + 127;
     }
     return angle;
+}
+
+uint16_t FlightController_sqrt_index_bounds(uint16_t rpm_in)
+{
+    if (rpm_in>999){
+        rpm_in = 999;
+    }
+    if (rpm_in < 0){
+        rpm_in = 0 ;
+    }
+    return rpm_in;
 }

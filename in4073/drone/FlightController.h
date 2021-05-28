@@ -16,6 +16,8 @@
 #define MINIMUM_RPM 180
 
 #define  YAW_P 1
+#define  FULL_P1 1
+#define FULL_P2 4
 
 #define CALIBRATION_WAIT_TIME_US 600000000
 
@@ -52,6 +54,12 @@ struct FlightController
 
     int16_t current_psi;
     int16_t previous_psi;
+
+    int16_t current_phi;
+    int16_t previous_phi;
+
+    int16_t current_theta;
+    int16_t previous_theta;
 
     uint32_t calibrate_start_time;
     int16_t phi_offset;

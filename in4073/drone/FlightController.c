@@ -22,6 +22,8 @@ void FlightController_loop(void *context, uint32_t delta_us)
 {
     struct FlightController *self = (struct FlightController *)context;
     self->current_psi = psi;
+    self->current_phi = phi;
+    self->current_theta = theta;
 
 //    static int check = 0;
 //    printf("FlightController_loop %d - Bat %4d - Motor %d - Mode::%s \n", check++, bat_volt, motor[0], FlightControllerMode_to_str(self->mode));
@@ -128,10 +130,38 @@ void FlightController_loop(void *context, uint32_t delta_us)
             get_sensor_data();
             //get throttle 0-255
             int16_t t = FlightController_map_throttle(self);
-            //get set points
+            //get set points 0 - 255
             int16_t phi_setPoint = FlightController_roll_over_angle(self->phi_offset/256 + self->roll_angle);
             int16_t theta_setPoint = FlightController_roll_over_angle(self->theta_offset/256 + self->pitch_angle);
+            int16_t  yaw_setPoint = self->yaw_rate;
+            //calculate rate of change
+            int16_t  psi_rate = (self-> current_psi - self->previous_psi );
+            int16_t  phi_rate = (self-> current_phi - self->previous_phi );
+            int16_t  theta_rate = (self-> current_theta - self->previous_theta );
 
+            //calculate error1
+            //TODO: need to make sure this can go the other way around also
+            int16_t yaw_error = yaw_setPoint - psi_rate;
+            int16_t roll_error = phi_setPoint - phi/256;
+            int16_t  pitch_error = theta_setPoint - theta/256;
+
+            //calculate compensation 1
+            int16_t yaw_compensation = YAW_P * yaw_error;
+            int16_t roll_rate_setPoint = FULL_P1 * roll_error;
+            int16_t pitch_rate_setPoint = FULL_P1 * pitch_error;
+
+            //roll and pitch rate error
+            int16_t roll_rate_error = roll_rate_setPoint - phi_rate;
+            int16_t pitch_rate_error = pitch_rate_setPoint - pitch_rate;
+
+            //calculate compensation 2
+            int16_t roll_rate_compensation = FULL_P2 * roll_rate_error;
+            int16_t pitch_rate_compensation = FULL_P2 * pitch_rate_error;
+
+            Rotor_set_rpm(self->rotors[0], FlightController_set_limited_rpm(t + pitch_rate_compensation - yaw_compensation));
+            Rotor_set_rpm(self->rotors[1], FlightController_set_limited_rpm(t + roll_rate_compensation  + yaw_compensation));
+            Rotor_set_rpm(self->rotors[2], FlightController_set_limited_rpm(t - pitch_rate_compensation - yaw_compensation));
+            Rotor_set_rpm(self->rotors[3], FlightController_set_limited_rpm(t - roll_rate_compensation  + yaw_compensation));
 
             break;
         case Raw:
@@ -142,6 +172,8 @@ void FlightController_loop(void *context, uint32_t delta_us)
             break;
     }
     self->previous_psi = self->current_psi;
+    self->previous_phi = self->current_phi;
+    self-> previous_theta = self->current_theta;
 
 
 }
@@ -166,6 +198,10 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
         memcpy(result->rotors, rotors, num_rotors * sizeof(struct Rotor *));
         result->current_psi = psi;
         result->previous_psi = psi;
+        result->current_phi=phi;
+        result->previous_phi=phi;
+        result->current_theta=theta;
+        result->previous_theta=theta;
         result->ch =ch;
         result->phi_offset = phi;
         result->theta_offset=theta;

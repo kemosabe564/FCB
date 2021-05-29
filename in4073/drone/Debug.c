@@ -46,5 +46,4 @@ void DEBUG(const char *format, ...)
     }
 
     free(message);
-
 }

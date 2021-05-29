@@ -61,7 +61,6 @@ void IMU_loop(void *context, uint32_t delta_us);
 
 struct IMU *IMU_create(bool dmp, uint16_t frequency);
 void IMU_calibrate(struct IMU *self);
-//void IMU_is_calibrated()
 void IMU_destroy(struct IMU *self);
 
 #endif //QUADCOPTER_FCB_IMU_H

@@ -15,17 +15,12 @@
 #include "../hal/timers.h"
 
 #include "IMU.h"
-
+#include "Debug.h"
 
 
 void FlightController_loop(void *context, uint32_t delta_us)
 {
     struct FlightController *self = (struct FlightController *)context;
-    self->current_psi = psi;
-//    static int check = 0;
-//    printf("FlightController_loop %d - Bat %4d - Motor %d - Mode::%s \n", check++, bat_volt, motor[0], FlightControllerMode_to_str(self->mode));
-//
-//    static int incrementing = 1;
 
 
     switch (self->mode) {
@@ -72,9 +67,12 @@ void FlightController_loop(void *context, uint32_t delta_us)
             Rotor_set_rpm(self->rotors[1], FlightController_set_limited_rpm(t + self->roll_rate  + self->yaw_rate));
             Rotor_set_rpm(self->rotors[2], FlightController_set_limited_rpm(t - self->pitch_rate - self->yaw_rate));
             Rotor_set_rpm(self->rotors[3], FlightController_set_limited_rpm(t - self->roll_rate  + self->yaw_rate));
+
+            DEBUG("Yaw = %d", self->imu->yaw_rate);
         }
             break;
         case Calibrate:
+
 
             break;
         case Yaw: {
@@ -104,9 +102,6 @@ void FlightController_loop(void *context, uint32_t delta_us)
 
             break;
     }
-    self->previous_psi = self->current_psi;
-
-
 }
 
 struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *rotors[], uint8_t num_rotors)

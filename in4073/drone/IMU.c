@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include "../mpu6050/mpu6050.h"
 #include "../hal/timers.h"
+#include "Debug.h"
 
 struct IMU *IMU_create(bool dmp, uint16_t frequency)
 {
@@ -64,10 +65,10 @@ void IMU_loop(void *context, uint32_t delta_us)
         }
             break;
         case IMU_Measuring: {
-//            if (check_sensor_int_flag()) {
-//                get_sensor_data();
-//            }
-//            get_sensor_data();
+            if (check_sensor_int_flag())
+            {
+                get_sensor_data();
+            }
 
             imu->raw_roll_angle = phi;
             imu->raw_pitch_angle = theta;

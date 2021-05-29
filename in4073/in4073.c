@@ -148,8 +148,6 @@ int main(void)
     CommandHandler_add_comms(ch, COMM_SERIAL, serial_comms);
 //    CommandHandler_add_comms(comm_handler, ble_comms, COMM_BLE);
 
-    DEBUG("This is a very long debug message with a variable %d \n", 1);
-
 	while (running)
 	{
         LoopHandler_loop(lh, LH_LINK(fc), LH_HZ_TO_PERIOD(100));
@@ -159,7 +157,7 @@ int main(void)
         LoopHandler_loop(lh, LH_LINK(r3), LH_HZ_TO_PERIOD(100));
         LoopHandler_loop(lh, LH_LINK(r4), LH_HZ_TO_PERIOD(100));
 
-//        LoopHandler_loop(lh, LH_LINK(imu), LH_HZ_TO_PERIOD(1));
+        LoopHandler_loop(lh, LH_LINK(imu), LH_HZ_TO_PERIOD(100));
 
         LoopHandler_loop(lh, LH_LINK(serial_comms), LH_HZ_TO_PERIOD(100));
 //        LoopHandler_loop(lh, LH_LINK(ble_comms), LH_HZ_TO_PERIOD(50));

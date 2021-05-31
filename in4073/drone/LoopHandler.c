@@ -7,6 +7,7 @@
 #include <stdlib.h>
 
 #include "../hal/timers.h"
+#include "../mpu6050/mpu6050.h"
 
 struct LoopHandler *LoopHandler_create()
 {
@@ -31,22 +32,29 @@ struct LoopHandlerControlBlock LoopHandler_init_controlblock(LoopHandlerFunction
     return cb;
 }
 
-void LoopHandler_loop(struct LoopHandler *self, struct LoopHandlerControlBlock *cb, void *context, uint32_t period_us)
-{
+void LoopHandler_loop(struct LoopHandler *self, struct LoopHandlerControlBlock *cb, void *context, uint32_t period_us) {
     uint32_t now = get_time_us();
 
-    if (cb->next_release == 0)
-    {
+    if (period_us == 0) {
         cb->func(context, 0);
-        cb->next_release = now + period_us;
-        cb->last_activation = now;
-    }
-    else if(cb->next_release <= now)
+    } else
     {
-        cb->func(context, now - cb->last_activation);
-        cb->next_release += period_us;
-        cb->last_activation = now;
+
+        if (cb->next_release == 0)
+        {
+            cb->func(context, 0);
+            cb->next_release = now + period_us;
+            cb->last_activation = now;
+        }
+        else if(cb->next_release <= now)
+        {
+            cb->func(context, now - cb->last_activation);
+            cb->next_release += period_us;
+            cb->last_activation = now;
+        }
     }
+
+
 }
 
 void LoopHandler_destroy(struct LoopHandler *self)

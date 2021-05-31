@@ -61,11 +61,10 @@ class Controller:
                 else:
                     print("NOT SAFE")
             if event.key == pygame.K_3:  # calibration
-                # self.drone.change_mode(FlightMode.Calibrate)
+                self.drone.change_mode(FlightMode.Calibrate)
                 pass
             if event.key == pygame.K_4:  # yaw rate
-                # self.drone.change_mode(FlightMode.Yaw)
-                pass
+                self.drone.change_mode(FlightMode.Yaw)
 
     # TODO: This needs to be changed to limit to [-1,+1]
     # TODO: Check what this needs to be mapped to
@@ -94,7 +93,8 @@ class Controller:
                 if self.drone.mode == FlightMode.Manual:
                     self.update_inputs()
 
-                    self.drone.set_control(yaw=self.input_yaw, pitch=self.input_pitch, roll=self.input_roll, throttle=self.input_throttle)
+
+                    self.drone.set_control(roll=self.input_roll, pitch=self.input_pitch, yaw=self.input_yaw,throttle= self.input_throttle)
 
             time.sleep(0.01)
 

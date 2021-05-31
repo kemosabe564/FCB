@@ -36,20 +36,19 @@ struct Command *Command_decode(uint8_t *data)
             case Invalid:
                 result->data = NULL;
                 break;
-            case SetOrQueryMode: {
-                uint8_t *data = malloc(sizeof(uint8_t));
-                *data = (header & HEADER_DATA_MASK);
+            case SetOrQueryMode:
+            case CurrentMode: {
+                uint8_t *argument = malloc(sizeof(uint8_t));
+                *argument = (header & HEADER_DATA_MASK);
 
-                result->data = (void *)data;
+                result->data = (void *)argument;
             }
-                break;
-            case CurrentMode: // Doesn't need to be decoded on drone side
                 break;
             case SetControl: {
                 // Do something with the remaining data
                 struct CommandControlData *control_data = (struct CommandControlData *)malloc(sizeof(struct CommandControlData));
 
-                if (data)
+                if (control_data)
                 {
                     control_data->yaw_rate      = data[1];
                     control_data->pitch_rate    = data[2];
@@ -87,12 +86,13 @@ struct EncodedCommand Command_encode(struct Command *command)
 
     switch (command->type)
     {
-        case CurrentMode: {
+        case CurrentMode:
+        case Heartbeat: { // encoding logic of the simple argumented command type
             size = (1 + 0 + 1);
             encoded = (uint8_t *)malloc(size * sizeof(uint8_t));
 
-            uint8_t *mode = (uint8_t *)command->data;
-            encoded[0] = ((command->type << 4) | *mode);
+            uint8_t *argument = (uint8_t *)command->data;
+            encoded[0] = ((command->type << 4) | *argument);
 
             encoded[1] = crc8_fast(encoded, 1);
         }
@@ -117,6 +117,7 @@ struct EncodedCommand Command_encode(struct Command *command)
             // setting last buffer element to CRC
             encoded[size - 1] = crc8_fast(encoded, size - 1);
         }
+            break;
         default:
             break;
     }
@@ -129,7 +130,8 @@ struct EncodedCommand Command_encode(struct Command *command)
     return handle;
 }
 
-struct Command *Command_make_current_mode(uint8_t mode)
+// allocate and initialize a simple argumented command on the heap
+struct Command *Command_make_simple(enum CommandType type, uint8_t argument)
 {
     struct Command *cmd = (struct Command *)malloc(sizeof(struct Command));
 
@@ -137,7 +139,7 @@ struct Command *Command_make_current_mode(uint8_t mode)
     // which means malloc was successful
     if (cmd)
     {
-        cmd->type = CurrentMode;
+        cmd->type = type;
 
         uint8_t *data = (uint8_t *)malloc(sizeof(uint8_t));
 
@@ -145,7 +147,7 @@ struct Command *Command_make_current_mode(uint8_t mode)
         if (data)
         {
             // allocation successful, so set data!
-            *data = mode;
+            *data = argument;
             cmd->data = (void *)data;
 
             return cmd;
@@ -158,7 +160,20 @@ struct Command *Command_make_current_mode(uint8_t mode)
     return NULL;
 }
 
-struct Command *Command_make_debug_msg(const char *format, ...)
+// alias for Command_make_simple
+struct Command *Command_make_heartbeat(uint8_t sequence_number)
+{
+    return Command_make_simple(Heartbeat, sequence_number);
+}
+
+// alias for Command_make_simple
+struct Command *Command_make_current_mode(uint8_t mode)
+{
+    return Command_make_simple(CurrentMode, mode);
+}
+
+// allocate and initialize a formatted string command on the heap
+struct Command *Command_make_debug_format(const char *format, ...)
 {
     struct Command *cmd = (struct Command *)malloc(sizeof(struct Command));
 
@@ -179,6 +194,43 @@ struct Command *Command_make_debug_msg(const char *format, ...)
                 vsprintf(message, format, args);
 
                 data->size = size;
+                data->message = message;
+
+                cmd->data = (void *)data;
+
+                return cmd;
+            }
+
+            // Allocation of message failed
+            free(data);
+        }
+
+        // Allocation of data struct failed
+        free(cmd);
+    }
+
+    return NULL;
+}
+
+// allocate and initialize a formatted string command on the heap
+struct Command *Command_make_debug_n(const char *string, uint16_t n)
+{
+    struct Command *cmd = (struct Command *)malloc(sizeof(struct Command));
+
+    if (cmd)
+    {
+        cmd->type = DebugMessage;
+        struct CommandDebugMessage *data = (struct CommandDebugMessage *)malloc(sizeof(struct CommandDebugMessage));
+
+        if (data)
+        {
+            char *message = (char *)malloc(n * sizeof(char));
+
+            if (message)
+            {
+                memcpy(message, string, n);
+
+                data->size = n - 1;
                 data->message = message;
 
                 cmd->data = (void *)data;

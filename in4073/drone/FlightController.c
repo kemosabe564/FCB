@@ -16,11 +16,14 @@
 #include "../mpu6050/mpu6050.h"
 #include "../hal/timers.h"
 
+#include "IMU.h"
+#include "Debug.h"
 
 
 void FlightController_loop(void *context, uint32_t delta_us)
 {
     struct FlightController *self = (struct FlightController *)context;
+
     self->current_psi = psi;
     self->current_phi = phi;
     self->current_theta = theta;
@@ -29,6 +32,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
 //    printf("FlightController_loop %d - Bat %4d - Motor %d - Mode::%s \n", check++, bat_volt, motor[0], FlightControllerMode_to_str(self->mode));
 //
 //    static int incrementing = 1;
+
 
 
     switch (self->mode) {
@@ -71,6 +75,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
 
             uint16_t t = FlightController_map_throttle(self);
 
+
             if (t<1)
             {
                 for (int i =0; i <self->num_rotors; i++)
@@ -91,6 +96,8 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 Rotor_set_rpm(self->rotors[2], rpm2);
                 Rotor_set_rpm(self->rotors[3], rpm3);
             }
+          
+          DEBUG("Yaw = %d", self->imu->yaw_rate);
 
 
         }
@@ -118,6 +125,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 CommandHandler_send_command(self->ch, Command_make_debug_msg("Cal End\n"));
                 self->is_calibrating=false;
             }
+
 
 
             break;
@@ -230,10 +238,10 @@ void FlightController_loop(void *context, uint32_t delta_us)
             break;
     }
 
+
     self->previous_psi = self->current_psi;
     self->previous_phi = self->current_phi;
     self-> previous_theta = self->current_theta;
-
 
 }
 

@@ -53,6 +53,14 @@ PID -> Param ID
        
 PID -> Param ID
 
+## 10 <> Heartbeat
+| 1010 XXXX | 8 BIT CRC |
+       SEQ
+
+SEQ -> Sequence number. Increments every time a heartbeat is sent and cycles around after 15.
+
+Heartbeat is initiated by the Terminal and the drone responds in best-effort time with the current sequence number.
+
 ## Extended
 | 1111 XXXX | xxxx
 

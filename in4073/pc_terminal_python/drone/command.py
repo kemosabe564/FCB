@@ -14,6 +14,7 @@ class CommandType(Enum):
     DebugMessage = 0b0111
     SetParam = 0b1000
     AckParam = 0b1001
+    Heartbeat = 0b1010
 
 
 class Command:
@@ -32,6 +33,9 @@ class Command:
 
         if self.type == CommandType.DebugMessage:
             self.args = ["argument", "message"]
+
+        if self.type == CommandType.Heartbeat:
+            self.args = ["argument"]
 
     def set_data(self, **kwargs):
         for key, value in kwargs.items():
@@ -69,6 +73,8 @@ class Command:
             buffer.append(self.get_data("roll") & 0b11111111)
             buffer.append(self.get_data("throttle") & 0b11111111)
             crc_len = 5
+        elif self.type == CommandType.Heartbeat:
+            buffer.append((self.type.value << 4) | (self.get_data("sequence") & 0b1111))
 
         buffer.append(crc8(buffer, crc_len))
 
@@ -113,10 +119,11 @@ class SerialCommandDecoder:
 
         if type == CommandType.CurrentMode:
             cmd.set_data(argument=(header & 0b1111))
-
-        if type == CommandType.DebugMessage:
+        elif type == CommandType.Heartbeat:
+            cmd.set_data(argument=(header & 0b1111))
+        elif type == CommandType.DebugMessage:
             message = bytearray()
-            size = (header & 0b1111) + 2 # add 2 since the data is offset by 1 byte and python slicing notation goes until the second index
+            size = (header & 0b1111) + 2  # add 2 since the data is offset by 1 byte and python slicing notation goes until the second index
             for byte in self.buffer[1:size]:
                 message.append(byte)
 
@@ -134,11 +141,7 @@ class SerialCommandDecoder:
     def get_data_length_from_header(header):
         type = (header >> 4)
 
-        if type == CommandType.CurrentMode.value:
-            return 0
-
         if type == CommandType.DebugMessage.value:
             return (header & 0b1111) + 1
 
-        print("unknown header type..")
         return 0

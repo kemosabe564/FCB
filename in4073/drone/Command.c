@@ -270,7 +270,7 @@ uint8_t Command_data_len(uint8_t header)
         case DebugMessage:
             return (header & HEADER_DATA_MASK);
         case SetParam:
-            return 2;
+            return 1;
         case AckParam:
             return 0;
         case LastCommand:

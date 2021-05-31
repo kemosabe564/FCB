@@ -36,7 +36,7 @@ enum FlightControllerMode
     HoldHeight = 9
 };
 
-typedef void (*FlightControllerChangedMode)(enum FlightControllerMode new_mode, enum FlightControllerMode old_mode);
+typedef void (*FlightControllerChangedMode)(struct FlightController *self, enum FlightControllerMode new_mode, enum FlightControllerMode old_mode);
 
 struct FlightController
 {
@@ -69,6 +69,7 @@ struct FlightController
     struct CommandHandler *ch;
 
     FlightControllerChangedMode on_changed_mode;
+    FlightControllerChangedMode on_changed_mode_internal;
 
     struct LoopHandlerControlBlock loop;
 };
@@ -79,6 +80,7 @@ char *FlightControllerMode_to_str(enum FlightControllerMode mode);
 
 bool FlightController_change_mode(struct FlightController *self, enum FlightControllerMode mode);
 void FlightController_set_on_change_mode(struct FlightController *self, FlightControllerChangedMode handler);
+void __FlightController_on_changed_mode(struct FlightController *self, enum FlightControllerMode new_mode, enum FlightControllerMode old_mode);
 bool FlightController_check_rotors_safe(struct FlightController *self);
 void FlightController_set_throttle(struct FlightController *self, uint16_t throttle);
 void FlightController_set_controls(struct FlightController *self, int16_t yaw_rate, int16_t pitch_rate, int16_t roll_rate, uint16_t throttle);

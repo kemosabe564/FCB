@@ -18,6 +18,7 @@
 
 #include "IMU.h"
 #include "Debug.h"
+#include "Rotor.h"
 
 
 void FlightController_loop(void *context, uint32_t delta_us)
@@ -109,18 +110,9 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 Rotor_set_rpm(self->rotors[i],0);
             }
 
-//            //check if calibration is over
-//            if (self->imu->state == IMU_FinishCalibration)
-//            {
-//                self->imu->state = IMU_Measuring;
-//                DEBUG("Calibration done");
-//                FlightController_change_mode(self,Safe);
-//            }
-//
-//            //if calibration has not already started - starting
-            if (self->imu->state != (IMU_Waiting))
+            if (self->imu->calibrated)
             {
-                self->imu->state = IMU_StartCalibration;
+                FlightController_change_mode(self, Safe);
             }
             break;
         case Yaw: {
@@ -129,7 +121,6 @@ void FlightController_loop(void *context, uint32_t delta_us)
 
             if (check_sensor_int_flag()) {
                 get_sensor_data();
-                //run_filters_and_control();
             }
 
             if (self->input_ts != 0 && (now - self->input_ts > 50000))
@@ -169,10 +160,14 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 Rotor_set_rpm(self->rotors[3], rpm3);
             }
 
+            DEBUG("Yaw = %d", self->imu->raw_yaw_rate);
+
 
         }
             break;
         case Full:
+
+            //TODO: use imu readings
             get_sensor_data();
             //get throttle 0-255
             int16_t t = FlightController_map_throttle(self);
@@ -186,7 +181,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
             int16_t  theta_rate = (self-> current_theta - self->previous_theta );
 
             //calculate error1
-            //TODO: need to make sure this can go the other way around also
+
             int16_t yaw_error = yaw_setPoint - psi_rate;
             int16_t roll_error = phi_setPoint - phi/256;
             int16_t  pitch_error = theta_setPoint - theta/256;
@@ -225,6 +220,16 @@ void FlightController_loop(void *context, uint32_t delta_us)
 
 }
 
+void __FlightController_on_changed_mode(struct FlightController *self, enum FlightControllerMode new_mode, enum FlightControllerMode old_mode)
+{
+    switch (new_mode) {
+        case Calibrate:
+            IMU_calibrate(self->imu);
+            break;
+        default: break;
+    }
+}
+
 struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *rotors[], uint8_t num_rotors, struct CommandHandler *ch)
 {
     struct FlightController *result = (struct FlightController *)malloc(sizeof(struct FlightController));
@@ -239,6 +244,7 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
         result->mode = Init;
         result->debug_mode = false;
         result->on_changed_mode = NULL;
+        result->on_changed_mode_internal = __FlightController_on_changed_mode;
         result->num_rotors = num_rotors;
         result->input_ts = 0;
         result->rotors = (struct Rotor **)malloc(num_rotors * sizeof(struct Rotor *));
@@ -267,6 +273,8 @@ bool FlightController_change_mode(struct FlightController *self, enum FlightCont
             // We can only change from panic over to safe
             if (self->mode != Panic || (self->mode == Panic && mode == Safe))
             {
+                self->on_changed_mode_internal(mode, self->mode);
+
                 if (self->on_changed_mode)
                 {
                     self->on_changed_mode(mode, self->mode);
@@ -363,6 +371,20 @@ uint16_t FlightController_map_throttle(struct  FlightController *self)
     if (self->throttle >0)
     {
         t= (self->throttle + 80) * 2;
+    }
+    else
+    {
+        t=0;
+    }
+    return t;
+}
+
+uint16_t FlightController_map_proportional(struct FlightController *self)
+{
+    uint16_t t;
+    if (self->throttle >0)
+    {
+        t= ((self->throttle - 0) * (SAFE_RPM_LIMIT - MINIMUM_RPM) /255)+ MINIMUM_RPM;
     }
     else
     {

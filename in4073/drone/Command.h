@@ -33,6 +33,11 @@ struct CommandControlData {
     uint8_t climb_rate;
 };
 
+struct CommandParamsData {
+    uint8_t id;
+    uint8_t value;
+};
+
 struct CommandDebugMessage {
     char *message;
     uint16_t size;

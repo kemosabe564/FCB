@@ -122,6 +122,7 @@ void IMU_calibrate(struct IMU *self)
 {
     if (self)
     {
+        self->calibrated = false;
         self->state = IMU_StartCalibration;
     }
 }

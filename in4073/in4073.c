@@ -102,8 +102,9 @@ void command_handler_function(struct Command *command)
         }
             break;
         case SetParam: {
-            struct CommandParamsData *data =
+//            struct CommandParamsData *data =
         }
+            break;
         case Invalid:
             printf("Invalid command");
             break;

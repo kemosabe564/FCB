@@ -66,13 +66,10 @@ class Controller:
             if event.key == pygame.K_4:  # yaw rate
                 self.drone.change_mode(FlightMode.Yaw)
 
-    # TODO: This needs to be changed to limit to [-1,+1]
-    # TODO: Check what this needs to be mapped to
     def update_inputs(self):
         self.input_roll = self.joystick.get_axis(JoystickAxis.Roll)
         self.input_pitch = self.joystick.get_axis(JoystickAxis.Pitch)
         self.input_yaw = self.joystick.get_axis(JoystickAxis.Yaw)
-        # TODO: re-add trimming
         self.input_throttle = self.joystick.get_axis(JoystickAxis.Throttle)
 
     def at_deadpoint(self, x):

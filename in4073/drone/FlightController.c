@@ -98,7 +98,8 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 Rotor_set_rpm(self->rotors[3], rpm3);
             }
           
-          //DEBUG("Yaw = %d", self->imu->yaw_rate);
+          DEBUG("Yaw = %d", self->imu->yaw_rate);
+          DEBUG("Throttle %d",t);
 
 
         }
@@ -273,11 +274,11 @@ bool FlightController_change_mode(struct FlightController *self, enum FlightCont
             // We can only change from panic over to safe
             if (self->mode != Panic || (self->mode == Panic && mode == Safe))
             {
-                self->on_changed_mode_internal(mode, self->mode);
+                self->on_changed_mode_internal(self, mode, self->mode);
 
                 if (self->on_changed_mode)
                 {
-                    self->on_changed_mode(mode, self->mode);
+                    self->on_changed_mode(self, mode, self->mode);
                 }
 
                 // might not be necessary

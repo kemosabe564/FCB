@@ -97,37 +97,31 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 Rotor_set_rpm(self->rotors[3], rpm3);
             }
           
-          DEBUG("Yaw = %d", self->imu->yaw_rate);
+          //DEBUG("Yaw = %d", self->imu->yaw_rate);
 
 
         }
             break;
         case Calibrate:
-            //dmp_enable_gyro_cal(1); //not required
-
             //turning down all the motors
             for (int i =0; i <self->num_rotors; i++)
             {
                 Rotor_set_rpm(self->rotors[i],0);
             }
 
-            get_sensor_data();
-            //If you dont actually need to check ,just get the values here and wait manually
-            if (self->is_calibrating)
+//            //check if calibration is over
+//            if (self->imu->state == IMU_FinishCalibration)
+//            {
+//                self->imu->state = IMU_Measuring;
+//                DEBUG("Calibration done");
+//                FlightController_change_mode(self,Safe);
+//            }
+//
+//            //if calibration has not already started - starting
+            if (self->imu->state != (IMU_Waiting))
             {
-                CommandHandler_send_command(self->ch, Command_make_debug_msg("Cal Start\n"));
-                self->calibrate_start_time=get_time_us();
-                //TODO:This is terrible but anyway
-                while(get_time_us() < (self->calibrate_start_time + CALIBRATION_WAIT_TIME_US));
-                get_sensor_data();
-                self->theta_offset = theta;
-                self->phi_offset = phi;
-                CommandHandler_send_command(self->ch, Command_make_debug_msg("Cal End\n"));
-                self->is_calibrating=false;
+                self->imu->state = IMU_StartCalibration;
             }
-
-
-
             break;
         case Yaw: {
 
@@ -143,24 +137,16 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 FlightController_change_mode(self,Panic);
             }
 
-
-
             //get_sensor_data();
             int16_t t = FlightController_map_throttle(self);
             //get set point
             int16_t setPoint = self->yaw_rate;
             //get sensor reading
             int16_t  psi_rate = (self-> current_psi - self->previous_psi );
-//            CommandHandler_send_command(self->ch, Command_make_debug_msg("sr %d\n",sr));
-//            CommandHandler_send_command(self->ch, Command_make_debug_msg("Psi old %d\n",self->previous_psi));
-//            CommandHandler_send_command(self->ch, Command_make_debug_msg("Psi new %d\n",self->current_psi));
-//            CommandHandler_send_command(self->ch, Command_make_debug_msg("dPsi %d\n",psi_rate));
             //calculate error
             int16_t yaw_error = setPoint - psi_rate;
             //calculate compensation and apply
             int16_t yaw_compensation = YAW_P * yaw_error;
-
-
 
             if (t<1)
             {
@@ -176,12 +162,6 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 uint16_t rpm1 = SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(FlightController_set_limited_rpm(t + self->roll_angle + yaw_compensation))];
                 uint16_t rpm2 = SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(FlightController_set_limited_rpm(t - self->pitch_angle - yaw_compensation))];
                 uint16_t rpm3 = SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(FlightController_set_limited_rpm(t - self->pitch_angle + yaw_compensation))];
-
-//                CommandHandler_send_command(self->ch, Command_make_debug_msg("rpm0 %d\n",rpm0));
-//                CommandHandler_send_command(self->ch, Command_make_debug_msg("rpm1 %d\n",rpm1));
-//                CommandHandler_send_command(self->ch, Command_make_debug_msg("rpm2 %d\n",rpm2));
-//                CommandHandler_send_command(self->ch, Command_make_debug_msg("rpm3 %d\n",rpm3));
-                //CommandHandler_send_command(self->ch, Command_make_debug_msg("Throttle %d\n",t));
 
                 Rotor_set_rpm(self->rotors[0], rpm0);
                 Rotor_set_rpm(self->rotors[1], rpm1);

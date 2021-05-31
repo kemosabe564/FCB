@@ -230,7 +230,7 @@ struct Command *Command_make_debug_n(const char *string, uint16_t n)
             {
                 memcpy(message, string, n);
 
-                data->size = n - 1;
+                data->size = n;
                 data->message = message;
 
                 cmd->data = (void *)data;

@@ -29,8 +29,8 @@ ACK = 0001 -> Wrong flightmode
 ## 5 > QueryForces
 | 0101 0000 | 8 BIT CRC |
 
-## 6 < CurrentForces
-| 0110 0000 | PHI, THETA, PSI ETC | 8 BIT CRC |
+## 6 < CurrentTelemetry
+| 0110 0000 | PHI, THETA, PSI,  | 8 BIT CRC |
 
 ## 7 < DebugMsg
 | 0111 XXXX | XXXX XXXX | ........ | 8 BIT CRC |

@@ -125,18 +125,25 @@ void FlightController_loop(void *context, uint32_t delta_us)
 
             uint32_t now = get_time_us();
 
+            if (check_sensor_int_flag()) {
+                get_sensor_data();
+                //run_filters_and_control();
+            }
+
             if (self->input_ts != 0 && (now - self->input_ts > 50000))
             {
                 FlightController_change_mode(self,Panic);
             }
 
-            get_sensor_data();
+
+
+            //get_sensor_data();
             int16_t t = FlightController_map_throttle(self);
             //get set point
             int16_t setPoint = self->yaw_rate;
             //get sensor reading
             int16_t  psi_rate = (self-> current_psi - self->previous_psi );
-            //CommandHandler_send_command(self->ch, Command_make_debug_msg("sr %d\n",sr));
+//            CommandHandler_send_command(self->ch, Command_make_debug_msg("sr %d\n",sr));
 //            CommandHandler_send_command(self->ch, Command_make_debug_msg("Psi old %d\n",self->previous_psi));
 //            CommandHandler_send_command(self->ch, Command_make_debug_msg("Psi new %d\n",self->current_psi));
 //            CommandHandler_send_command(self->ch, Command_make_debug_msg("dPsi %d\n",psi_rate));
@@ -144,6 +151,8 @@ void FlightController_loop(void *context, uint32_t delta_us)
             int16_t yaw_error = setPoint - psi_rate;
             //calculate compensation and apply
             int16_t yaw_compensation = YAW_P * yaw_error;
+
+
 
             if (t<1)
             {
@@ -164,6 +173,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
 //                CommandHandler_send_command(self->ch, Command_make_debug_msg("rpm1 %d\n",rpm1));
 //                CommandHandler_send_command(self->ch, Command_make_debug_msg("rpm2 %d\n",rpm2));
 //                CommandHandler_send_command(self->ch, Command_make_debug_msg("rpm3 %d\n",rpm3));
+                //CommandHandler_send_command(self->ch, Command_make_debug_msg("Throttle %d\n",t));
 
                 Rotor_set_rpm(self->rotors[0], rpm0);
                 Rotor_set_rpm(self->rotors[1], rpm1);
@@ -219,6 +229,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
 
             break;
     }
+
     self->previous_psi = self->current_psi;
     self->previous_phi = self->current_phi;
     self-> previous_theta = self->current_theta;

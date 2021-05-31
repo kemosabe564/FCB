@@ -7,6 +7,7 @@
 #include <stdlib.h>
 
 #include "../hal/timers.h"
+#include "../mpu6050/mpu6050.h"
 
 struct LoopHandler *LoopHandler_create()
 {
@@ -52,6 +53,7 @@ void LoopHandler_loop(struct LoopHandler *self, struct LoopHandlerControlBlock *
             cb->last_activation = now;
         }
     }
+
 
 }
 

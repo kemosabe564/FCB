@@ -137,20 +137,21 @@ int main(void)
 
     struct IMU *imu = IMU_create(true, 100);
 
-    fc = FlightController_create(imu, (struct Rotor *[]){ r1, r2, r3, r4 }, 4);
-    FlightController_set_on_change_mode(fc, changed_mode_handler);
 
 //    struct Comms ble_comms BLE_init();
     struct Comms *serial_comms = Serial_create(115200);
 
     ch = CommandHandler_create(COMM_SERIAL, command_handler_function);
 
+    fc = FlightController_create(imu, (struct Rotor *[]){ r1, r2, r3, r4 }, 4, ch);
+    FlightController_set_on_change_mode(fc, changed_mode_handler);
+
     CommandHandler_add_comms(ch, COMM_SERIAL, serial_comms);
 //    CommandHandler_add_comms(comm_handler, ble_comms, COMM_BLE);
 
 	while (running)
 	{
-        LoopHandler_loop(lh, LH_LINK(fc), LH_HZ_TO_PERIOD(100));
+        LoopHandler_loop(lh, LH_LINK(fc), LH_HZ_TO_PERIOD(2));
 
         LoopHandler_loop(lh, LH_LINK(r1), LH_HZ_TO_PERIOD(100));
         LoopHandler_loop(lh, LH_LINK(r2), LH_HZ_TO_PERIOD(100));
@@ -159,7 +160,7 @@ int main(void)
 
         LoopHandler_loop(lh, LH_LINK(imu), LH_HZ_TO_PERIOD(100));
 
-        LoopHandler_loop(lh, LH_LINK(serial_comms), LH_HZ_TO_PERIOD(100));
+        LoopHandler_loop(lh, LH_LINK(serial_comms), 0);
 //        LoopHandler_loop(lh, LH_LINK(ble_comms), LH_HZ_TO_PERIOD(50));
 
         LoopHandler_loop(lh, LH_LINK(ch), LH_HZ_TO_PERIOD(100));

@@ -74,7 +74,6 @@ void FlightController_loop(void *context, uint32_t delta_us)
             break;
         case Manual: {
             uint32_t now = get_time_us();
-
             if (self->input_ts != 0 && (now - self->input_ts > 50000))
             {
                 FlightController_change_mode(self,Panic);
@@ -120,7 +119,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
 
             if (self->imu->calibrated)
             {
-                DEBUG(0, "Cal Start\n");
+                DEBUG(0, "Calibrated\n");
 
                 FlightController_change_mode(self, Safe);
 
@@ -129,11 +128,6 @@ void FlightController_loop(void *context, uint32_t delta_us)
         case Yaw: {
 
             uint32_t now = get_time_us();
-
-//            if (check_sensor_int_flag()) {
-//                get_sensor_data();
-//            }
-
             if (self->input_ts != 0 && (now - self->input_ts > 50000))
             {
                 FlightController_change_mode(self,Panic);
@@ -171,12 +165,15 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 Rotor_set_rpm(self->rotors[3], rpm3);
             }
 
-            DEBUG("Yaw = %d", self->imu->yaw_rate);
-
-
         }
             break;
         case Full:
+        {
+            uint32_t now = get_time_us();
+            if (self->input_ts != 0 && (now - self->input_ts > 50000))
+            {
+                FlightController_change_mode(self,Panic);
+            }
 
             //get throttle 0-255
             int16_t t = FlightController_map_throttle(self);
@@ -229,7 +226,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 Rotor_set_rpm(self->rotors[2], rpm2);
                 Rotor_set_rpm(self->rotors[3], rpm3);
             }
-
+        }
             break;
         case Raw:
 
@@ -238,7 +235,6 @@ void FlightController_loop(void *context, uint32_t delta_us)
 
             break;
     }
-
 
     self->previous_psi = self->current_psi;
     self->previous_phi = self->current_phi;
@@ -263,7 +259,7 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
     if (result)
     {
         adc_init();
-        get_sensor_data();
+        //get_sensor_data();
 
         result->imu = imu;
         result->loop = LoopHandler_init_controlblock(FlightController_loop);

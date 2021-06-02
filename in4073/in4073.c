@@ -49,7 +49,7 @@ bool demo_done;
 struct FlightController *fc = NULL;
 struct CommandHandler *ch = NULL;
 
-void changed_mode_handler(enum FlightControllerMode new_mode, enum FlightControllerMode old_mode)
+void changed_mode_handler(struct FlightController *self, enum FlightControllerMode new_mode, enum FlightControllerMode old_mode)
 {
     CommandHandler_send_command(ch, Command_make_current_mode((uint8_t) new_mode));
 
@@ -101,6 +101,12 @@ void command_handler_function(struct Command *command)
             struct CommandControlData *data = (struct CommandControlData *)command->data;
 
             FlightController_set_controls(fc, data->yaw_rate, data->pitch_rate, data->roll_rate, data->climb_rate);
+        }
+            break;
+        case SetParam: {
+            struct CommandParamsData *data = (struct CommandParamsData *) command->data;
+
+            FlightController_set_params(fc, data->id , data->value);
         }
             break;
         case Invalid:

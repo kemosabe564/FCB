@@ -34,6 +34,11 @@ void FlightController_loop(void *context, uint32_t delta_us)
 //
 //    static int incrementing = 1;
 
+    if (bat_volt < BAT_THRESHOLD)
+    {
+        FlightController_change_mode(self,Panic);
+    }
+
 
 
     switch (self->mode) {

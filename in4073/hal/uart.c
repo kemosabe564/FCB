@@ -55,7 +55,7 @@ void uart_put(uint8_t byte)
 // Reroute printf
 int _write(int file, const char * p_char, int len)
 {
-    if (*global_channel)
+    if (global_channel && *global_channel)
     {
         CommandHandler_send_command(*global_channel, Command_make_debug_n(0, p_char, len));
     }

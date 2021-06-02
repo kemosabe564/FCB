@@ -269,7 +269,7 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
         result->previous_phi=phi;
         result->current_theta=theta;
         result->previous_theta=theta;
-        result->ch =ch;
+        result->ch = ch;
         result->phi_offset = phi;
         result->theta_offset=theta;
         result->is_calibrating=false;

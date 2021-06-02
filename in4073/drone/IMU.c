@@ -87,8 +87,6 @@ void IMU_loop(void *context, uint32_t delta_us)
             imu->roll_rate = imu->raw_roll_rate;
             imu->pitch_rate = imu->raw_pitch_rate;
             imu->yaw_rate = imu->raw_yaw_rate;
-
-            DEBUG(0,"measurement: %d", phi);
         }
             break;
         case IMU_StartCalibration: {

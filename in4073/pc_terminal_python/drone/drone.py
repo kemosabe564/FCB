@@ -33,6 +33,10 @@ class Drone:
 
         if command.type == CommandType.CurrentMode:
             self.mode = FlightMode(command.get_data("argument"))
+        elif command.type == CommandType.CurrentTelemetry:
+            self.phi = command.get_data("roll_angle")
+            self.theta = command.get_data("pitch_angle")
+            self.psi = command.get_data("yaw_angle")
 
     def get_angles(self):
         return self.phi, self.theta, self.psi

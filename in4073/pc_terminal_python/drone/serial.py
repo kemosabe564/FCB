@@ -21,7 +21,7 @@ class Serial:
         self.decoder = SerialCommandDecoder()
         self.send_queue = queue.Queue()
 
-        self.print_traffic = False
+        self.print_traffic = True
 
         self.serial = serial.Serial(self.port, self.baud, timeout=1)
 
@@ -37,11 +37,11 @@ class Serial:
         with self.serial as ser:
             while not self.terminate:
                 command = self.send_queue.get()
+                if self.print_traffic:
+                    print(">> {}".format(command))
                 ser.write(command.encode())
                 ser.flushOutput()
 
-                if self.print_traffic:
-                    print(">> {}".format(command))
                 # removed sleep since thread will sleep on get()
                 # time.sleep(0.01)
 
@@ -101,9 +101,9 @@ class Serial:
 
         while not self.decoder.empty():
             command = self.decoder.get()
-            self.__dispatch_command(command)
             if self.print_traffic:
                 print("<< {}".format(command))
+            self.__dispatch_command(command)
 
     def send_command(self, command: Command):
         self.send_queue.put(command)

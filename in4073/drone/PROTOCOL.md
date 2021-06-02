@@ -26,11 +26,11 @@ MODE -> Control mode check
 ACK = 0000 -> Ack success
 ACK = 0001 -> Wrong flightmode 
 
-## 5 > QueryForces
+## 5 > QueryTelemetry
 | 0101 0000 | 8 BIT CRC |
 
 ## 6 < CurrentTelemetry
-| 0110 0000 | PHI, THETA, PSI,  | 8 BIT CRC |
+| 0110 0000 | PHI, THETA, PSI, RPM0, RPM1, RPM2, RPM3 | 8 BIT CRC |
 
 ## 7 < DebugMsg
 | 0111 XXXX | XXXX XXXX | ........ | 8 BIT CRC |

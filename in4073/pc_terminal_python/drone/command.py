@@ -9,8 +9,8 @@ class CommandType(Enum):
     CurrentMode = 0b0010
     SetControl = 0b0011
     AckControl = 0b0100
-    QueryForces = 0b0101
-    CurrentForces = 0b0110
+    QueryTelemetry = 0b0101
+    CurrentTelemetry = 0b0110
     DebugMessage = 0b0111
     SetParam = 0b1000
     AckParam = 0b1001
@@ -36,6 +36,9 @@ class Command:
 
         if self.type == CommandType.Heartbeat:
             self.args = ["argument"]
+
+        if self.type == CommandType.CurrentTelemetry:
+            self.args = ["argument", "roll_angle", "pitch_angle", "yaw_angle", "rpm0", "rpm1", "rpm2", "rpm3"]
 
     def set_data(self, **kwargs):
         for key, value in kwargs.items():
@@ -80,6 +83,8 @@ class Command:
 
         return buffer
 
+def TO_INT16(value):
+    return value if value <= 32767 else value - 65535
 
 class SerialCommandDecoder:
     def __init__(self):
@@ -91,6 +96,7 @@ class SerialCommandDecoder:
         self.commands = Queue()
 
     def append(self, byte):
+        print(byte)
         self.buffer.append(byte)
         pos = len(self.buffer)
 
@@ -136,6 +142,16 @@ class SerialCommandDecoder:
                 message.append(byte)
 
             cmd.set_data(argument=id, message=message.decode('utf-8'))
+        elif type == CommandType.CurrentTelemetry:
+            roll_angle = TO_INT16((self.buffer[1] << 8) | self.buffer[2])
+            pitch_angle = TO_INT16((self.buffer[3] << 8) | self.buffer[4])
+            yaw_angle = TO_INT16((self.buffer[5] << 8) | self.buffer[6])
+            rpm0 = ((self.buffer[7] << 8) | self.buffer[8])
+            rpm1 = ((self.buffer[9] << 8) | self.buffer[10])
+            rpm2 = ((self.buffer[11] << 8) | self.buffer[12])
+            rpm3 = ((self.buffer[13] << 8) | self.buffer[14])
+
+            cmd.set_data(roll_angle=roll_angle, pitch_angle=pitch_angle, yaw_angle=yaw_angle, rpm0=rpm0, rpm1=rpm1, rpm2=rpm2, rpm3=rpm3)
 
         self.commands.put(cmd)
         self.clear_buffer()
@@ -152,6 +168,9 @@ class SerialCommandDecoder:
 
         if type == CommandType.DebugMessage.value:
             return header[1]
+
+        if type == CommandType.CurrentTelemetry.value:
+            return 7 * 2
 
         return 0
 

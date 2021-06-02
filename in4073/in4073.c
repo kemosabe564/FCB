@@ -39,6 +39,7 @@
 #include "drone/IMU.h"
 #include "drone/FlightController.h"
 #include "drone/Debug.h"
+#include "drone/Telemetry.h"
 
 bool demo_done;
 
@@ -92,7 +93,8 @@ void command_handler_function(struct Command *command)
                 CommandHandler_send_command(ch, Command_make_current_mode((uint8_t) fc->mode));
             }
 
-            CommandHandler_send_command(ch, Command_make_debug_format("Mode=%d\n", *mode));
+            DEBUG(1, "Mode=%d\n", *mode);
+//            CommandHandler_send_command(ch, Command_make_debug_format("Mode=%d\n", *mode));
         }
             break;
         case SetControl: {
@@ -155,6 +157,9 @@ int main(void)
     CommandHandler_add_comms(ch, COMM_SERIAL, serial_comms);
 //    CommandHandler_add_comms(comm_handler, ble_comms, COMM_BLE);
 
+    struct Telemetry *telemetry = Telemetry_create(ch, imu, (struct Rotor *[]){ r1, r2, r3, r4 }, 4);
+
+
 	while (running)
 	{
         LoopHandler_loop(lh, LH_LINK(fc), LH_HZ_TO_PERIOD(2));
@@ -170,6 +175,8 @@ int main(void)
 //        LoopHandler_loop(lh, LH_LINK(ble_comms), LH_HZ_TO_PERIOD(50));
 
         LoopHandler_loop(lh, LH_LINK(ch), LH_HZ_TO_PERIOD(100));
+
+        LoopHandler_loop(lh, LH_LINK(telemetry), LH_HZ_TO_PERIOD(1));
 	}
 
 	printf("\n\t Goodbye \n\n");

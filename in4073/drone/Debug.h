@@ -12,6 +12,6 @@
 extern struct CommandHandler **global_channel;
 
 void DEBUG_SET_CHANNEL(struct CommandHandler **debug_channel);
-void DEBUG(const char *format, ...);
+void DEBUG(uint8_t id, const char *format, ...);
 
 #endif //QUADCOPTER_FCB_DEBUG_H

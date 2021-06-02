@@ -103,9 +103,10 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 Rotor_set_rpm(self->rotors[2], rpm2);
                 Rotor_set_rpm(self->rotors[3], rpm3);
             }
-          
-          DEBUG("Yaw = %d", self->imu->yaw_rate);
-          DEBUG("Throttle %d",t);
+
+
+            DEBUG(0, "Yaw = %d", self->imu->yaw_rate);
+
 
 
         }
@@ -119,7 +120,10 @@ void FlightController_loop(void *context, uint32_t delta_us)
 
             if (self->imu->calibrated)
             {
+                DEBUG(0, "Cal Start\n");
+
                 FlightController_change_mode(self, Safe);
+
             }
             break;
         case Yaw: {
@@ -277,7 +281,7 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
         result->previous_phi=phi;
         result->current_theta=theta;
         result->previous_theta=theta;
-        result->ch =ch;
+        result->ch = ch;
         result->phi_offset = phi;
         result->theta_offset=theta;
         result->is_calibrating=false;

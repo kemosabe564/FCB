@@ -8,6 +8,7 @@
 #include "../mpu60580/mpu6050.h"
 #include "../hal/timers.h"
 #include "Debug.h"
+#include <stdio.h>
 
 struct IMU *IMU_create(bool dmp, uint16_t frequency)
 {
@@ -39,9 +40,8 @@ struct IMU *IMU_create(bool dmp, uint16_t frequency)
         result->calibration_time_us = 10000000;
         result->dmp_enabled = dmp;
         result->frequency = frequency;
-
-        imu_init(true, frequency);
-        timers_init();
+//        imu_init(true, frequency);
+//        timers_init();
     }
 
     return result;

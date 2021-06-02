@@ -17,8 +17,8 @@ enum CommandType {
     CurrentMode = 0b0010,
     SetControl = 0b0011,
     AckControl = 0b0100,
-    QueryForces = 0b0101,
-    CurrentForces = 0b0110,
+    QueryTelemetry = 0b0101,
+    CurrentTelemetry = 0b0110,
     DebugMessage = 0b0111,
     SetParam = 0b1000,
     AckParam = 0b1001,
@@ -41,6 +41,14 @@ struct CommandParamsData {
 struct CommandDebugMessage {
     char *message;
     uint16_t size;
+    uint8_t id;
+};
+
+struct CommandTelemetryData {
+    int16_t roll_angle;
+    int16_t pitch_angle;
+    int16_t yaw_angle;
+    uint16_t rpm[4];
 };
 
 struct Command {
@@ -59,9 +67,10 @@ uint8_t Command_data_len(uint8_t header);
 
 struct Command *Command_make_simple(enum CommandType type, uint8_t argument);
 struct Command *Command_make_current_mode(uint8_t mode);
-struct Command *Command_make_debug_format(const char *format, ...);
-struct Command *Command_make_debug_n(const char *string, uint16_t n);
+struct Command *Command_make_debug_format(uint8_t id, const char *format, ...);
+struct Command *Command_make_debug_n(uint8_t id, const char *string, uint16_t n);
 struct Command *Command_make_heartbeat(uint8_t sequence_number);
+struct Command *Command_make_telemetry(int16_t roll_angle, int16_t pitch_angle, int16_t yaw_angle, int16_t rpm0, int16_t rpm1, int16_t rpm2, int16_t rpm3);
 
 void Command_destroy(struct Command *self);
 

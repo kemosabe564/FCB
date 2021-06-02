@@ -38,6 +38,7 @@ class Command:
             self.args = ["argument"]
 
         if self.type == CommandType.CurrentTelemetry:
+            self.args = ["argument", "roll_angle", "pitch_angle", "yaw_angle", "rpm0", "rpm1", "rpm2", "rpm3"]
 
         if self.type == CommandType.SetParam:
             self.args = ["argument", "value"]

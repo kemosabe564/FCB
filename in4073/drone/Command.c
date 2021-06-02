@@ -67,7 +67,16 @@ struct Command *Command_decode(uint8_t *data)
                 break;
             case DebugMessage:
                 break;
-            case SetParam:
+            case SetParam:{
+                struct CommandParamsData *paramsData = (struct CommandParamsData *)malloc(sizeof(struct CommandParamsData));
+
+                if (paramsData)
+                {
+                    paramsData->id = (header & HEADER_DATA_MASK);
+                    paramsData->value = data[1];
+                }
+                result->data = (void *) paramsData;
+            }
                 break;
             case AckParam:
                 break;
@@ -230,7 +239,7 @@ struct Command *Command_make_debug_n(const char *string, uint16_t n)
             {
                 memcpy(message, string, n);
 
-                data->size = n - 1;
+                data->size = n;
                 data->message = message;
 
                 cmd->data = (void *)data;

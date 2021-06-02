@@ -102,7 +102,9 @@ void command_handler_function(struct Command *command)
         }
             break;
         case SetParam: {
-//            struct CommandParamsData *data =
+            struct CommandParamsData *data = (struct CommandParamsData *) command->data;
+
+            FlightController_set_params(fc, data->id , data->value);
         }
             break;
         case Invalid:

@@ -68,6 +68,10 @@ struct FlightController
     int16_t theta_offset;
     bool is_calibrating;
 
+    uint8_t P ;
+    uint8_t P1 ;
+    uint8_t P2 ;
+
     struct CommandHandler *ch;
 
     FlightControllerChangedMode on_changed_mode;
@@ -86,6 +90,7 @@ void __FlightController_on_changed_mode(struct FlightController *self, enum Flig
 bool FlightController_check_rotors_safe(struct FlightController *self);
 void FlightController_set_throttle(struct FlightController *self, uint16_t throttle);
 void FlightController_set_controls(struct FlightController *self, int16_t yaw_rate, int16_t pitch_rate, int16_t roll_rate, uint16_t throttle);
+void FlightController_set_params(struct FlightController *self, uint8_t pid , uint8_t pvalue);
 void FlightController_loop(void *context, uint32_t delta_us);
 uint16_t FlightController_map_proportional(struct FlightController *self);
 void FlightController_destroy(struct FlightController *self);

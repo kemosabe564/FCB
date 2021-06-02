@@ -37,6 +37,9 @@ class Command:
         if self.type == CommandType.Heartbeat:
             self.args = ["argument"]
 
+        if self.type == CommandType.SetParam:
+            self.args = ["argument", "value"]
+
     def set_data(self, **kwargs):
         for key, value in kwargs.items():
             self.__set_datum(key, value)
@@ -75,6 +78,9 @@ class Command:
             crc_len = 5
         elif self.type == CommandType.Heartbeat:
             buffer.append((self.type.value << 4) | (self.get_data("argument") & 0b1111))
+        elif self.type == CommandType.SetParam:
+            buffer.append((self.type.value << 4) | (self.get_data("argument") & 0b1111))
+            buffer.append(self.get_data("value") & 0b11111111)
 
         buffer.append(crc8(buffer, crc_len))
 

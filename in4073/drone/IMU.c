@@ -20,23 +20,19 @@ struct IMU *IMU_create(bool dmp, uint16_t frequency)
 
         result->roll_angle = 0;
         result->pitch_angle = 0;
-        result->yaw_angle = 0;
-
-        result->roll_rate = 0;
-        result->pitch_rate = 0;
         result->yaw_rate = 0;
 
-        result->raw_roll_angle = 0;
-        result->raw_pitch_angle = 0;
-        result->raw_yaw_angle = 0;
+        result->measured_p = 0;
+        result->measured_q = 0;
+        result->measured_r = 0;
 
-        result->raw_roll_rate = 0;
-        result->raw_pitch_rate = 0;
-        result->raw_yaw_rate = 0;
+        result->measured_ax = 0;
+        result->measured_ay = 0;
+        result->measured_az = 0;
 
         result->roll_angle_offset = 0;
         result->pitch_angle_offset = 0;
-        result->yaw_angle_offset = 0;
+
 
         result->calibrated = false;
         result->calibration_start_ts = 0;
@@ -70,23 +66,25 @@ void IMU_loop(void *context, uint32_t delta_us)
                 get_sensor_data();
             }
 
-            imu->raw_roll_angle = phi;
-            imu->raw_pitch_angle = theta;
-            imu->raw_yaw_angle = psi;
+            imu->roll_angle = phi;
+            imu->pitch_angle = theta;
+            imu->yaw_rate = psi;
+
+            imu->measured_p = sp;
+            imu->measured_q = sq;
+            imu->measured_r = sr;
+
+            imu->measured_ax = sax;
+            imu->measured_ay = say;
+            imu->measured_az = saz;
 
             // adjusted angles. More processing might be added here
-            imu->roll_angle = imu->raw_roll_angle - imu->roll_angle_offset;
-            imu->pitch_angle = imu->raw_pitch_angle - imu->pitch_angle_offset;
-            imu->yaw_angle = imu->raw_yaw_angle - imu->yaw_angle_offset;
+            //This can overflow - needs to be changed
+            //roll over handled in fc
+            imu->cal_roll_angle = imu->roll_angle - imu->roll_angle_offset;
+            imu->cal_pitch_angle = imu->pitch_angle - imu->pitch_angle_offset;
+            //imu->yaw_angle = imu->raw_yaw_angle - imu->yaw_angle_offset;
 
-            imu->raw_roll_rate = sp;
-            imu->raw_pitch_rate = sq;
-            imu->raw_yaw_rate = sr;
-
-            // processing might be added here
-            imu->roll_rate = imu->raw_roll_rate;
-            imu->pitch_rate = imu->raw_pitch_rate;
-            imu->yaw_rate = imu->raw_yaw_rate;
         }
             break;
         case IMU_StartCalibration: {
@@ -108,7 +106,6 @@ void IMU_loop(void *context, uint32_t delta_us)
 
             imu->roll_angle_offset = phi;
             imu->pitch_angle_offset = theta;
-            imu->yaw_angle_offset = psi;
 
             imu->calibrated = true;
             imu->state = IMU_Measuring;

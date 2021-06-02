@@ -5,7 +5,7 @@
 #include "IMU.h"
 
 #include <stdlib.h>
-#include "../mpu6050/mpu6050.h"
+#include "../mpu60580/mpu6050.h"
 #include "../hal/timers.h"
 #include "Debug.h"
 

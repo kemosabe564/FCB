@@ -34,12 +34,13 @@ void FlightController_loop(void *context, uint32_t delta_us)
 //
 //    static int incrementing = 1;
 
-    if (bat_volt < BAT_THRESHOLD)
+    if (!self->debug_mode)
     {
-        FlightController_change_mode(self,Panic);
+        if (bat_volt < BAT_THRESHOLD && self->mode != Safe && self->mode != Panic)
+        {
+            FlightController_change_mode(self,Panic);
+        }
     }
-
-
 
     switch (self->mode) {
         case Init:
@@ -125,9 +126,9 @@ void FlightController_loop(void *context, uint32_t delta_us)
 
             uint32_t now = get_time_us();
 
-            if (check_sensor_int_flag()) {
-                get_sensor_data();
-            }
+//            if (check_sensor_int_flag()) {
+//                get_sensor_data();
+//            }
 
             if (self->input_ts != 0 && (now - self->input_ts > 50000))
             {
@@ -173,7 +174,6 @@ void FlightController_loop(void *context, uint32_t delta_us)
             break;
         case Full:
 
-            get_sensor_data();
             //get throttle 0-255
             int16_t t = FlightController_map_throttle(self);
             //get set points 0 - 255
@@ -283,7 +283,7 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
         result->is_calibrating=false;
         result->P = 10;
         result->P1 = 10;
-        result->P2 =10;
+        result->P2 = 40;
     }
 
     return result;

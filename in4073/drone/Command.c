@@ -102,17 +102,18 @@ struct EncodedCommand Command_encode(struct Command *command)
             uint16_t message_size = data->size;
 
             // protocol only allows for 256 characters per debug command
-            if (message_size > 17)
-                message_size = 17;
+            if (message_size > 256)
+                message_size = 256;
 
             // allocate space for encoded command string
-            size = (1 + message_size + 1); // header + size of message + [message] + crc
+            size = (1 + 1 + message_size + 1); // header + size of message + [message] + crc
             encoded = (uint8_t *)malloc(size * sizeof(uint8_t));
 
             // set header
-            encoded[0] = ((command->type << 4) | ((message_size - 1) & 0b1111));
+            encoded[0] = ((command->type << 4) | (data->id & 0b1111));
+            encoded[1] = message_size;
             // copy debug message to the remaining buffer
-            memcpy(&encoded[1], data->message, message_size);
+            memcpy(&encoded[2], data->message, message_size);
 
             // setting last buffer element to CRC
             encoded[size - 1] = crc8_fast(encoded, size - 1);
@@ -173,7 +174,7 @@ struct Command *Command_make_current_mode(uint8_t mode)
 }
 
 // allocate and initialize a formatted string command on the heap
-struct Command *Command_make_debug_format(const char *format, ...)
+struct Command *Command_make_debug_format(uint8_t id, const char *format, ...)
 {
     struct Command *cmd = (struct Command *)malloc(sizeof(struct Command));
 
@@ -195,6 +196,7 @@ struct Command *Command_make_debug_format(const char *format, ...)
 
                 data->size = size;
                 data->message = message;
+                data->id = id;
 
                 cmd->data = (void *)data;
 
@@ -213,7 +215,7 @@ struct Command *Command_make_debug_format(const char *format, ...)
 }
 
 // allocate and initialize a formatted string command on the heap
-struct Command *Command_make_debug_n(const char *string, uint16_t n)
+struct Command *Command_make_debug_n(uint8_t id, const char *string, uint16_t n)
 {
     struct Command *cmd = (struct Command *)malloc(sizeof(struct Command));
 
@@ -232,6 +234,7 @@ struct Command *Command_make_debug_n(const char *string, uint16_t n)
 
                 data->size = n;
                 data->message = message;
+                data->id = id;
 
                 cmd->data = (void *)data;
 

@@ -17,6 +17,8 @@
 #include "utils/queue.h"
 #include "control.h"
 
+#include "../drone/Debug.h"
+
 #define RX_PIN_NUMBER  16
 #define TX_PIN_NUMBER  14
 
@@ -53,10 +55,17 @@ void uart_put(uint8_t byte)
 // Reroute printf
 int _write(int file, const char * p_char, int len)
 {
-	int i;
-	for (i = 0; i < len; i++) {
-		uart_put(*p_char++);
-	}
+    if (*global_channel)
+    {
+        CommandHandler_send_command(*global_channel, Command_make_debug_n(0, p_char, len));
+    }
+    else
+    {
+        int i;
+        for (i = 0; i < len; i++) {
+            uart_put(*p_char++);
+        }
+    }
 
 	return len;
 }

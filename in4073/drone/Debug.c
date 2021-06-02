@@ -20,7 +20,7 @@ void DEBUG_SET_CHANNEL(struct CommandHandler **debug_channel)
     global_channel = debug_channel;
 }
 
-void DEBUG(const char *format, ...)
+void DEBUG(uint8_t id, const char *format, ...)
 {
     if (*global_channel == NULL)
         return;
@@ -37,9 +37,9 @@ void DEBUG(const char *format, ...)
 
     while (size)
     {
-        msg_size = (size > 17) ? 17 : size;
+        msg_size = (size > 256) ? 256 : size;
 
-        CommandHandler_send_command(*global_channel, Command_make_debug_n(&message[msg_pos], msg_size));
+        CommandHandler_send_command(*global_channel, Command_make_debug_n(id, &message[msg_pos], msg_size));
 
         msg_pos += msg_size;
         size -= msg_size;

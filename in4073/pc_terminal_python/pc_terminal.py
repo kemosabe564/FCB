@@ -2,12 +2,13 @@ import argparse
 
 from drone.serial import Serial
 from drone.cli import CLI, CLIAction
-from drone.command import Command, CommandType
+from drone.command import Command, CommandType, SerialCommandDecoder
 from drone.drone import Drone
 from drone.controller import Controller
 from drone.gui import GUI
 from drone.joystick import Joystick, JoystickAxis
 from drone.eventloop import Eventloop
+from drone.crc8 import crc8
 
 ser = None
 cli = None
@@ -17,11 +18,13 @@ running = True
 
 
 def new_cmd_handler(data):
-    if type(data) != Command:
-        cli.to_cli(data)
-    else:
+    if type(data) == Command:
         if data.type == CommandType.DebugMessage:
             cli.to_cli("[drone debug] {}".format(data.get_data("message")))
+    elif type(data) == bytearray:
+        cli.to_cli(data.decode('utf-8'))
+    else:
+        cli.to_cli(data)
 
 
 def on_quit():
@@ -42,6 +45,9 @@ def new_action_handler(action, data=None):
 
     if action == CLIAction.SetProtocol:
         ser.set_protocol(data)
+
+    if action == CLIAction.SetTraffic:
+        ser.set_print_traffic(data)
 
 
 if __name__ == "__main__":

@@ -96,8 +96,8 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 Rotor_set_rpm(self->rotors[2], rpm2);
                 Rotor_set_rpm(self->rotors[3], rpm3);
             }
-          
-          DEBUG("Yaw = %d", self->imu->yaw_rate);
+
+            DEBUG(0, "Yaw = %d", self->imu->yaw_rate);
 
 
         }
@@ -115,14 +115,14 @@ void FlightController_loop(void *context, uint32_t delta_us)
             //If you dont actually need to check ,just get the values here and wait manually
             if (self->is_calibrating)
             {
-                CommandHandler_send_command(self->ch, Command_make_debug_msg("Cal Start\n"));
+                DEBUG(0, "Cal Start\n");
                 self->calibrate_start_time=get_time_us();
                 //TODO:This is terrible but anyway
                 while(get_time_us() < (self->calibrate_start_time + CALIBRATION_WAIT_TIME_US));
                 get_sensor_data();
                 self->theta_offset = theta;
                 self->phi_offset = phi;
-                CommandHandler_send_command(self->ch, Command_make_debug_msg("Cal End\n"));
+                DEBUG(0, "Cal End\n");
                 self->is_calibrating=false;
             }
 

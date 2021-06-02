@@ -36,6 +36,7 @@ struct CommandControlData {
 struct CommandDebugMessage {
     char *message;
     uint16_t size;
+    uint8_t id;
 };
 
 struct Command {
@@ -54,8 +55,8 @@ uint8_t Command_data_len(uint8_t header);
 
 struct Command *Command_make_simple(enum CommandType type, uint8_t argument);
 struct Command *Command_make_current_mode(uint8_t mode);
-struct Command *Command_make_debug_format(const char *format, ...);
-struct Command *Command_make_debug_n(const char *string, uint16_t n);
+struct Command *Command_make_debug_format(uint8_t id, const char *format, ...);
+struct Command *Command_make_debug_n(uint8_t id, const char *string, uint16_t n);
 struct Command *Command_make_heartbeat(uint8_t sequence_number);
 
 void Command_destroy(struct Command *self);

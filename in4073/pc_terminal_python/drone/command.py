@@ -84,27 +84,34 @@ class Command:
 class SerialCommandDecoder:
     def __init__(self):
         self.buffer = []
-        self.pos = 0
         self.data_len = 0
+        self.ext_header = 0
+        self.header = True
 
         self.commands = Queue()
 
     def append(self, byte):
         self.buffer.append(byte)
+        pos = len(self.buffer)
 
-        if self.pos == 0:
-            self.data_len = self.get_data_length_from_header(byte)
-            self.pos += 1
+        if self.header:
+            if pos == 1:  # first byte is primary header byte
+                self.ext_header = self.get_ext_header_size(byte)
+
+            if self.ext_header == 0:  # if extended header length is zero then next bytes are already data bytes
+                self.data_len = self.get_data_length_from_header(self.buffer[0:pos])
+                self.header = False
+            else:
+                self.ext_header -= 1
         else:
             if self.data_len == 0:
-                if crc8(self.buffer, self.pos) == byte:
+                if crc8(self.buffer, len(self.buffer) - 1) == byte:
                     self.extract_command()
                 else:
                     print("CRC8 failed")
                     self.clear_buffer()
             else:
                 self.data_len -= 1
-                self.pos += 1
 
     def empty(self):
         return self.commands.empty()
@@ -123,25 +130,37 @@ class SerialCommandDecoder:
             cmd.set_data(argument=(header & 0b1111))
         elif type == CommandType.DebugMessage:
             message = bytearray()
-            size = (header & 0b1111) + 2  # add 2 since the data is offset by 1 byte and python slicing notation goes until the second index
-            for byte in self.buffer[1:size]:
+            size = self.buffer[1]
+            id = (header & 0b1111)
+            for byte in self.buffer[2:(2 + size)]:
                 message.append(byte)
 
-            cmd.set_data(argument=size, message=message.decode('utf-8'))
+            cmd.set_data(argument=id, message=message.decode('utf-8'))
 
         self.commands.put(cmd)
         self.clear_buffer()
 
     def clear_buffer(self):
         self.buffer.clear()
-        self.pos = 0
+        self.header = True
+        self.ext_header = 0
         self.data_len = 0
 
     @staticmethod
     def get_data_length_from_header(header):
-        type = (header >> 4)
+        type = (header[0] >> 4)
 
         if type == CommandType.DebugMessage.value:
-            return (header & 0b1111) + 1
+            return header[1]
+
+        return 0
+
+    @staticmethod
+    def get_ext_header_size(header):
+        type = (header >> 4)
+
+        # currently only the debug message has an extended header size
+        if type == CommandType.DebugMessage.value:
+            return 1
 
         return 0

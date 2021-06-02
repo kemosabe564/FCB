@@ -92,7 +92,8 @@ void command_handler_function(struct Command *command)
                 CommandHandler_send_command(ch, Command_make_current_mode((uint8_t) fc->mode));
             }
 
-            CommandHandler_send_command(ch, Command_make_debug_format("Mode=%d\n", *mode));
+            DEBUG(1, "Mode=%d\n", *mode);
+//            CommandHandler_send_command(ch, Command_make_debug_format("Mode=%d\n", *mode));
         }
             break;
         case SetControl: {

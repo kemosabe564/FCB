@@ -8,6 +8,7 @@
 #include "../mpu6050/mpu6050.h"
 #include "../hal/timers.h"
 #include "Debug.h"
+#include <stdio.h>
 
 struct IMU *IMU_create(bool dmp, uint16_t frequency)
 {
@@ -43,9 +44,8 @@ struct IMU *IMU_create(bool dmp, uint16_t frequency)
         result->calibration_time_us = 10000000;
         result->dmp_enabled = dmp;
         result->frequency = frequency;
-
-        imu_init(true, frequency);
-        timers_init();
+//        imu_init(true, frequency);
+//        timers_init();
     }
 
     return result;
@@ -87,6 +87,8 @@ void IMU_loop(void *context, uint32_t delta_us)
             imu->roll_rate = imu->raw_roll_rate;
             imu->pitch_rate = imu->raw_pitch_rate;
             imu->yaw_rate = imu->raw_yaw_rate;
+
+            DEBUG(0,"measurement: %d", phi);
         }
             break;
         case IMU_StartCalibration: {

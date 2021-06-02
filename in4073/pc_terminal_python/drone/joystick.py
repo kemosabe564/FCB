@@ -140,7 +140,7 @@ class Joystick:
         self.__on_connect_event = handler
 
     def update(self):
-        if self.available:
+        if self.__available:
             if self.get_events:
                 for event in pygame.event.get():
                     self.__handle_event(event)

@@ -20,7 +20,7 @@ class Controller:
         self.terminate = False
 
         self.offset_yaw = 0
-        self.step = 0.05
+        self.step = 1
 
         self.P = 10
         self.P1 = 10
@@ -32,12 +32,12 @@ class Controller:
         self.thread.start()
 
     def inc_check_limits(self, value):
-        if (value + self.step) < 1:
+        if (value + self.step) < 127:
             value = value + self.step
         return value
 
     def dec_check_limits(self, value):
-        if (value - self.step) > -1:
+        if (value - self.step) > -127:
             value = value - self.step
         return value
 
@@ -67,9 +67,12 @@ class Controller:
                     print("NOT SAFE")
             if event.key == pygame.K_3:  # calibration
                 self.drone.change_mode(FlightMode.Calibrate)
-                pass
+
             if event.key == pygame.K_4:  # yaw rate
-                self.drone.change_mode(FlightMode.Yaw)
+                if self.drone.mode == FlightMode.Safe and self.input_safe():
+                    self.drone.change_mode(FlightMode.Yaw)
+                else:
+                    print("NOT SAFE")
 
             if event.key == pygame.K_u:
                 self.P = self.P + 1
@@ -113,16 +116,22 @@ class Controller:
     def map(self, x):
         return int((x + 1) * 127)
 
+    def limit(self, x):
+        if x > 255:
+            x = 255
+        if x < 0:
+            x = 0
+        return x
+
     def thread_function(self):
         while not self.terminate:
             if self.joystick.available():
-                if self.drone.mode == FlightMode.Manual:
+                if self.drone.mode in [FlightMode.Manual, FlightMode.Yaw, FlightMode.Full]:
                     self.update_inputs()
+                    yaw = self.limit(self.input_yaw + self.offset_yaw)
+                    self.drone.set_control(roll=self.input_roll, pitch=self.input_pitch, yaw=yaw, throttle=self.input_throttle)
 
-
-                    self.drone.set_control(roll=self.input_roll, pitch=self.input_pitch, yaw=self.input_yaw,throttle= self.input_throttle)
-
-            time.sleep(0.01)
+            time.sleep(0.0125)
 
     def stop(self):
         self.terminate = True

@@ -135,17 +135,17 @@ void FlightController_loop(void *context, uint32_t delta_us)
             //get_sensor_data();
 
             //TODO: can also try proportional
-            int16_t t = FlightController_map_throttle(self);
+            int16_t t = FlightController_map_proportional(self);
             //get set point
             int16_t setPoint = self->yaw_rate;
             //get sensor reading
-            int16_t  psi_rate = (self-> current_psi - self->previous_psi );
+            int16_t  psi_rate = (self->current_psi - self->previous_psi);
             //calculate error
             int16_t yaw_error = setPoint - psi_rate;
             //calculate compensation and apply
             int16_t yaw_compensation = self->P * yaw_error;
 
-            DEBUG(0, "YC %d",yaw_compensation);
+//            DEBUG(0, "%d,%d,%d,%d", setPoint, psi_rate, self->P, yaw_compensation);
 
             if (t<1)
             {
@@ -284,7 +284,7 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
         result->phi_offset = phi;
         result->theta_offset=theta;
         result->is_calibrating=false;
-        result->P = 10;
+        result->P = 5;
         result->P1 = 10;
         result->P2 = 40;
     }

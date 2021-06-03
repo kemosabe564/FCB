@@ -21,7 +21,7 @@ class Serial:
         self.decoder = SerialCommandDecoder()
         self.send_queue = queue.Queue()
 
-        self.print_traffic = True
+        self.print_traffic = False
 
         self.serial = serial.Serial(self.port, self.baud, timeout=1)
 

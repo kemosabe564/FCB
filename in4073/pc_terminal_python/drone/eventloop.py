@@ -8,7 +8,7 @@ class Eventloop:
         pygame.init()
 
         self.__joystick = Joystick()
-        self.__joystick.set_axis_map(JoystickAxis.Yaw,      (-1, 1, 0, 255), True)
+        self.__joystick.set_axis_map(JoystickAxis.Yaw,      (-1, 1, 255, 0), True)
         self.__joystick.set_axis_map(JoystickAxis.Pitch,    (-1, 1, 0, 255), True)
         self.__joystick.set_axis_map(JoystickAxis.Roll,     (-1, 1, 0, 255), True)
         self.__joystick.set_axis_map(JoystickAxis.Throttle, (0.85, -1, 0, 255), True)  # 0.15 deadzone

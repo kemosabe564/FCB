@@ -12,6 +12,7 @@
 
 #include "utils/crc8.h"
 
+
 struct Command *Command_decode(uint8_t *data)
 {
     const uint8_t header = data[0];
@@ -39,7 +40,11 @@ struct Command *Command_decode(uint8_t *data)
             case SetOrQueryMode:
             case CurrentMode: {
                 uint8_t *argument = malloc(sizeof(uint8_t));
-                *argument = (header & HEADER_DATA_MASK);
+
+                if (argument)
+                {
+                    *argument = (header & HEADER_DATA_MASK);
+                }
 
                 result->data = (void *)argument;
             }
@@ -67,7 +72,7 @@ struct Command *Command_decode(uint8_t *data)
                 break;
             case DebugMessage:
                 break;
-            case SetParam:{
+            case SetParam: {
                 struct CommandParamsData *paramsData = (struct CommandParamsData *)malloc(sizeof(struct CommandParamsData));
 
                 if (paramsData)
@@ -75,6 +80,7 @@ struct Command *Command_decode(uint8_t *data)
                     paramsData->id = (header & HEADER_DATA_MASK);
                     paramsData->value = data[1];
                 }
+
                 result->data = (void *) paramsData;
             }
                 break;
@@ -100,10 +106,17 @@ struct EncodedCommand Command_encode(struct Command *command)
             size = (1 + 0 + 1);
             encoded = (uint8_t *)malloc(size * sizeof(uint8_t));
 
-            uint8_t *argument = (uint8_t *)command->data;
-            encoded[0] = ((command->type << 4) | *argument);
+            if (encoded)
+            {
+                uint8_t *argument = (uint8_t *)command->data;
 
-            encoded[1] = crc8_fast(encoded, 1);
+                encoded[0] = ((command->type << 4) | *argument);
+                encoded[1] = crc8_fast(encoded, 1);
+            }
+            else
+            {
+                size = 0;
+            }
         }
             break;
         case DebugMessage: {
@@ -118,14 +131,21 @@ struct EncodedCommand Command_encode(struct Command *command)
             size = (1 + 1 + message_size + 1); // header + size of message + [message] + crc
             encoded = (uint8_t *)malloc(size * sizeof(uint8_t));
 
-            // set header
-            encoded[0] = ((command->type << 4) | (data->id & 0b1111));
-            encoded[1] = message_size;
-            // copy debug message to the remaining buffer
-            memcpy(&encoded[2], data->message, message_size);
+            if (encoded)
+            {
+                // set header
+                encoded[0] = ((command->type << 4) | (data->id & 0b1111));
+                encoded[1] = message_size;
+                // copy debug message to the remaining buffer
+                memcpy(&encoded[2], data->message, message_size);
 
-            // setting last buffer element to CRC
-            encoded[size - 1] = crc8_fast(encoded, size - 1);
+                // setting last buffer element to CRC
+                encoded[size - 1] = crc8_fast(encoded, size - 1);
+            }
+            else
+            {
+                size = 0;
+            }
         }
             break;
         case CurrentTelemetry: {
@@ -134,24 +154,31 @@ struct EncodedCommand Command_encode(struct Command *command)
             size = (1 + (7 * 2) + 1); // header + 7* 16bit values + crc
             encoded = (uint8_t *)malloc(size * sizeof(uint8_t));
 
-            encoded[0] = (command->type << 4);
-            encoded[1] = (data->roll_angle >> 8);
-            encoded[2] = (data->roll_angle & 0b11111111);;
-            encoded[3] = (data->pitch_angle >> 8);
-            encoded[4] = (data->pitch_angle & 0b11111111);;
-            encoded[5] = (data->yaw_angle >> 8);
-            encoded[6] = (data->yaw_angle & 0b11111111);
-            encoded[7] = (data->rpm[0] >> 8);
-            encoded[8] = (data->rpm[0] & 0b11111111);
-            encoded[9] = (data->rpm[1] >> 8);
-            encoded[10] = (data->rpm[1] & 0b11111111);
-            encoded[11] = (data->rpm[2] >> 8);
-            encoded[12] = (data->rpm[2] & 0b11111111);
-            encoded[13] = (data->rpm[3] >> 8);
-            encoded[14] = (data->rpm[3] & 0b11111111);
+            if (encoded)
+            {
+                encoded[0] = (command->type << 4);
+                encoded[1] = (data->roll_angle >> 8);
+                encoded[2] = (data->roll_angle & 0b11111111);;
+                encoded[3] = (data->pitch_angle >> 8);
+                encoded[4] = (data->pitch_angle & 0b11111111);;
+                encoded[5] = (data->yaw_angle >> 8);
+                encoded[6] = (data->yaw_angle & 0b11111111);
+                encoded[7] = (data->rpm[0] >> 8);
+                encoded[8] = (data->rpm[0] & 0b11111111);
+                encoded[9] = (data->rpm[1] >> 8);
+                encoded[10] = (data->rpm[1] & 0b11111111);
+                encoded[11] = (data->rpm[2] >> 8);
+                encoded[12] = (data->rpm[2] & 0b11111111);
+                encoded[13] = (data->rpm[3] >> 8);
+                encoded[14] = (data->rpm[3] & 0b11111111);
 
-            // setting last buffer element to CRC
-            encoded[size - 1] = crc8_fast(encoded, size - 1);
+                // setting last buffer element to CRC
+                encoded[size - 1] = crc8_fast(encoded, size - 1);
+            }
+            else
+            {
+                size = 0;
+            }
         }
             break;
         default:
@@ -371,6 +398,9 @@ void Command_destroy(struct Command *self)
                 break;
             case CurrentTelemetry: {
                 free((struct CommandTelemetryData *)self->data);
+            }
+            case SetParam: {
+                free((struct CommandParamsData *)self->data);
             }
             default:
                 break;

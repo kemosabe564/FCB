@@ -53,7 +53,6 @@ class Drone:
 
         self.serial.send_command(command)
 
-    #to be checked
     def set_params(self, id, value):
         command = Command(CommandType.SetParam)
         command.set_data(argument=id, value=value)

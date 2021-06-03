@@ -69,6 +69,7 @@ class Command:
 
     def encode(self):
         buffer = bytearray()
+        crc_len = 1
 
         if self.type == CommandType.SetOrQueryMode:
             buffer.append((self.type.value << 4) | (self.get_data("argument") & 0b1111))
@@ -78,13 +79,16 @@ class Command:
             buffer.append(self.get_data("pitch") & 0b11111111)
             buffer.append(self.get_data("roll") & 0b11111111)
             buffer.append(self.get_data("throttle") & 0b11111111)
+            crc_len = 5
         elif self.type == CommandType.Heartbeat:
             buffer.append((self.type.value << 4) | (self.get_data("argument") & 0b1111))
         elif self.type == CommandType.SetParam:
             buffer.append((self.type.value << 4) | (self.get_data("argument") & 0b1111))
             buffer.append(self.get_data("value") & 0b11111111)
+            crc_len = 2
 
-        buffer.append(crc8(buffer))
+        crc = crc8(buffer, crc_len)
+        buffer.append(crc)
 
         return buffer
 
@@ -119,7 +123,7 @@ class SerialCommandDecoder:
                 if crc8(self.buffer, len(self.buffer) - 1) == byte:
                     self.extract_command()
                 else:
-                    print("CRC8 failed")
+                    print("CRC8 failed: ", self.buffer)
                     self.clear_buffer()
             else:
                 self.data_len -= 1

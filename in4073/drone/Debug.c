@@ -30,20 +30,24 @@ void DEBUG(uint8_t id, const char *format, ...)
     uint16_t size = vsprintf(NULL, format, args);
 
     char *message = (char *)malloc(size * sizeof(char));
-    vsprintf(message, format, args);
 
-    uint16_t msg_pos = 0;
-    uint16_t msg_size = 0;
-
-    while (size)
+    if (message)
     {
-        msg_size = (size > 256) ? 256 : size;
+        vsprintf(message, format, args);
 
-        CommandHandler_send_command(*global_channel, Command_make_debug_n(id, &message[msg_pos], msg_size));
+        uint16_t msg_pos = 0;
+        uint16_t msg_size = 0;
 
-        msg_pos += msg_size;
-        size -= msg_size;
+        while (size)
+        {
+            msg_size = (size > 256) ? 256 : size;
+
+            CommandHandler_send_command(*global_channel, Command_make_debug_n(id, &message[msg_pos], msg_size));
+
+            msg_pos += msg_size;
+            size -= msg_size;
+        }
+
+        free(message);
     }
-
-    free(message);
 }

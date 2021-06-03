@@ -97,13 +97,19 @@ void command_handler_function(struct Command *command)
         case SetControl: {
             struct CommandControlData *data = (struct CommandControlData *)command->data;
 
-            FlightController_set_controls(fc, data->yaw_rate, data->pitch_rate, data->roll_rate, data->climb_rate);
+            if (data)
+            {
+                FlightController_set_controls(fc, data->yaw_rate, data->pitch_rate, data->roll_rate, data->climb_rate);
+            }
         }
             break;
         case SetParam: {
             struct CommandParamsData *data = (struct CommandParamsData *) command->data;
 
-            FlightController_set_params(fc, data->id , data->value);
+            if (data)
+            {
+                FlightController_set_params(fc, data->id , data->value);
+            }
         }
             break;
         case Invalid:

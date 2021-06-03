@@ -101,7 +101,7 @@ class SerialCommandDecoder:
         self.commands = Queue()
 
     def append(self, byte):
-        print(byte)
+        # print(byte)
         self.buffer.append(byte)
         pos = len(self.buffer)
 

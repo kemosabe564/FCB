@@ -162,7 +162,7 @@ int main(void)
 
 	while (running)
 	{
-        LoopHandler_loop(lh, LH_LINK(fc), LH_HZ_TO_PERIOD(2));
+        LoopHandler_loop(lh, LH_LINK(fc), LH_HZ_TO_PERIOD(100));
 
         LoopHandler_loop(lh, LH_LINK(r1), LH_HZ_TO_PERIOD(100));
         LoopHandler_loop(lh, LH_LINK(r2), LH_HZ_TO_PERIOD(100));
@@ -171,7 +171,7 @@ int main(void)
 
         LoopHandler_loop(lh, LH_LINK(imu), LH_HZ_TO_PERIOD(100));
 
-        LoopHandler_loop(lh, LH_LINK(serial_comms), 0);
+        LoopHandler_loop(lh, LH_LINK(serial_comms), LH_HZ_TO_PERIOD(100));
 //        LoopHandler_loop(lh, LH_LINK(ble_comms), LH_HZ_TO_PERIOD(50));
 
         LoopHandler_loop(lh, LH_LINK(ch), LH_HZ_TO_PERIOD(100));

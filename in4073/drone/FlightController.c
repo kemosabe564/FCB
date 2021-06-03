@@ -79,7 +79,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 FlightController_change_mode(self,Panic);
             }
 
-            uint16_t t = FlightController_map_throttle(self);
+            uint16_t t = FlightController_map_proportional(self);
 
             DEBUG(0, "Mapped Throttle %d",t);
 
@@ -116,11 +116,10 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 Rotor_set_rpm(self->rotors[i],0);
             }
 
-            IMU_calibrate(self->imu);
-
             if (self->imu->calibrated)
             {
                 DEBUG(0, "Calibrated\n");
+                DEBUG(0, "Rolloffset: %d, Pitchoffset: %d", self->imu->roll_angle_offset, self->imu->pitch_angle_offset);
 
                 FlightController_change_mode(self, Safe);
             }

@@ -102,13 +102,16 @@ void IMU_loop(void *context, uint32_t delta_us)
         }
             break;
         case IMU_FinishCalibration: {
-            get_sensor_data();
+            if (check_sensor_int_flag())
+            {
+                get_sensor_data();
 
-            imu->roll_angle_offset = phi;
-            imu->pitch_angle_offset = theta;
+                imu->roll_angle_offset = phi;
+                imu->pitch_angle_offset = theta;
 
-            imu->calibrated = true;
-            imu->state = IMU_Measuring;
+                imu->calibrated = true;
+                imu->state = IMU_Measuring;
+            }
         }
             break;
     }

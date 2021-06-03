@@ -22,6 +22,11 @@ class Controller:
         self.offset_yaw = 0
         self.step = 0.05
 
+        self.P = 10
+        self.P1 = 10
+        self.P2 = 40
+
+
         # start the thread loop now
         self.thread = threading.Thread(target=self.thread_function)
         self.thread.start()
@@ -66,13 +71,34 @@ class Controller:
             if event.key == pygame.K_4:  # yaw rate
                 self.drone.change_mode(FlightMode.Yaw)
 
-    # TODO: This needs to be changed to limit to [-1,+1]
-    # TODO: Check what this needs to be mapped to
+            if event.key == pygame.K_u:
+                self.P = self.P + 0.1
+                self.drone.set_params(id=0, value=self.P)
+
+            if event.key == pygame.K_j:
+                self.P = self.P - 0.1
+                self.drone.set_params(id=0, value=self.P)
+
+            if event.key == pygame.K_i:
+                self.P1 = self.P1 + 0.1
+                self.drone.set_params(id=1, value=self.P1)
+
+            if event.key == pygame.K_k:
+                self.P1 = self.P1 - 0.1
+                self.drone.set_params(id=1, value=self.P1)
+
+            if event.key == pygame.K_o:
+                self.P2 = self.P2 + 0.1
+                self.drone.set_params(id=2, value=self.P2)
+
+            if event.key == pygame.K_l:
+                self.P2 = self.P2 - 0.1
+                self.drone.set_params(id=2, value=self.P2)
+
     def update_inputs(self):
         self.input_roll = self.joystick.get_axis(JoystickAxis.Roll)
         self.input_pitch = self.joystick.get_axis(JoystickAxis.Pitch)
         self.input_yaw = self.joystick.get_axis(JoystickAxis.Yaw)
-        # TODO: re-add trimming
         self.input_throttle = self.joystick.get_axis(JoystickAxis.Throttle)
 
     def at_deadpoint(self, x):

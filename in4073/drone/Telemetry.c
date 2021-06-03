@@ -42,7 +42,7 @@ void Telemetry_loop(void *context, uint32_t delta_us)
     struct Command *cmd = Command_make_telemetry(
         self->imu->roll_angle,
         self->imu->pitch_angle,
-        self->imu->yaw_angle,
+        self->imu->yaw_rate,
         self->rotors[0]->actual_rpm,
         self->rotors[1]->actual_rpm,
         self->rotors[2]->actual_rpm,

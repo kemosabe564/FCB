@@ -72,27 +72,27 @@ class Controller:
                 self.drone.change_mode(FlightMode.Yaw)
 
             if event.key == pygame.K_u:
-                self.P = self.P + 0.1
+                self.P = self.P + 1
                 self.drone.set_params(id=0, value=self.P)
 
             if event.key == pygame.K_j:
-                self.P = self.P - 0.1
+                self.P = self.P - 1
                 self.drone.set_params(id=0, value=self.P)
 
             if event.key == pygame.K_i:
-                self.P1 = self.P1 + 0.1
+                self.P1 = self.P1 + 1
                 self.drone.set_params(id=1, value=self.P1)
 
             if event.key == pygame.K_k:
-                self.P1 = self.P1 - 0.1
+                self.P1 = self.P1 - 1
                 self.drone.set_params(id=1, value=self.P1)
 
             if event.key == pygame.K_o:
-                self.P2 = self.P2 + 0.1
+                self.P2 = self.P2 + 1
                 self.drone.set_params(id=2, value=self.P2)
 
             if event.key == pygame.K_l:
-                self.P2 = self.P2 - 0.1
+                self.P2 = self.P2 - 1
                 self.drone.set_params(id=2, value=self.P2)
 
     def update_inputs(self):

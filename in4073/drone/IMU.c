@@ -109,7 +109,7 @@ void IMU_loop(void *context, uint32_t delta_us)
                 imu->roll_angle_offset = phi;
                 imu->pitch_angle_offset = theta;
 
-                imu->calibrated = true;
+                imu->calibrated = true; 
                 imu->state = IMU_Measuring;
             }
         }

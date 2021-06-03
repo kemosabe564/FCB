@@ -74,6 +74,12 @@ class Controller:
                 else:
                     print("NOT SAFE")
 
+            if event.key == pygame.K_5:  # fullcontrol
+                if self.drone.mode == FlightMode.Safe and self.input_safe():
+                    self.drone.change_mode(FlightMode.Full)
+                else:
+                    print("NOT SAFE")
+
             if event.key == pygame.K_u:
                 self.P = self.P + 1
                 self.drone.set_params(id=0, value=self.P)

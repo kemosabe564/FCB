@@ -53,7 +53,11 @@ void Serial_loop(void *context, uint32_t delta_us)
         {
             if (data_len == 0) // CRC byte
             {
-                CommandQueue_push(&self->receive_queue, Command_decode(raw_str));
+                struct Command *cmd = Command_decode(raw_str);
+                if (!CommandQueue_push(&self->receive_queue, cmd))
+                {
+                    Command_destroy(cmd);
+                }
                 char_id = 0;
             }
             else // Data bytes

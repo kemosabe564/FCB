@@ -102,12 +102,11 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 Rotor_set_rpm(self->rotors[1], rpm1);
                 Rotor_set_rpm(self->rotors[2], rpm2);
                 Rotor_set_rpm(self->rotors[3], rpm3);
-
                 DEBUG(0, "MOTORS %d %d %d %d", rpm0 ,rpm1,rpm2,rpm3);
+           
+
             }
-
-
-
+    
         }
             break;
         case Calibrate:

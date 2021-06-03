@@ -346,6 +346,7 @@ void Command_destroy(struct Command *self)
     {
         switch (self->type)
         {
+            case Heartbeat:
             case SetOrQueryMode:
             case CurrentMode:
                 free((uint8_t *) self->data);

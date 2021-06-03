@@ -13,6 +13,10 @@
 #include "IMU.h"
 #include "Rotor.h"
 
+
+#include "../hal/gpio.h"
+#include "nrf_gpio.h"
+
 struct Telemetry *Telemetry_create(struct CommandHandler *ch, struct IMU *imu, struct Rotor *rotors[], uint8_t num_rotors)
 {
     struct Telemetry *result = (struct Telemetry *)malloc(sizeof(struct Telemetry));
@@ -46,6 +50,8 @@ void Telemetry_loop(void *context, uint32_t delta_us)
     );
 
     CommandHandler_send_command(self->ch, cmd);
+
+    nrf_gpio_pin_toggle(RED);
 }
 
 void Telemetry_destroy(struct Telemetry *self)

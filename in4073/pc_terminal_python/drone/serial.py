@@ -40,7 +40,7 @@ class Serial:
                 if self.print_traffic:
                     print(">> {}".format(command))
                 ser.write(command.encode())
-                ser.flushOutput()
+                ser.flush()
 
                 # removed sleep since thread will sleep on get()
                 # time.sleep(0.01)

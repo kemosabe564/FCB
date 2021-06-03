@@ -22,7 +22,7 @@ def new_cmd_handler(data):
         if data.type == CommandType.DebugMessage:
             cli.to_cli("[drone debug] {}".format(data.get_data("message")))
     elif type(data) == bytearray:
-        cli.to_cli(data.decode('utf-8'))
+        cli.to_cli(data)
     else:
         cli.to_cli(data)
 

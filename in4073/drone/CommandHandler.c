@@ -64,7 +64,10 @@ void CommandHandler_send_command(struct CommandHandler *self, struct Command *co
 
         if (comms)
         {
-            CommandQueue_push(&comms->send_queue, command);
+            if (!CommandQueue_push(&comms->send_queue, command))
+            {
+                Command_destroy(command);
+            }
         }
     }
 }

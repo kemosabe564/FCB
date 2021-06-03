@@ -91,10 +91,10 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 }
             }
             else{
-                uint16_t rpm0 = SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(FlightController_set_limited_rpm(t + self->pitch_angle - self->yaw_rate))];
-                uint16_t rpm1 = SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(FlightController_set_limited_rpm(t + self->roll_angle + self->yaw_rate))];
-                uint16_t rpm2 = SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(FlightController_set_limited_rpm(t - self->pitch_angle - self->yaw_rate))];
-                uint16_t rpm3 = SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(FlightController_set_limited_rpm(t - self->roll_angle + self->yaw_rate))];
+                uint16_t rpm0 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t + self->pitch_angle - self->yaw_rate)]);
+                uint16_t rpm1 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t + self->roll_angle + self->yaw_rate)]);
+                uint16_t rpm2 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t - self->pitch_angle - self->yaw_rate)]);
+                uint16_t rpm3 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t - self->roll_angle + self->yaw_rate)]);
 
                 //CommandHandler_send_command(self->ch, Command_make_debug_msg("rpm0 %d\n",rpm0));
 
@@ -132,9 +132,6 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 FlightController_change_mode(self,Panic);
             }
 
-            //get_sensor_data();
-
-            //TODO: can also try proportional
             int16_t t = FlightController_map_proportional(self);
             //get set point
             int16_t setPoint = self->yaw_rate;
@@ -143,9 +140,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
             //calculate error
             int16_t yaw_error = setPoint - psi_rate;
             //calculate compensation and apply
-            int16_t yaw_compensation = self->P * yaw_error;
-
-            DEBUG(0, "%d,%d,%d,%d", setPoint, psi_rate, self->P, yaw_compensation);
+            int16_t yaw_compensation = (self->P * yaw_error) / 10;
 
             if (t<1)
             {
@@ -157,17 +152,17 @@ void FlightController_loop(void *context, uint32_t delta_us)
 
             else
             {
-                uint16_t rpm0 = SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(FlightController_set_limited_rpm(t + self->pitch_angle - yaw_compensation))];
-                uint16_t rpm1 = SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(FlightController_set_limited_rpm(t + self->roll_angle + yaw_compensation))];
-                uint16_t rpm2 = SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(FlightController_set_limited_rpm(t - self->pitch_angle - yaw_compensation))];
-                uint16_t rpm3 = SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(FlightController_set_limited_rpm(t - self->roll_angle + yaw_compensation))];
+                uint16_t rpm0 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t + self->pitch_angle - yaw_compensation)]);
+                uint16_t rpm1 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t + self->roll_angle + yaw_compensation)]);
+                uint16_t rpm2 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t - self->pitch_angle - yaw_compensation)]);
+                uint16_t rpm3 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t - self->roll_angle + yaw_compensation)]);
 
                 Rotor_set_rpm(self->rotors[0], rpm0);
                 Rotor_set_rpm(self->rotors[1], rpm1);
                 Rotor_set_rpm(self->rotors[2], rpm2);
                 Rotor_set_rpm(self->rotors[3], rpm3);
 
-                DEBUG(0, "RPM:%d,%d,%d,%d", rpm0, rpm1, rpm2, rpm3);
+                DEBUG(0, "%d,%d,%d,%d-RPM:%d,%d,%d,%d", setPoint, psi_rate, self->P, yaw_compensation, rpm0, rpm1, rpm2, rpm3);
 
             }
 
@@ -286,7 +281,11 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
         result->ch = ch;
         result->phi_offset = phi;
         result->theta_offset=theta;
-        result->P = 5;
+        result->throttle = 0;
+        result->yaw_rate = 0;
+        result->pitch_angle = 0;
+        result->roll_angle = 0;
+        result->P = 10;
         result->P1 = 10;
         result->P2 = 40;
     }
@@ -431,7 +430,7 @@ uint16_t FlightController_map_proportional(struct FlightController *self)
     uint16_t t;
     if (self->throttle >0)
     {
-        t= ((self->throttle - 0) * (SAFE_RPM_LIMIT - MINIMUM_RPM) /255)+ MINIMUM_RPM;
+        t= ((self->throttle - 0) * (MAX_THROTTLE - MINIMUM_RPM) /255)+ MINIMUM_RPM;
     }
     else
     {

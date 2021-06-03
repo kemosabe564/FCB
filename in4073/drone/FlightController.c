@@ -145,7 +145,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
             //calculate compensation and apply
             int16_t yaw_compensation = self->P * yaw_error;
 
-//            DEBUG(0, "%d,%d,%d,%d", setPoint, psi_rate, self->P, yaw_compensation);
+            DEBUG(0, "%d,%d,%d,%d", setPoint, psi_rate, self->P, yaw_compensation);
 
             if (t<1)
             {
@@ -166,6 +166,9 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 Rotor_set_rpm(self->rotors[1], rpm1);
                 Rotor_set_rpm(self->rotors[2], rpm2);
                 Rotor_set_rpm(self->rotors[3], rpm3);
+
+                DEBUG(0, "RPM:%d,%d,%d,%d", rpm0, rpm1, rpm2, rpm3);
+
             }
 
         }
@@ -283,7 +286,6 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
         result->ch = ch;
         result->phi_offset = phi;
         result->theta_offset=theta;
-        result->is_calibrating=false;
         result->P = 5;
         result->P1 = 10;
         result->P2 = 40;
@@ -314,10 +316,6 @@ bool FlightController_change_mode(struct FlightController *self, enum FlightCont
                 self->mode = mode;
                 return true;
             }
-        }
-        if(self->mode != mode && mode == Calibrate)
-        {
-            self->is_calibrating=true;
         }
     }
     return false;
@@ -466,8 +464,8 @@ int16_t FlightController_roll_over_angle(int16_t angle)
 
 uint16_t FlightController_sqrt_index_bounds(uint16_t rpm_in)
 {
-    if (rpm_in>999){
-        rpm_in = 999;
+    if (rpm_in> 2499){
+        rpm_in = 2499;
     }
     if (rpm_in < 0){
         rpm_in = 0 ;

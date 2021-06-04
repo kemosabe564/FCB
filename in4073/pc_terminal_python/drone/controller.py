@@ -22,7 +22,7 @@ class Controller:
         self.offset_yaw = 0
         self.step = 1
 
-        self.P = 10
+        self.P = 18
         self.P1 = 10
         self.P2 = 40
 

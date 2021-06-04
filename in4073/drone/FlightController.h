@@ -66,9 +66,9 @@ struct FlightController
     int16_t phi_offset;
     int16_t theta_offset;
 
-    uint8_t P ;
-    uint8_t P1 ;
-    uint8_t P2 ;
+    uint8_t P;
+    uint8_t P1;
+    uint8_t P2;
 
     struct CommandHandler *ch;
 

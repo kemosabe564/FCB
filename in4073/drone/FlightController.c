@@ -306,7 +306,7 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
         result->yaw_rate = 0;
         result->pitch_angle = 0;
         result->roll_angle = 0;
-        result->P = 10;
+        result->P = 18;
         result->P1 = 10;
         result->P2 = 40;
     }
@@ -398,9 +398,11 @@ void FlightController_set_params(struct FlightController *self, uint8_t pid , ui
                 break;
             case 1:
                 self->P1 = pvalue;
+                DEBUG(0, "P1:%d", pvalue);
                 break;
             case 2:
                 self->P2 = pvalue;
+                DEBUG(0, "P2:%d", pvalue);
                 break;
             default:
                 break;

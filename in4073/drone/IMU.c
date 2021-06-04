@@ -24,6 +24,9 @@ struct IMU *IMU_create(bool dmp, uint16_t frequency)
         result->yaw_rate = 0;
 
         result->imu_psi_rate = 0;
+        result->imu_theta_rate = 0;
+        result->imu_phi_rate =0;
+
 
         result->measured_p = 0;
         result->measured_q = 0;
@@ -68,10 +71,12 @@ void IMU_loop(void *context, uint32_t delta_us)
                 get_sensor_data();
             }
 
+            imu->imu_psi_rate = psi - imu->yaw_rate;
+            imu->imu_phi_rate = phi - imu->roll_angle;
+            imu->imu_theta_rate= theta - imu->pitch_angle;
+
             imu->roll_angle = phi;
             imu->pitch_angle = theta;
-
-            imu->imu_psi_rate = psi - imu->yaw_rate;
             imu->yaw_rate = psi;
 
             imu->measured_p = sp;

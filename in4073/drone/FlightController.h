@@ -95,6 +95,6 @@ void FlightController_destroy(struct FlightController *self);
 uint16_t FlightController_set_limited_rpm(uint16_t rpm);
 uint16_t FlightController_map_throttle(struct  FlightController *self);
 int16_t FlightController_roll_over_angle(int16_t angle);
-uint16_t FlightController_sqrt_index_bounds(uint16_t rpm_in);
+uint16_t FlightController_sqrt_index_bounds(int16_t rpm_in);
 
 #endif //QUADCOPTER_FCB_FLIGHTCONTROLLER_H

@@ -187,11 +187,14 @@ void FlightController_loop(void *context, uint32_t delta_us)
             int16_t theta_setPoint = (self->pitch_angle)/4;
             int16_t  yaw_setPoint = self->yaw_rate;
             //calculate rate of change
-            int16_t  psi_rate = (self-> current_psi - self->previous_psi );
-            int16_t  phi_rate = (self-> current_phi - self->previous_phi );
-            int16_t  theta_rate = (self-> current_theta - self->previous_theta );
+//            int16_t  psi_rate = (self-> current_psi - self->previous_psi );
+//            int16_t  phi_rate = (self-> current_phi - self->previous_phi );
+//            int16_t  theta_rate = (self-> current_theta - self->previous_theta );
 
-            //TODO: TO TRY - Use sp sq sr directly
+            int16_t  psi_rate = self->imu->imu_psi_rate;
+            int16_t  phi_rate = self->imu->imu_phi_rate/5;
+            int16_t  theta_rate = self->imu->imu_theta_rate/5;
+
 //            int16_t  psi_rate = self->imu->measured_r;
 //            int16_t  phi_rate = self->imu->measured_p;
 //            int16_t  theta_rate = self->imu->measured_q;
@@ -211,8 +214,9 @@ void FlightController_loop(void *context, uint32_t delta_us)
             int16_t pitch_rate_error = pitch_rate_setPoint - theta_rate;
 
             //calculate compensation 2
-            int16_t roll_rate_compensation = (self->P2 * roll_rate_error)/10;
-            int16_t pitch_rate_compensation = (self->P2 * pitch_rate_error)/10;
+            int16_t roll_rate_compensation = -(self->P2 * roll_rate_error) / 10;
+            int16_t pitch_rate_compensation = -(self->P2 * pitch_rate_error) / 10;
+            //pitch_rate_compensation = 0;//-(self->P2 * pitch_rate_error) / 10;
 
 
             if (t<1)
@@ -235,7 +239,8 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 Rotor_set_rpm(self->rotors[2], rpm2);
                 Rotor_set_rpm(self->rotors[3], rpm3);
 
-                //DEBUG(0, "%d,%d,%d,%d-RPM:%d,%d,%d,%d", self->P1, self->P2, (self->imu->roll_angle / 256), phi_setPoint, rpm0, rpm1, rpm2, rpm3);
+//                DEBUG(0, "%d,%d,%d", t, self->P1, self->P2);
+                //DEBUG(0, "%d,%d,%d", phi_setPoint, roll_rate_error, roll_rate_compensation);
             }
         }
             break;
@@ -485,7 +490,7 @@ int16_t FlightController_roll_over_angle(int16_t angle)
     return angle;
 }
 
-uint16_t FlightController_sqrt_index_bounds(uint16_t rpm_in)
+uint16_t FlightController_sqrt_index_bounds(int16_t rpm_in)
 {
     if (rpm_in> 2499){
         rpm_in = 2499;

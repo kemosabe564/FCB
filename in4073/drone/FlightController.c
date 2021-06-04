@@ -176,22 +176,26 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 FlightController_change_mode(self,Panic);
             }
 
-            //get throttle 0-255
+            //get throttle
             int16_t t = FlightController_map_proportional(self);
-            //get set points 0 - 255
-            int16_t phi_setPoint = FlightController_roll_over_angle(self->imu->roll_angle_offset/256 + self->roll_angle);
-            int16_t theta_setPoint = FlightController_roll_over_angle(self->imu->pitch_angle_offset/256 + self->pitch_angle);
+            //get set points
+            int16_t phi_setPoint = (self->roll_angle)/4;
+            int16_t theta_setPoint = (self->pitch_angle)/4;
             int16_t  yaw_setPoint = self->yaw_rate;
             //calculate rate of change
             int16_t  psi_rate = (self-> current_psi - self->previous_psi );
             int16_t  phi_rate = (self-> current_phi - self->previous_phi );
             int16_t  theta_rate = (self-> current_theta - self->previous_theta );
 
-            //calculate error1
+            //TODO: TO TRY - Use sp sq sr directly
+//            int16_t  psi_rate = self->imu->measured_r;
+//            int16_t  phi_rate = self->imu->measured_p;
+//            int16_t  theta_rate = self->imu->measured_q;
 
+            //calculate error1
             int16_t yaw_error = yaw_setPoint - psi_rate;
-            int16_t roll_error = phi_setPoint - (self->imu->roll_angle / 256);
-            int16_t  pitch_error = theta_setPoint - (self->imu->pitch_angle / 256);
+            int16_t roll_error = phi_setPoint - FlightController_roll_over_angle((self->imu->roll_angle - self->imu->roll_angle_offset)/ 256);
+            int16_t  pitch_error = theta_setPoint - FlightController_roll_over_angle((self->imu->pitch_angle - self->imu->pitch_angle_offset)/ 256);
 
             //calculate compensation 1
             int16_t yaw_compensation = (self->P * yaw_error) / 10;
@@ -203,8 +207,8 @@ void FlightController_loop(void *context, uint32_t delta_us)
             int16_t pitch_rate_error = pitch_rate_setPoint - theta_rate;
 
             //calculate compensation 2
-            int16_t roll_rate_compensation = self->P2 * roll_rate_error;
-            int16_t pitch_rate_compensation = self->P2 * pitch_rate_error;
+            int16_t roll_rate_compensation = (self->P2 * roll_rate_error)/10;
+            int16_t pitch_rate_compensation = (self->P2 * pitch_rate_error)/10;
 
 
             if (t<1)

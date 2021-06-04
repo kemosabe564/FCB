@@ -34,13 +34,14 @@ void FlightController_loop(void *context, uint32_t delta_us)
 //
 //    static int incrementing = 1;
 
-    if (bat_volt != 0 ) //assuming in debug mode
-    {
-        if (bat_volt < BAT_THRESHOLD && self->mode != Safe && self->mode != Panic)
-        {
-            FlightController_change_mode(self,Panic);
-        }
-    }
+//    if (bat_volt != 0 ) //assuming in debug mode
+//    {
+//        if (bat_volt < BAT_THRESHOLD && self->mode != Safe && self->mode != Panic)
+//        {
+//            FlightController_change_mode(self,Panic);
+//            DEBUG(0, "BATTERY LOW: %d", bat_volt);
+//        }
+//    }
 
     switch (self->mode) {
         case Init:
@@ -74,14 +75,15 @@ void FlightController_loop(void *context, uint32_t delta_us)
             break;
         case Manual: {
             uint32_t now = get_time_us();
-            if (self->input_ts != 0 && (now - self->input_ts > 50000))
+            if (self->input_ts != 0 && (now > self->input_ts) && ((now - self->input_ts) > 50000))
             {
+                DEBUG(0, "HB:%d, %d, %d", now, self->input_ts, (now - self->input_ts));
                 FlightController_change_mode(self,Panic);
             }
 
             uint16_t t = FlightController_map_proportional(self);
 
-            DEBUG(0, "Mapped Throttle %d",t);
+            //DEBUG(0, "Mapped Throttle %d",t);
 
             if (t<1)
             {
@@ -102,7 +104,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 Rotor_set_rpm(self->rotors[1], rpm1);
                 Rotor_set_rpm(self->rotors[2], rpm2);
                 Rotor_set_rpm(self->rotors[3], rpm3);
-                DEBUG(0, "MOTORS %d %d %d %d", rpm0 ,rpm1,rpm2,rpm3);
+                //DEBUG(0, "MOTORS %d %d %d %d", rpm0 ,rpm1,rpm2,rpm3);
            
 
             }
@@ -125,10 +127,10 @@ void FlightController_loop(void *context, uint32_t delta_us)
             }
             break;
         case Yaw: {
-
             uint32_t now = get_time_us();
-            if (self->input_ts != 0 && (now - self->input_ts > 50000))
+            if (self->input_ts != 0 && (now > self->input_ts) && ((now - self->input_ts) > 50000))
             {
+                DEBUG(0, "HB:%d, %d, %d", now, self->input_ts, (now - self->input_ts));
                 FlightController_change_mode(self,Panic);
             }
 
@@ -136,7 +138,9 @@ void FlightController_loop(void *context, uint32_t delta_us)
             //get set point
             int16_t setPoint = self->yaw_rate;
             //get sensor reading
-            int16_t  psi_rate = (self->current_psi - self->previous_psi);
+            //int16_t  psi_rate = (self->current_psi - self->previous_psi);
+            //int16_t  psi_rate = (self->imu->measured_r);
+            int16_t psi_rate = self->imu->imu_psi_rate;
             //calculate error
             int16_t yaw_error = setPoint - psi_rate;
             //calculate compensation and apply
@@ -162,8 +166,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 Rotor_set_rpm(self->rotors[2], rpm2);
                 Rotor_set_rpm(self->rotors[3], rpm3);
 
-                DEBUG(0, "%d,%d,%d,%d-RPM:%d,%d,%d,%d", setPoint, psi_rate, self->P, yaw_compensation, rpm0, rpm1, rpm2, rpm3);
-
+                //DEBUG(0, "%d,%d,%d",t,psi_rate, yaw_compensation);
             }
 
         }
@@ -171,8 +174,9 @@ void FlightController_loop(void *context, uint32_t delta_us)
         case Full:
         {
             uint32_t now = get_time_us();
-            if (self->input_ts != 0 && (now - self->input_ts > 50000))
+            if (self->input_ts != 0 && (now > self->input_ts) && ((now - self->input_ts) > 50000))
             {
+                DEBUG(0, "HB:%d, %d, %d", now, self->input_ts, (now - self->input_ts));
                 FlightController_change_mode(self,Panic);
             }
 
@@ -231,7 +235,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 Rotor_set_rpm(self->rotors[2], rpm2);
                 Rotor_set_rpm(self->rotors[3], rpm3);
 
-                DEBUG(0, "%d,%d,%d,%d-RPM:%d,%d,%d,%d", self->P1, self->P2, (self->imu->roll_angle / 256), phi_setPoint, rpm0, rpm1, rpm2, rpm3);
+                //DEBUG(0, "%d,%d,%d,%d-RPM:%d,%d,%d,%d", self->P1, self->P2, (self->imu->roll_angle / 256), phi_setPoint, rpm0, rpm1, rpm2, rpm3);
             }
         }
             break;
@@ -252,6 +256,17 @@ void FlightController_loop(void *context, uint32_t delta_us)
 void __FlightController_on_changed_mode(struct FlightController *self, enum FlightControllerMode new_mode, enum FlightControllerMode old_mode)
 {
     switch (new_mode) {
+        case Safe:
+        case Panic: {
+            self->yaw_rate = 0;
+            self->pitch_angle = 0;
+            self->roll_angle = 0;
+            if (new_mode == Panic)
+            {
+                DEBUG(0, "PANIC");
+            }
+        }
+            break;
         case Calibrate:
             IMU_calibrate(self->imu);
             break;
@@ -379,6 +394,7 @@ void FlightController_set_params(struct FlightController *self, uint8_t pid , ui
         switch(pid){
             case 0:
                 self->P = pvalue;
+                DEBUG(0, "P:%d", pvalue);
                 break;
             case 1:
                 self->P1 = pvalue;

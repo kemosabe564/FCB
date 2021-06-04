@@ -150,7 +150,12 @@ class SerialCommandDecoder:
             for byte in self.buffer[2:(2 + size)]:
                 message.append(byte)
 
-            cmd.set_data(argument=id, message=message.decode('utf-8'))
+            try:
+                msg = message.decode('utf-8')
+                cmd.set_data(argument=id, message=msg)
+            except UnicodeDecodeError as er:
+                print("Error while decoding DebugMessage")
+
         elif type == CommandType.CurrentTelemetry:
             roll_angle = TO_INT16((self.buffer[1] << 8) | self.buffer[2])
             pitch_angle = TO_INT16((self.buffer[3] << 8) | self.buffer[4])

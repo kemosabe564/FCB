@@ -162,24 +162,27 @@ int main(void)
 
     struct Telemetry *telemetry = Telemetry_create(ch, imu, (struct Rotor *[]){ r1, r2, r3, r4 }, 4);
 
+//    uint32_t time = 0;
 
 	while (running)
 	{
-        LoopHandler_loop(lh, LH_LINK(fc), LH_HZ_TO_PERIOD(100));
+//        time = get_time_us();
+        LoopHandler_loop(lh, LH_LINK(fc), LH_HZ_TO_PERIOD(200));
 
-        LoopHandler_loop(lh, LH_LINK(r1), LH_HZ_TO_PERIOD(100));
-        LoopHandler_loop(lh, LH_LINK(r2), LH_HZ_TO_PERIOD(100));
-        LoopHandler_loop(lh, LH_LINK(r3), LH_HZ_TO_PERIOD(100));
-        LoopHandler_loop(lh, LH_LINK(r4), LH_HZ_TO_PERIOD(100));
+        LoopHandler_loop(lh, LH_LINK(r1), 0);
+        LoopHandler_loop(lh, LH_LINK(r2), 0);
+        LoopHandler_loop(lh, LH_LINK(r3), 0);
+        LoopHandler_loop(lh, LH_LINK(r4), 0);
 
         LoopHandler_loop(lh, LH_LINK(imu), LH_HZ_TO_PERIOD(100));
 
         LoopHandler_loop(lh, LH_LINK(serial_comms), 0);
 //        LoopHandler_loop(lh, LH_LINK(ble_comms), LH_HZ_TO_PERIOD(50));
 
-        LoopHandler_loop(lh, LH_LINK(ch), LH_HZ_TO_PERIOD(100));
+        LoopHandler_loop(lh, LH_LINK(ch), 0);
 
         LoopHandler_loop(lh, LH_LINK(telemetry), LH_HZ_TO_PERIOD(1));
+//        DEBUG(0, "%d", (get_time_us() - time));
 	}
 
 	printf("\n\t Goodbye \n\n");

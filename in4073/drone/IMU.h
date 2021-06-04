@@ -51,6 +51,8 @@ struct IMU
     int16_t pitch_angle;
     int16_t yaw_rate;
 
+    int16_t imu_psi_rate;
+
     //gyro readings filtered or raw
     int16_t measured_p;
     int16_t measured_q;

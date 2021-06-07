@@ -71,7 +71,7 @@ if __name__ == "__main__":
     controller = Controller(drone, joystick, keyboard)
 
     if not args.no_gui:
-        gui = GUI((800, 480), drone)
+        gui = GUI((800, 480), drone, controller)
 
     while running:
         if gui:

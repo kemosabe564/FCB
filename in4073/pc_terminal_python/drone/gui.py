@@ -139,7 +139,7 @@ class GUI:
         (r0, r1, r2, r3) = self.drone.get_rpm()
 
         white = (255, 255, 255)
-        green = (50, 255, 50)
+        green = (0, 100, 0)
         blue = (0, 0, 128)
         red = (255, 0, 0)
         black = (0,0,0)
@@ -156,7 +156,7 @@ class GUI:
             text_safe = font2.render(safe_str, True, green, white)
         else:
             safe_str = 'INPUTS NOT SAFE'
-            text_safe = font2.render(safe_str, True, red, white)
+            text_safe = font2.render(safe_str, True, black, red)
 
         text_angles = font.render(angle_str, True, black, white)
         text_rpms = font.render(rpm_str, True, black, white)
@@ -170,11 +170,13 @@ class GUI:
 
         self.screen.fill((white))
         pygame.draw.rect(self.screen, (255, 0, 0), rect)
-        self.screen.blit(text_angles, (30, 40))
+        self.screen.blit(font.render('Phi: '+str(phi), True, black, white), (30, 40))
+        self.screen.blit(font.render('Theta: '+str(theta), True, black, white), (290, 40))
+        self.screen.blit(font.render('Psi: '+str(psi), True, black, white), (550, 40))
         self.screen.blit(text_rpms, (30, 80))
         self.screen.blit(text_torques, (30, 120))
         self.screen.blit(text_p, (30, height - 60))
-        if self.drone.mode== FlightMode.Safe:
+        if self.drone.mode == FlightMode.Safe:
             self.screen.blit(text_safe, (30, height - 90))
 
         graph_drawing(self.phi_fig, self.phi_data.data_queue, [-1, 105], [-127, 127], (900, 50), self.screen, 'Phi')

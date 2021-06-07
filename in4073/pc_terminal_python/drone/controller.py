@@ -24,6 +24,11 @@ class Controller:
         self.offset_roll = 0
         self.step = 1
 
+        self.yaw = 0
+        self.pitch = 0
+        self.roll = 0
+        self.input_throttle = 0
+
         self.P = 18
         self.P1 = 30
         self.P2 = 80
@@ -46,6 +51,24 @@ class Controller:
     def handle_joystick_button_event(self, button: JoystickButton, active: bool):
         if button == JoystickButton.Trigger and active and self.drone.mode != FlightMode.Safe:
             self.drone.change_mode(FlightMode.Panic)
+        if button == JoystickButton.Thumb:
+            if self.drone.mode == FlightMode.Safe and self.input_safe():
+                self.drone.change_mode(FlightMode.Manual)
+            else:
+                print('NOT SAFE')
+        if button == JoystickButton.B3:
+            self.drone.change_mode(FlightMode.Calibrate)
+        if button == JoystickButton.B4:  # yaw rate
+            if self.drone.mode == FlightMode.Safe and self.input_safe():
+                self.drone.change_mode(FlightMode.Yaw)
+            else:
+                print("NOT SAFE")
+        if button == JoystickButton.B5:  # fullcontrol
+            if self.drone.mode == FlightMode.Safe and self.input_safe():
+                self.drone.change_mode(FlightMode.Full)
+            else:
+                print("NOT SAFE")
+
 
     def handle_joystick_disconnect_event(self):
         if self.drone.mode != FlightMode.Safe:
@@ -148,10 +171,10 @@ class Controller:
             if self.joystick.available():
                 if self.drone.mode in [FlightMode.Manual, FlightMode.Yaw, FlightMode.Full]:
                     self.update_inputs()
-                    yaw = self.limit(self.input_yaw + self.offset_yaw)
-                    pitch = self.limit(self.input_pitch + self.offset_pitch)
-                    roll = self.limit(self.input_roll + self.offset_roll)
-                    self.drone.set_control(roll=roll, pitch=pitch, yaw=yaw, throttle=self.input_throttle)
+                    self.yaw = self.limit(self.input_yaw + self.offset_yaw)
+                    self.pitch = self.limit(self.input_pitch + self.offset_pitch)
+                    self.roll = self.limit(self.input_roll + self.offset_roll)
+                    self.drone.set_control(roll=self.roll, pitch=self.pitch, yaw=self.yaw, throttle=self.input_throttle)
 
             time.sleep(0.0125)
 

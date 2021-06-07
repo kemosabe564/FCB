@@ -73,7 +73,9 @@ class GUI:
         pygame.init()
         pygame.font.init()
         self.screen_size = size
+
         self.screen = pygame.display.set_mode(size)
+        #self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 
         self.update_title()
         self.__init_display()
@@ -146,9 +148,10 @@ class GUI:
         font = pygame.font.Font('freesansbold.ttf', 32)
         font2 = pygame.font.Font('freesansbold.ttf', 16)
 
-        angle_str = 'Phi: ' + str(phi) + ' Theta: '+str(theta) + ' Psi:'+str(psi)
-        rpm_str = 'Rotor RPM: ' + str(r0) + ' ' + str(r1) + ' ' + str(r2) + ' ' + str(r3)
-        p_str = 'P: ' + str(self.controller.P) + ' P1: ' + str(self.controller.P1) + ' P2: ' + str(self.controller.P2)
+        angle_str = 'Phi: {: 6d}   Theta: {: 6d}   Psi: {: 6d}'.format(phi, theta, psi)
+        rpm_str = 'Rotor RPM {: 4d} {: 4d} {: 4d} {: 4d}'.format(r0, r1, r2, r3)
+        p_str = 'P: {: 2d}  P1: {: 2d}  P2: {: 2d}                               Offsets: Yaw: {: 3d}   Roll: {: 3d}   Pitch: {: 3d}'.format(self.controller.P, self.controller.P1, self.controller.P2, self.controller.offset_yaw,  self.controller.offset_roll, self.controller.offset_pitch)
+        inputs_str = 'Inputs: Throttle: {}   Yaw: {}   Roll: {}   Pitch: {}'.format(str(self.controller.input_throttle), str(self.controller.yaw), str(self.controller.roll), str(self.controller.pitch))
         if self.controller.input_safe():
             safe_str = 'Inputs safe'
             text_safe = font2.render(safe_str, True, green, white)
@@ -160,17 +163,20 @@ class GUI:
         text_rpm = font.render(rpm_str, True, black, white)
         text_torques = font.render(self.get_torques(), True, blue, white)
         text_p = font2.render(p_str, True, black, white)
+        text_inputs = font2.render(inputs_str, True, (102, 0, 51), white)
 
         # rotated = pygame.transform.rotate(self.screen, (phi + 32767) / 65535)
 
         self.screen.fill((white))
         pygame.draw.rect(self.screen, (255, 0, 0), rect)
-        self.screen.blit(font.render('Phi: '+str(phi), True, black, white), (30, 40))
-        self.screen.blit(font.render('Theta: '+str(theta), True, black, white), (290, 40))
-        self.screen.blit(font.render('Psi: '+str(psi), True, black, white), (550, 40))
+
+        self.screen.blit(text_angles, (30,40))
         self.screen.blit(text_rpm, (30, 80))
         self.screen.blit(text_torques, (30, 120))
         self.screen.blit(text_p, (30, height - 60))
+
+        if self.drone.mode != FlightMode.Safe and self.drone.mode != FlightMode.Panic:
+            self.screen.blit(text_inputs, (30, height - 30))
         if self.drone.mode == FlightMode.Safe:
             self.screen.blit(text_safe, (30, height - 90))
 

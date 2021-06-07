@@ -20,11 +20,13 @@ class Controller:
         self.terminate = False
 
         self.offset_yaw = 0
+        self.offset_pitch = 0
+        self.offset_roll = 0
         self.step = 1
 
         self.P = 18
-        self.P1 = 10
-        self.P2 = 40
+        self.P1 = 30
+        self.P2 = 80
 
 
         # start the thread loop now
@@ -56,6 +58,15 @@ class Controller:
                 self.offset_yaw = self.dec_check_limits(self.offset_yaw)
             if event.key == pygame.K_w:  # yaw up
                 self.offset_yaw = self.inc_check_limits(self.offset_yaw)
+            if event.key == pygame.K_LEFT:
+                self.offset_roll = self.dec_check_limits(self.offset_roll)
+            if event.key == pygame.K_RIGHT:
+                self.offset_roll = self.inc_check_limits(self.offset_roll)
+            if event.key == pygame.K_UP:
+                self.offset_pitch = self.inc_check_limits(self.offset_pitch)
+            if event.key == pygame.K_DOWN:
+                self.offset_pitch = self.dec_check_limits(self.offset_pitch)
+
             if event.key == pygame.K_0:  # safe mode
                 self.drone.change_mode(FlightMode.Safe)
             if event.key == pygame.K_1:  # panic mode
@@ -138,7 +149,9 @@ class Controller:
                 if self.drone.mode in [FlightMode.Manual, FlightMode.Yaw, FlightMode.Full]:
                     self.update_inputs()
                     yaw = self.limit(self.input_yaw + self.offset_yaw)
-                    self.drone.set_control(roll=self.input_roll, pitch=self.input_pitch, yaw=yaw, throttle=self.input_throttle)
+                    pitch = self.limit(self.input_pitch + self.offset_pitch)
+                    roll = self.limit(self.input_roll + self.offset_roll)
+                    self.drone.set_control(roll=roll, pitch=pitch, yaw=yaw, throttle=self.input_throttle)
 
             time.sleep(0.0125)
 

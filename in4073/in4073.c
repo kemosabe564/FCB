@@ -181,7 +181,7 @@ int main(void)
 
         LoopHandler_loop(lh, LH_LINK(ch), 0);
 
-        LoopHandler_loop(lh, LH_LINK(telemetry), LH_HZ_TO_PERIOD(1));
+        LoopHandler_loop(lh, LH_LINK(telemetry), LH_HZ_TO_PERIOD(30));
 //        DEBUG(0, "%d", (get_time_us() - time));
 	}
 

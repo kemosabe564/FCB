@@ -34,13 +34,12 @@ void FlightController_loop(void *context, uint32_t delta_us)
 //
 //    static int incrementing = 1;
 
-//    if (bat_volt != 0 ) //assuming in debug mode
+    //comment this for debugging
+//    adc_request_sample();
+//    if (bat_volt < BAT_THRESHOLD && self->mode != Safe && self->mode != Panic)
 //    {
-//        if (bat_volt < BAT_THRESHOLD && self->mode != Safe && self->mode != Panic)
-//        {
-//            FlightController_change_mode(self,Panic);
-//            DEBUG(0, "BATTERY LOW: %d", bat_volt);
-//        }
+//        FlightController_change_mode(self,Panic);
+//        DEBUG(0, "BATTERY LOW: %d", bat_volt);
 //    }
 
     switch (self->mode) {
@@ -312,8 +311,8 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
         result->pitch_angle = 0;
         result->roll_angle = 0;
         result->P = 18;
-        result->P1 = 10;
-        result->P2 = 40;
+        result->P1 = 30;
+        result->P2 = 80;
     }
 
     return result;

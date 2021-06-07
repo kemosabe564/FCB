@@ -98,8 +98,6 @@ class GUI:
         self.phi_fig     = init_fig([3, 2], 100)
         self.theta_fig   = init_fig([3, 2], 100)
         self.psi_fig     = init_fig([3, 2], 100)
-        # 
-
 
     def update_title(self):
         status = self.drone.mode.name if self.drone.mode else "Disconnected"
@@ -142,7 +140,7 @@ class GUI:
         green = (0, 100, 0)
         blue = (0, 0, 128)
         red = (255, 0, 0)
-        black = (0,0,0)
+        black = (0, 0, 0)
 
 
         font = pygame.font.Font('freesansbold.ttf', 32)
@@ -159,12 +157,9 @@ class GUI:
             text_safe = font2.render(safe_str, True, black, red)
 
         text_angles = font.render(angle_str, True, black, white)
-        text_rpms = font.render(rpm_str, True, black, white)
+        text_rpm = font.render(rpm_str, True, black, white)
         text_torques = font.render(self.get_torques(), True, blue, white)
         text_p = font2.render(p_str, True, black, white)
-
-        # textRect = text.get_rect()
-        # textRect.center = (width // 8, height // 8)
 
         # rotated = pygame.transform.rotate(self.screen, (phi + 32767) / 65535)
 
@@ -173,7 +168,7 @@ class GUI:
         self.screen.blit(font.render('Phi: '+str(phi), True, black, white), (30, 40))
         self.screen.blit(font.render('Theta: '+str(theta), True, black, white), (290, 40))
         self.screen.blit(font.render('Psi: '+str(psi), True, black, white), (550, 40))
-        self.screen.blit(text_rpms, (30, 80))
+        self.screen.blit(text_rpm, (30, 80))
         self.screen.blit(text_torques, (30, 120))
         self.screen.blit(text_p, (30, height - 60))
         if self.drone.mode == FlightMode.Safe:
@@ -182,16 +177,10 @@ class GUI:
         graph_drawing(self.phi_fig, self.phi_data.data_queue, [-1, 105], [-127, 127], (900, 50), self.screen, 'Phi')
         graph_drawing(self.phi_fig, self.theta_data.data_queue, [-1, 105], [-127, 127], (900, 275), self.screen, 'Theta')
         graph_drawing(self.phi_fig, self.psi_data.data_queue, [-1, 105], [-127, 127], (900, 500), self.screen, 'Psi')
-        
 
         # graph_drawing(self.pitch_fig, self.pitch_data.data_queue, [-1, 105], [-1.1, 1.1], (25, 150), self.screen)
         # graph_drawing(self.pitch_fig, self.roll_data.data_queue, [-1, 105], [-1.1, 1.1], (25, 375), self.screen)
         # graph_drawing(self.pitch_fig, self.yaw_data.data_queue, [-1, 105], [-1.1, 1.1], (25, 600), self.screen)
 
-
-
         pygame.display.flip()
-
-
-
         self.update_title()

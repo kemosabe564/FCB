@@ -312,8 +312,8 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
         result->pitch_angle = 0;
         result->roll_angle = 0;
         result->P = 18;
-        result->P1 = 10;
-        result->P2 = 40;
+        result->P1 = 30;
+        result->P2 = 80;
     }
 
     return result;

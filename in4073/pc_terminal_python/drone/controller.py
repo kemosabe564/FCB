@@ -23,8 +23,8 @@ class Controller:
         self.step = 1
 
         self.P = 18
-        self.P1 = 10
-        self.P2 = 40
+        self.P1 = 30
+        self.P2 = 80
 
 
         # start the thread loop now

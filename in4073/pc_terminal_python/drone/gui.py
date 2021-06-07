@@ -118,7 +118,7 @@ class GUI:
         self.pitch_data.queue_storing(pitch_torque, 1)
         self.roll_data.queue_storing(roll_torque, 1)
         self.yaw_data.queue_storing(yaw_torque, 1)
-        torques_str = 'Generated - Yaw: '+str(int(yaw_torque/1000))+' Roll: '+str(int(roll_torque/1000)) + ' Pitch: ' + str(int(pitch_torque/1000))
+        torques_str = 'Generated Torques - Yaw: {}    Roll: {}    Pitch: {}'.format(str(int(yaw_torque/1000)), str(int(roll_torque/1000)), str(int(pitch_torque/1000)))
         return torques_str
 
 
@@ -158,10 +158,12 @@ class GUI:
         else:
             safe_str = 'INPUTS NOT SAFE'
             text_safe = font2.render(safe_str, True, black, red)
+        status = self.drone.mode.name if self.drone.mode else "Disconnected"
+
 
         text_angles = font.render(angle_str, True, black, white)
         text_rpm = font.render(rpm_str, True, black, white)
-        text_torques = font.render(self.get_torques(), True, blue, white)
+        text_torques = font2.render(self.get_torques(), True, blue, white)
         text_p = font2.render(p_str, True, black, white)
         text_inputs = font2.render(inputs_str, True, (102, 0, 51), white)
 
@@ -170,6 +172,7 @@ class GUI:
         self.screen.fill((white))
         pygame.draw.rect(self.screen, (255, 0, 0), rect)
 
+        self.screen.blit(font.render('{:^10}'.format(status), True, (204, 0, 0), (255, 225, 225)), (30, height - 150))
         self.screen.blit(text_angles, (30,40))
         self.screen.blit(text_rpm, (30, 80))
         self.screen.blit(text_torques, (30, 120))

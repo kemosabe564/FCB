@@ -22,7 +22,7 @@ def init_fig(Figsize, Dpi):
                     )  
     return fig
 
-def graph_drawing(fig, data, xlim, ylim, position, screen):
+def graph_drawing(fig, data, xlim, ylim, position, screen, title):
     # figzie Inches, dpi dots per inch
     # fig = pylab.figure(figsize = Figsize, 
     #                 dpi = Dpi,        
@@ -32,6 +32,7 @@ def graph_drawing(fig, data, xlim, ylim, position, screen):
     ax.plot(data) 
     ax.set_xlim(xlim)
     ax.set_ylim(ylim)
+    ax.set_title(title)
     
     canvas = agg.FigureCanvasAgg(fig)
     canvas.draw()
@@ -126,6 +127,9 @@ class GUI:
         rect = pygame.Rect((width / 2) - 25, (height / 2) - 25, 50, 50)
 
         (phi, theta, psi) = self.drone.get_angles()
+        phi = int(phi/256)
+        theta = int(theta/256)
+        psi = int(psi/256)
 
         self.phi_data.queue_storing(phi, 1)
         self.theta_data.queue_storing(theta, 1)
@@ -173,9 +177,9 @@ class GUI:
         if self.drone.mode== FlightMode.Safe:
             self.screen.blit(text_safe, (30, height - 90))
 
-        graph_drawing(self.phi_fig, self.phi_data.data_queue, [-1, 105], [-20000, 20000], (900, 50), self.screen)
-        graph_drawing(self.phi_fig, self.theta_data.data_queue, [-1, 105], [-20000, 20000], (900, 275), self.screen)
-        graph_drawing(self.phi_fig, self.psi_data.data_queue, [-1, 105], [-20000, 20000], (900, 500), self.screen)        
+        graph_drawing(self.phi_fig, self.phi_data.data_queue, [-1, 105], [-127, 127], (900, 50), self.screen, 'Phi')
+        graph_drawing(self.phi_fig, self.theta_data.data_queue, [-1, 105], [-127, 127], (900, 275), self.screen, 'Theta')
+        graph_drawing(self.phi_fig, self.psi_data.data_queue, [-1, 105], [-127, 127], (900, 500), self.screen, 'Psi')
         
 
         # graph_drawing(self.pitch_fig, self.pitch_data.data_queue, [-1, 105], [-1.1, 1.1], (25, 150), self.screen)

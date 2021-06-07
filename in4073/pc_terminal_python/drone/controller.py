@@ -28,10 +28,13 @@ class Controller:
         self.pitch = 0
         self.roll = 0
         self.input_throttle = 0
+        self.delta_throttle = 0
 
         self.P = 18
         self.P1 = 30
         self.P2 = 80
+
+        self.H = 1
 
 
         # start the thread loop now
@@ -128,7 +131,7 @@ class Controller:
                 self.drone.set_params(id=1, value=self.P1)
 
             if event.key == pygame.K_k:
-                if self.P > 1:
+                if self.P1 > 1:
                     self.P1 = self.P1 - 1
                     self.drone.set_params(id=1, value=self.P1)
 
@@ -137,7 +140,7 @@ class Controller:
                 self.drone.set_params(id=2, value=self.P2)
 
             if event.key == pygame.K_l:
-                if self.P > 1:
+                if self.P2 > 1:
                     self.P2 = self.P2 - 1
                     self.drone.set_params(id=2, value=self.P2)
 
@@ -145,6 +148,7 @@ class Controller:
         self.input_roll = self.joystick.get_axis(JoystickAxis.Roll)
         self.input_pitch = self.joystick.get_axis(JoystickAxis.Pitch)
         self.input_yaw = self.joystick.get_axis(JoystickAxis.Yaw)
+        self.delta_throttle = self.joystick.get_axis(JoystickAxis.Throttle) - self.input_throttle
         self.input_throttle = self.joystick.get_axis(JoystickAxis.Throttle)
 
     def at_deadpoint(self, x):

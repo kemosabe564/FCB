@@ -1,7 +1,66 @@
+import matplotlib.backends.backend_agg as agg
+import matplotlib.pyplot as plt
+
 from drone.pygame import pygame
 
+from drone.pygame import matplotlib
+
+from drone.pygame import pylab
+
 from drone.drone import Drone, FlightMode
+
+from drone.joystick import Joystick, JoystickAxis, JoystickButton
+
 from drone.controller import Controller
+
+from drone.keyboard import Keyboard
+
+
+def init_fig(Figsize, Dpi):
+    fig = pylab.figure(figsize = Figsize, 
+                    dpi = Dpi,        
+                    )  
+    return fig
+
+def graph_drawing(fig, data, xlim, ylim, position, screen):
+    # figzie Inches, dpi dots per inch
+    # fig = pylab.figure(figsize = Figsize, 
+    #                 dpi = Dpi,        
+    #                 )                 
+    ax = fig.gca()
+    ax.cla()
+    ax.plot(data) 
+    ax.set_xlim(xlim)
+    ax.set_ylim(ylim)
+    
+    canvas = agg.FigureCanvasAgg(fig)
+    canvas.draw()
+    renderer = canvas.get_renderer()
+    raw_data = renderer.tostring_rgb()  
+
+    size = canvas.get_width_height()
+
+    # surf and screen are from pygame
+    surf = pygame.image.fromstring(raw_data, size, "RGB")
+    screen.blit(surf, position) 
+
+class Display_Data_Queue():
+    # rename as Display_Data_Queue
+    def __init__(self, N):
+        self.data_queue = []
+        self.queue_max_length = N
+        self.queue_reset()
+        
+    def queue_reset(self):
+        self.data = [0]*self.queue_max_length
+        
+    def queue_storing(self, newinput, length):
+        if length == 1:
+            N = self.queue_max_length
+            self.data_queue = [newinput] + self.data_queue[0:N-length]
+        else:       
+            N = self.queue_max_length
+            self.data_queue = newinput[0:length] + self.data_queue[0:N-length]
 
 
 
@@ -16,6 +75,30 @@ class GUI:
         self.screen = pygame.display.set_mode(size)
 
         self.update_title()
+        self.__init_display()
+        #
+
+    # init the text printer and queue for receiving data from joys and snesors
+    def __init_display(self):
+        N = 100
+        # for JS
+        self.pitch_data   = Display_Data_Queue(N)
+        self.roll_data    = Display_Data_Queue(N)
+        self.yaw_data     = Display_Data_Queue(N)
+        # for Drone
+        self.phi_data     = Display_Data_Queue(N)
+        self.theta_data   = Display_Data_Queue(N)
+        self.psi_data     = Display_Data_Queue(N)
+        # for figure
+        self.pitch_fig   = init_fig([3, 2], 100)
+        self.roll_fig    = init_fig([3, 2], 100)
+        self.yaw_fig     = init_fig([3, 2], 100)
+        # for Drone
+        self.phi_fig     = init_fig([3, 2], 100)
+        self.theta_fig   = init_fig([3, 2], 100)
+        self.psi_fig     = init_fig([3, 2], 100)
+        # 
+
 
     def update_title(self):
         status = self.drone.mode.name if self.drone.mode else "Disconnected"
@@ -26,6 +109,14 @@ class GUI:
         yaw_torque = r1**2 + r3**2 - r0**2 - r2**2
         roll_torque = r3**2 - r1**2
         pitch_torque = r0**2 - r2**2
+
+        # self.pitch_data.queue_storing(pygame.joystick.Joystick(0).get_axis(0), 1)
+        # self.roll_data.queue_storing(pygame.joystick.Joystick(0).get_axis(1), 1)
+        # self.yaw_data.queue_storing(pygame.joystick.Joystick(0).get_axis(2), 1)
+
+        self.pitch_data.queue_storing(pitch_torque, 1)
+        self.roll_data.queue_storing(roll_torque, 1)
+        self.yaw_data.queue_storing(yaw_torque, 1)
         torques_str = 'Generated - Yaw: '+str(int(yaw_torque/1000))+' Roll: '+str(int(roll_torque/1000)) + ' Pitch: ' + str(int(pitch_torque/1000))
         return torques_str
 
@@ -35,6 +126,12 @@ class GUI:
         rect = pygame.Rect((width / 2) - 25, (height / 2) - 25, 50, 50)
 
         (phi, theta, psi) = self.drone.get_angles()
+
+        self.phi_data.queue_storing(phi, 1)
+        self.theta_data.queue_storing(theta, 1)
+        self.psi_data.queue_storing(psi, 1)
+
+
         (r0, r1, r2, r3) = self.drone.get_rpm()
 
         white = (255, 255, 255)
@@ -75,6 +172,17 @@ class GUI:
         self.screen.blit(text_p, (30, height - 60))
         if self.drone.mode== FlightMode.Safe:
             self.screen.blit(text_safe, (30, height - 90))
+
+        graph_drawing(self.phi_fig, self.phi_data.data_queue, [-1, 105], [-20000, 20000], (900, 50), self.screen)
+        graph_drawing(self.phi_fig, self.theta_data.data_queue, [-1, 105], [-20000, 20000], (900, 275), self.screen)
+        graph_drawing(self.phi_fig, self.psi_data.data_queue, [-1, 105], [-20000, 20000], (900, 500), self.screen)        
+        
+
+        # graph_drawing(self.pitch_fig, self.pitch_data.data_queue, [-1, 105], [-1.1, 1.1], (25, 150), self.screen)
+        # graph_drawing(self.pitch_fig, self.roll_data.data_queue, [-1, 105], [-1.1, 1.1], (25, 375), self.screen)
+        # graph_drawing(self.pitch_fig, self.yaw_data.data_queue, [-1, 105], [-1.1, 1.1], (25, 600), self.screen)
+
+
 
         pygame.display.flip()
 

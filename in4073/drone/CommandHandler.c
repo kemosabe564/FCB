@@ -17,6 +17,9 @@ struct CommandHandler *CommandHandler_create(uint8_t active_comms, CommandHandle
         result->active_comm_id = active_comms;
         result->handler = handler;
         result->loop = LoopHandler_init_controlblock(CommandHandler_loop);
+
+        for (uint8_t i = 0; i < COMMANDHANDLER_MAX_COMMS; i += 1)
+            result->comms[i] = NULL;
     }
 
     return result;
@@ -59,7 +62,13 @@ void CommandHandler_send_command(struct CommandHandler *self, struct Command *co
     {
         struct Comms *comms = CommandHandler_get_active_comms(self);
 
-        CommandQueue_push(&comms->send_queue, command);
+        if (comms)
+        {
+            if (!CommandQueue_push(&comms->send_queue, command))
+            {
+                Command_destroy(command);
+            }
+        }
     }
 }
 

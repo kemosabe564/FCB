@@ -38,6 +38,8 @@
 #include "drone/Serial.h"
 #include "drone/IMU.h"
 #include "drone/FlightController.h"
+#include "drone/Debug.h"
+#include "drone/Telemetry.h"
 
 bool demo_done;
 
@@ -47,7 +49,7 @@ bool demo_done;
 struct FlightController *fc = NULL;
 struct CommandHandler *ch = NULL;
 
-void changed_mode_handler(enum FlightControllerMode new_mode, enum FlightControllerMode old_mode)
+void changed_mode_handler(struct FlightController *self, enum FlightControllerMode new_mode, enum FlightControllerMode old_mode)
 {
     CommandHandler_send_command(ch, Command_make_current_mode((uint8_t) new_mode));
 
@@ -90,14 +92,24 @@ void command_handler_function(struct Command *command)
             {
                 CommandHandler_send_command(ch, Command_make_current_mode((uint8_t) fc->mode));
             }
-
-            CommandHandler_send_command(ch, Command_make_debug_msg("Mode=%d\n", *mode));
         }
             break;
         case SetControl: {
             struct CommandControlData *data = (struct CommandControlData *)command->data;
 
-            FlightController_set_controls(fc, data->yaw_rate, data->pitch_rate, data->roll_rate, data->climb_rate);
+            if (data)
+            {
+                FlightController_set_controls(fc, data->yaw_rate, data->pitch_rate, data->roll_rate, data->climb_rate);
+            }
+        }
+            break;
+        case SetParam: {
+            struct CommandParamsData *data = (struct CommandParamsData *) command->data;
+
+            if (data)
+            {
+                FlightController_set_params(fc, data->id , data->value);
+            }
         }
             break;
         case Invalid:
@@ -112,6 +124,7 @@ int main(void)
 {
     bool running = true;
 
+    DEBUG_SET_CHANNEL(&ch);
 
     uart_init();
     gpio_init();
@@ -133,7 +146,7 @@ int main(void)
     struct Rotor *r3 = Rotor_create(r_map, 2, -15, -15);
     struct Rotor *r4 = Rotor_create(r_map, 3, -15,  15);
 
-    struct IMU *imu = IMU_create();
+    struct IMU *imu = IMU_create(true, 100);
 
 
 //    struct Comms ble_comms BLE_init();
@@ -147,21 +160,29 @@ int main(void)
     CommandHandler_add_comms(ch, COMM_SERIAL, serial_comms);
 //    CommandHandler_add_comms(comm_handler, ble_comms, COMM_BLE);
 
+    struct Telemetry *telemetry = Telemetry_create(ch, imu, (struct Rotor *[]){ r1, r2, r3, r4 }, 4);
+
+//    uint32_t time = 0;
 
 	while (running)
 	{
-        LoopHandler_loop(lh, LH_LINK(fc), LH_HZ_TO_PERIOD(2));
+//        time = get_time_us();
+        LoopHandler_loop(lh, LH_LINK(fc), LH_HZ_TO_PERIOD(200));
 
-        LoopHandler_loop(lh, LH_LINK(r1), LH_HZ_TO_PERIOD(100));
-        LoopHandler_loop(lh, LH_LINK(r2), LH_HZ_TO_PERIOD(100));
-        LoopHandler_loop(lh, LH_LINK(r3), LH_HZ_TO_PERIOD(100));
-        LoopHandler_loop(lh, LH_LINK(r4), LH_HZ_TO_PERIOD(100));
+        LoopHandler_loop(lh, LH_LINK(r1), 0);
+        LoopHandler_loop(lh, LH_LINK(r2), 0);
+        LoopHandler_loop(lh, LH_LINK(r3), 0);
+        LoopHandler_loop(lh, LH_LINK(r4), 0);
 
+        LoopHandler_loop(lh, LH_LINK(imu), LH_HZ_TO_PERIOD(100));
 
         LoopHandler_loop(lh, LH_LINK(serial_comms), 0);
 //        LoopHandler_loop(lh, LH_LINK(ble_comms), LH_HZ_TO_PERIOD(50));
 
-        LoopHandler_loop(lh, LH_LINK(ch), LH_HZ_TO_PERIOD(100));
+        LoopHandler_loop(lh, LH_LINK(ch), 0);
+
+        LoopHandler_loop(lh, LH_LINK(telemetry), LH_HZ_TO_PERIOD(1));
+//        DEBUG(0, "%d", (get_time_us() - time));
 	}
 
 	printf("\n\t Goodbye \n\n");

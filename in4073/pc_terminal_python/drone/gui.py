@@ -19,7 +19,11 @@ class GUI:
 
     def draw(self):
         width, height = self.screen_size
-        rect = pygame.Rect(width / 2, height / 2, 50, 50)
+        rect = pygame.Rect((width / 2) - 25, (height / 2) - 25, 50, 50)
+
+        (phi, theta, psi) = self.drone.get_angles()
+
+        # rotated = pygame.transform.rotate(self.screen, (phi + 32767) / 65535)
 
         self.screen.fill((255, 255, 255))
         pygame.draw.rect(self.screen, (255, 0, 0), rect)

@@ -51,12 +51,14 @@ $(abspath ./drone/Command.c) \
 $(abspath ./drone/CommandQueue.c) \
 $(abspath ./drone/CommandHandler.c) \
 $(abspath ./drone/Comms.c) \
+$(abspath ./drone/Debug.c) \
 $(abspath ./drone/FlightController.c) \
 $(abspath ./drone/IMU.c) \
 $(abspath ./drone/LoopHandler.c) \
 $(abspath ./drone/Rotor.c) \
 $(abspath ./drone/RotorMap.c) \
 $(abspath ./drone/Serial.c) \
+$(abspath ./drone/Telemetry.c) \
 $(abspath ./drone/utils/crc8.c) \
 $(abspath ./utils/quad_ble.c) \
 $(abspath ./utils/queue.c) \

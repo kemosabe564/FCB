@@ -21,6 +21,8 @@ class Serial:
         self.decoder = SerialCommandDecoder()
         self.send_queue = queue.Queue()
 
+        self.print_traffic = False
+
         self.serial = serial.Serial(self.port, self.baud, timeout=1)
 
         self.terminate = False
@@ -35,10 +37,11 @@ class Serial:
         with self.serial as ser:
             while not self.terminate:
                 command = self.send_queue.get()
+                if self.print_traffic:
+                    print(">> {}".format(command))
                 ser.write(command.encode())
-                ser.flushOutput()
+                ser.flush()
 
-                print(">> {}".format(command))
                 # removed sleep since thread will sleep on get()
                 # time.sleep(0.01)
 
@@ -63,11 +66,17 @@ class Serial:
         for handler in self.command_handlers:
             handler(command)
 
+
     def set_protocol(self, enabled):
         if enabled:
-            print('Protocol enabled')
+            print('[serial] Protocol enabled')
             self.ascii_buffer.clear()
         self.protocol_enabled = enabled
+
+    def set_print_traffic(self, enabled):
+        if enabled:
+            print("[serial] Printing traffic enabled")
+        self.print_traffic = enabled
 
     def __handle_ascii_data(self, byte):
         self.ascii_buffer.append(byte)
@@ -88,13 +97,13 @@ class Serial:
             self.ascii_buffer.clear()
 
     def __handle_protocol_data(self, byte):
-        # print(byte)
         self.decoder.append(byte)
 
         while not self.decoder.empty():
             command = self.decoder.get()
+            if self.print_traffic:
+                print("<< {}".format(command))
             self.__dispatch_command(command)
-            print("<< {}".format(command))
 
     def send_command(self, command: Command):
         self.send_queue.put(command)

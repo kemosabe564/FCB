@@ -20,19 +20,24 @@ class Controller:
         self.terminate = False
 
         self.offset_yaw = 0
-        self.step = 0.05
+        self.step = 1
+
+        self.P = 18
+        self.P1 = 10
+        self.P2 = 40
+
 
         # start the thread loop now
         self.thread = threading.Thread(target=self.thread_function)
         self.thread.start()
 
     def inc_check_limits(self, value):
-        if (value + self.step) < 1:
+        if (value + self.step) < 127:
             value = value + self.step
         return value
 
     def dec_check_limits(self, value):
-        if (value - self.step) > -1:
+        if (value - self.step) > -127:
             value = value - self.step
         return value
 
@@ -62,17 +67,50 @@ class Controller:
                     print("NOT SAFE")
             if event.key == pygame.K_3:  # calibration
                 self.drone.change_mode(FlightMode.Calibrate)
-                pass
-            if event.key == pygame.K_4:  # yaw rate
-                self.drone.change_mode(FlightMode.Yaw)
 
-    # TODO: This needs to be changed to limit to [-1,+1]
-    # TODO: Check what this needs to be mapped to
+            if event.key == pygame.K_4:  # yaw rate
+                if self.drone.mode == FlightMode.Safe and self.input_safe():
+                    self.drone.change_mode(FlightMode.Yaw)
+                else:
+                    print("NOT SAFE")
+
+            if event.key == pygame.K_5:  # fullcontrol
+                if self.drone.mode == FlightMode.Safe and self.input_safe():
+                    self.drone.change_mode(FlightMode.Full)
+                else:
+                    print("NOT SAFE")
+
+            if event.key == pygame.K_u:
+                self.P = self.P + 1
+                self.drone.set_params(id=0, value=self.P)
+
+            if event.key == pygame.K_j:
+                if self.P > 1:
+                    self.P = self.P - 1
+                    self.drone.set_params(id=0, value=self.P)
+
+            if event.key == pygame.K_i:
+                self.P1 = self.P1 + 1
+                self.drone.set_params(id=1, value=self.P1)
+
+            if event.key == pygame.K_k:
+                if self.P > 1:
+                    self.P1 = self.P1 - 1
+                    self.drone.set_params(id=1, value=self.P1)
+
+            if event.key == pygame.K_o:
+                self.P2 = self.P2 + 1
+                self.drone.set_params(id=2, value=self.P2)
+
+            if event.key == pygame.K_l:
+                if self.P > 1:
+                    self.P2 = self.P2 - 1
+                    self.drone.set_params(id=2, value=self.P2)
+
     def update_inputs(self):
         self.input_roll = self.joystick.get_axis(JoystickAxis.Roll)
         self.input_pitch = self.joystick.get_axis(JoystickAxis.Pitch)
         self.input_yaw = self.joystick.get_axis(JoystickAxis.Yaw)
-        # TODO: re-add trimming
         self.input_throttle = self.joystick.get_axis(JoystickAxis.Throttle)
 
     def at_deadpoint(self, x):
@@ -87,15 +125,22 @@ class Controller:
     def map(self, x):
         return int((x + 1) * 127)
 
+    def limit(self, x):
+        if x > 255:
+            x = 255
+        if x < 0:
+            x = 0
+        return x
+
     def thread_function(self):
         while not self.terminate:
             if self.joystick.available():
-                if self.drone.mode == FlightMode.Manual:
+                if self.drone.mode in [FlightMode.Manual, FlightMode.Yaw, FlightMode.Full]:
                     self.update_inputs()
+                    yaw = self.limit(self.input_yaw + self.offset_yaw)
+                    self.drone.set_control(roll=self.input_roll, pitch=self.input_pitch, yaw=yaw, throttle=self.input_throttle)
 
-                    self.drone.set_control(roll=self.input_roll, pitch=self.input_pitch, yaw=self.input_yaw,throttle= self.input_throttle)
-
-            time.sleep(0.01)
+            time.sleep(0.0125)
 
     def stop(self):
         self.terminate = True

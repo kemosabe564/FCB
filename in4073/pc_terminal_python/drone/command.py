@@ -9,11 +9,12 @@ class CommandType(Enum):
     CurrentMode = 0b0010
     SetControl = 0b0011
     AckControl = 0b0100
-    QueryForces = 0b0101
-    CurrentForces = 0b0110
+    QueryTelemetry = 0b0101
+    CurrentTelemetry = 0b0110
     DebugMessage = 0b0111
     SetParam = 0b1000
     AckParam = 0b1001
+    Heartbeat = 0b1010
 
 
 class Command:
@@ -32,6 +33,16 @@ class Command:
 
         if self.type == CommandType.DebugMessage:
             self.args = ["argument", "message"]
+
+        if self.type == CommandType.Heartbeat:
+            self.args = ["argument"]
+
+        if self.type == CommandType.CurrentTelemetry:
+            self.args = ["argument", "roll_angle", "pitch_angle", "yaw_angle", "rpm0", "rpm1", "rpm2", "rpm3"]
+
+        if self.type == CommandType.SetParam:
+            self.args = ["argument", "value"]
+
 
     def set_data(self, **kwargs):
         for key, value in kwargs.items():
@@ -69,36 +80,53 @@ class Command:
             buffer.append(self.get_data("roll") & 0b11111111)
             buffer.append(self.get_data("throttle") & 0b11111111)
             crc_len = 5
+        elif self.type == CommandType.Heartbeat:
+            buffer.append((self.type.value << 4) | (self.get_data("argument") & 0b1111))
+        elif self.type == CommandType.SetParam:
+            buffer.append((self.type.value << 4) | (self.get_data("argument") & 0b1111))
+            buffer.append(self.get_data("value") & 0b11111111)
+            crc_len = 2
 
-        buffer.append(crc8(buffer, crc_len))
+        crc = crc8(buffer, crc_len)
+        buffer.append(crc)
 
         return buffer
 
+def TO_INT16(value):
+    return value if value <= 32767 else value - 65535
 
 class SerialCommandDecoder:
     def __init__(self):
         self.buffer = []
-        self.pos = 0
         self.data_len = 0
+        self.ext_header = 0
+        self.header = True
 
         self.commands = Queue()
 
     def append(self, byte):
+        # print(byte)
         self.buffer.append(byte)
+        pos = len(self.buffer)
 
-        if self.pos == 0:
-            self.data_len = self.get_data_length_from_header(byte)
-            self.pos += 1
+        if self.header:
+            if pos == 1:  # first byte is primary header byte
+                self.ext_header = self.get_ext_header_size(byte)
+
+            if self.ext_header == 0:  # if extended header length is zero then next bytes are already data bytes
+                self.data_len = self.get_data_length_from_header(self.buffer[0:pos])
+                self.header = False
+            else:
+                self.ext_header -= 1
         else:
             if self.data_len == 0:
-                if crc8(self.buffer, self.pos) == byte:
+                if crc8(self.buffer, len(self.buffer) - 1) == byte:
                     self.extract_command()
                 else:
-                    print("CRC8 failed")
+                    print("CRC8 failed: ", self.buffer)
                     self.clear_buffer()
             else:
                 self.data_len -= 1
-                self.pos += 1
 
     def empty(self):
         return self.commands.empty()
@@ -113,32 +141,59 @@ class SerialCommandDecoder:
 
         if type == CommandType.CurrentMode:
             cmd.set_data(argument=(header & 0b1111))
-
-        if type == CommandType.DebugMessage:
+        elif type == CommandType.Heartbeat:
+            cmd.set_data(argument=(header & 0b1111))
+        elif type == CommandType.DebugMessage:
             message = bytearray()
-            size = (header & 0b1111) + 2 # add 2 since the data is offset by 1 byte and python slicing notation goes until the second index
-            for byte in self.buffer[1:size]:
+            size = self.buffer[1]
+            id = (header & 0b1111)
+            for byte in self.buffer[2:(2 + size)]:
                 message.append(byte)
 
-            cmd.set_data(argument=size, message=message.decode('utf-8'))
+            try:
+                msg = message.decode('utf-8')
+                cmd.set_data(argument=id, message=msg)
+            except UnicodeDecodeError as er:
+                print("Error while decoding DebugMessage")
+
+        elif type == CommandType.CurrentTelemetry:
+            roll_angle = TO_INT16((self.buffer[1] << 8) | self.buffer[2])
+            pitch_angle = TO_INT16((self.buffer[3] << 8) | self.buffer[4])
+            yaw_angle = TO_INT16((self.buffer[5] << 8) | self.buffer[6])
+            rpm0 = ((self.buffer[7] << 8) | self.buffer[8])
+            rpm1 = ((self.buffer[9] << 8) | self.buffer[10])
+            rpm2 = ((self.buffer[11] << 8) | self.buffer[12])
+            rpm3 = ((self.buffer[13] << 8) | self.buffer[14])
+
+            cmd.set_data(roll_angle=roll_angle, pitch_angle=pitch_angle, yaw_angle=yaw_angle, rpm0=rpm0, rpm1=rpm1, rpm2=rpm2, rpm3=rpm3)
 
         self.commands.put(cmd)
         self.clear_buffer()
 
     def clear_buffer(self):
         self.buffer.clear()
-        self.pos = 0
+        self.header = True
+        self.ext_header = 0
         self.data_len = 0
 
     @staticmethod
     def get_data_length_from_header(header):
-        type = (header >> 4)
-
-        if type == CommandType.CurrentMode.value:
-            return 0
+        type = (header[0] >> 4)
 
         if type == CommandType.DebugMessage.value:
-            return (header & 0b1111) + 1
+            return header[1]
 
-        print("unknown header type..")
+        if type == CommandType.CurrentTelemetry.value:
+            return 7 * 2
+
+        return 0
+
+    @staticmethod
+    def get_ext_header_size(header):
+        type = (header >> 4)
+
+        # currently only the debug message has an extended header size
+        if type == CommandType.DebugMessage.value:
+            return 1
+
         return 0

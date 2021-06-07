@@ -26,11 +26,11 @@ MODE -> Control mode check
 ACK = 0000 -> Ack success
 ACK = 0001 -> Wrong flightmode 
 
-## 5 > QueryForces
+## 5 > QueryTelemetry
 | 0101 0000 | 8 BIT CRC |
 
-## 6 < CurrentForces
-| 0110 0000 | PHI, THETA, PSI ETC | 8 BIT CRC |
+## 6 < CurrentTelemetry
+| 0110 0000 | PHI, THETA, PSI, RPM0, RPM1, RPM2, RPM3 | 8 BIT CRC |
 
 ## 7 < DebugMsg
 | 0111 XXXX | XXXX XXXX | ........ | 8 BIT CRC |
@@ -52,6 +52,14 @@ PID -> Param ID
        PID
        
 PID -> Param ID
+
+## 10 <> Heartbeat
+| 1010 XXXX | 8 BIT CRC |
+       SEQ
+
+SEQ -> Sequence number. Increments every time a heartbeat is sent and cycles around after 15.
+
+Heartbeat is initiated by the Terminal and the drone responds in best-effort time with the current sequence number.
 
 ## Extended
 | 1111 XXXX | xxxx

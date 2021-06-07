@@ -33,6 +33,10 @@ class Drone:
 
         if command.type == CommandType.CurrentMode:
             self.mode = FlightMode(command.get_data("argument"))
+        elif command.type == CommandType.CurrentTelemetry:
+            self.phi = command.get_data("roll_angle")
+            self.theta = command.get_data("pitch_angle")
+            self.psi = command.get_data("yaw_angle")
 
     def get_angles(self):
         return self.phi, self.theta, self.psi
@@ -46,5 +50,11 @@ class Drone:
     def set_control(self, yaw, pitch, roll, throttle):
         command = Command(CommandType.SetControl)
         command.set_data(argument=self.mode.value, yaw=yaw, pitch=pitch, roll=roll, throttle=throttle)
+
+        self.serial.send_command(command)
+
+    def set_params(self, id, value):
+        command = Command(CommandType.SetParam)
+        command.set_data(argument=id, value=value)
 
         self.serial.send_command(command)

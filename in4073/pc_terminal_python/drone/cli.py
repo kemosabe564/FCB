@@ -12,6 +12,7 @@ class CLIAction(Enum):
     Exit = 1
     SendCommand = 2
     SetProtocol = 3
+    SetTraffic = 4
 
 
 class CLI:
@@ -65,6 +66,11 @@ class CLI:
                             self.action_handler(CLIAction.SetProtocol, True)
                         elif match.group(2) == 'false':
                             self.action_handler(CLIAction.SetProtocol, False)
+                    elif cmd == 'traffic':
+                        if match.group(2) == 'true':
+                            self.action_handler(CLIAction.SetTraffic, True)
+                        elif match.group(2) == 'false':
+                            self.action_handler(CLIAction.SetTraffic, False)
                     else:
                         self.__print("Unknown command")
                         self.print_usage()

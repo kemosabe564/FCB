@@ -42,6 +42,7 @@ class Drone:
         self.heartbeat_rt_time = None
         self.heartbeat_freq = 1
         self.heartbeat_margin = 3
+        self.heartbeat_ack_queue = Queue()
 
         # start the thread loop now
         self.thread = threading.Thread(target=self.__thread_function)

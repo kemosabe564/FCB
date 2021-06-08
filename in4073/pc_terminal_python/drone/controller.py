@@ -34,7 +34,7 @@ class Controller:
         self.P1 = 30
         self.P2 = 80
 
-        self.H = 1
+        self.H = 10
 
 
         # start the thread loop now

@@ -372,7 +372,7 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
         result->P = 18;
         result->P1 = 30;
         result->P2 = 80;
-        result->H = 1;
+        result->H = 10;
     }
 
     return result;

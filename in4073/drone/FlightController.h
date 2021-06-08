@@ -66,9 +66,13 @@ struct FlightController
     int16_t phi_offset;
     int16_t theta_offset;
 
+    int16_t hold_throttle;
+    //uint16_t hold_throttle_raw;
+
     uint8_t P;
     uint8_t P1;
     uint8_t P2;
+    uint8_t H;
 
     struct CommandHandler *ch;
 

@@ -150,8 +150,8 @@ class GUI:
 
         angle_str = 'Phi: {: 6d}   Theta: {: 6d}   Psi: {: 6d}'.format(phi, theta, psi)
         rpm_str = 'Rotor RPM {: 4d} {: 4d} {: 4d} {: 4d}'.format(r0, r1, r2, r3)
-        p_str = 'P: {: 2d}  P1: {: 2d}  P2: {: 2d}                               Offsets: Yaw: {: 3d}   Roll: {: 3d}   Pitch: {: 3d}'.format(self.controller.P, self.controller.P1, self.controller.P2, self.controller.offset_yaw,  self.controller.offset_roll, self.controller.offset_pitch)
-        inputs_str = 'Inputs: Throttle: {}   Yaw: {}   Roll: {}   Pitch: {}'.format(str(self.controller.input_throttle), str(self.controller.yaw), str(self.controller.roll), str(self.controller.pitch))
+        p_str = 'P: {: 2d}  P1: {: 2d}  P2: {: 2d}  H: {: 2d}                               Offsets: Yaw: {: 3d}   Roll: {: 3d}   Pitch: {: 3d}'.format(self.controller.P, self.controller.P1, self.controller.P2, self.controller.H, self.controller.offset_yaw,  self.controller.offset_roll, self.controller.offset_pitch)
+        inputs_str = 'Inputs: Throttle: {}   Yaw: {}   Roll: {}   Pitch: {}   dThrottle: {}'.format(str(self.controller.input_throttle), str(self.controller.yaw), str(self.controller.roll), str(self.controller.pitch), str(self.controller.delta_throttle))
         if self.controller.input_safe():
             safe_str = 'Inputs safe'
             text_safe = font2.render(safe_str, True, green, white)

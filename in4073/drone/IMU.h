@@ -9,6 +9,8 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "../hal/barometer.h"
+#include "../hal/adc.h"
 
 enum IMU_state
 {
@@ -24,27 +26,6 @@ struct IMU
     struct LoopHandlerControlBlock loop;
 
     enum IMU_state state;
-
-//    // processed angles
-//    int16_t roll_angle;
-//    int16_t pitch_angle;
-//    int16_t yaw_angle;
-//
-//    // processed rates
-//    int16_t roll_rate;
-//    int16_t pitch_rate;
-//    int16_t yaw_rate;
-//
-//    // raw angles
-//    int16_t raw_roll_angle;
-//    int16_t raw_pitch_angle;
-//    int16_t raw_yaw_angle;
-//
-//    // raw rates
-//    int16_t raw_roll_rate;
-//    int16_t raw_pitch_rate;
-//    int16_t raw_yaw_rate;
-//
 
     //processed angles
     int16_t roll_angle;
@@ -72,7 +53,16 @@ struct IMU
     // calibration data
     int16_t roll_angle_offset;
     int16_t pitch_angle_offset;
-    //int16_t yaw_rate_offset;
+
+    //height  holding
+    int32_t barometer_readings[10];
+    int32_t barometer_average;
+    uint8_t barometer_iterator;
+    int16_t imu_height_rate;
+
+    //battery
+    uint16_t battery_voltage;
+
 
     bool calibrated;
     uint32_t calibration_start_ts;

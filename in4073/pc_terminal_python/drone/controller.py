@@ -72,6 +72,11 @@ class Controller:
             else:
                 print("NOT SAFE")
 
+        if button == JoystickButton.B7:
+            if self.drone.mode == FlightMode.Full or self.drone.mode == FlightMode.Raw:
+                self.drone.change_mode(FlightMode.HoldHeight)
+
+
 
     def handle_joystick_disconnect_event(self):
         if self.drone.mode != FlightMode.Safe:
@@ -117,6 +122,10 @@ class Controller:
                 else:
                     print("NOT SAFE")
 
+            if event.key == pygame.K_7:
+                if self.drone.mode == FlightMode.Full or self.drone.mode == FlightMode.Raw:
+                    self.drone.change_mode(FlightMode.HoldHeight)
+
             if event.key == pygame.K_u:
                 self.P = self.P + 1
                 self.drone.set_params(id=0, value=self.P)
@@ -144,12 +153,28 @@ class Controller:
                     self.P2 = self.P2 - 1
                     self.drone.set_params(id=2, value=self.P2)
 
+            if event.key == pygame.K_y:
+                self.H = self.H + 1
+                self.drone.set_params(id=3, value=self.H)
+
+            if event.key == pygame.K_h:
+                if self.H > 1:
+                    self.H = self.H - 1
+                    self.drone.set_params(id=3, value=self.H)
+
     def update_inputs(self):
         self.input_roll = self.joystick.get_axis(JoystickAxis.Roll)
         self.input_pitch = self.joystick.get_axis(JoystickAxis.Pitch)
         self.input_yaw = self.joystick.get_axis(JoystickAxis.Yaw)
-        self.delta_throttle = self.joystick.get_axis(JoystickAxis.Throttle) - self.input_throttle
+        old_throttle = self.input_throttle
         self.input_throttle = self.joystick.get_axis(JoystickAxis.Throttle)
+        if self.drone.mode == FlightMode.Full or self.drone.mode == FlightMode.HoldHeight:
+            self.delta_throttle = self.input_throttle - old_throttle
+            if abs(self.delta_throttle) > 1 and self.drone.mode == FlightMode.HoldHeight:
+                print('HoldHeight + Throttle change')
+                self.drone.change_mode(FlightMode.Full)
+                self.delta_throttle = 0
+
 
     def at_deadpoint(self, x):
         if (x > 120) and (x < 134):

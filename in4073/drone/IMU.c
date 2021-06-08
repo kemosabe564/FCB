@@ -27,7 +27,6 @@ struct IMU *IMU_create(bool dmp, uint16_t frequency)
         result->imu_theta_rate = 0;
         result->imu_phi_rate =0;
 
-
         result->measured_p = 0;
         result->measured_q = 0;
         result->measured_r = 0;
@@ -39,6 +38,14 @@ struct IMU *IMU_create(bool dmp, uint16_t frequency)
         result->roll_angle_offset = 0;
         result->pitch_angle_offset = 0;
 
+        for(int i=0; i<10; i++)
+        {
+            result->barometer_readings[i]=102400;
+        }
+
+        result->barometer_average = 102400;
+        result->barometer_iterator = 0;
+        result->imu_height_rate = 0;
 
         result->calibrated = false;
         result->calibration_start_ts = 0;
@@ -70,6 +77,27 @@ void IMU_loop(void *context, uint32_t delta_us)
             {
                 get_sensor_data();
             }
+            adc_request_sample();
+            read_baro();
+
+            imu->battery_voltage=bat_volt;
+            imu->barometer_iterator++;
+            if (imu->barometer_iterator >= 10)
+            {
+                imu->barometer_iterator=0;
+            }
+
+            imu->barometer_readings[imu->barometer_iterator]=pressure;
+
+            int32_t sum =0;
+            for (int i=0; i<10; i++)
+            {
+                sum = sum + imu->barometer_readings[i];
+            }
+
+
+            imu->imu_height_rate = (sum/10) - imu->barometer_average;
+            imu->barometer_average = sum/10;
 
             imu->imu_psi_rate = psi - imu->yaw_rate;
             imu->imu_phi_rate = phi - imu->roll_angle;
@@ -87,12 +115,12 @@ void IMU_loop(void *context, uint32_t delta_us)
             imu->measured_ay = say;
             imu->measured_az = saz;
 
+
             // adjusted angles. More processing might be added here
             //This can overflow - needs to be changed
             //roll over handled in fc
             imu->cal_roll_angle = imu->roll_angle - imu->roll_angle_offset;
             imu->cal_pitch_angle = imu->pitch_angle - imu->pitch_angle_offset;
-            //imu->yaw_angle = imu->raw_yaw_angle - imu->yaw_angle_offset;
 
         }
             break;

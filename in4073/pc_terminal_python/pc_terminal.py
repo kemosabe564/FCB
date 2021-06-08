@@ -14,6 +14,7 @@ ser = None
 cli = None
 controller = None
 gui = None
+drone = None
 running = True
 
 
@@ -39,15 +40,16 @@ def on_quit():
 def new_action_handler(action, data=None):
     if action == CLIAction.SendCommand:
         ser.send_command(data)
-
-    if action == CLIAction.Exit:
+    elif action == CLIAction.Exit:
         on_quit()
-
-    if action == CLIAction.SetProtocol:
+    elif action == CLIAction.SetProtocol:
         ser.set_protocol(data)
-
-    if action == CLIAction.SetTraffic:
+    elif action == CLIAction.SetTraffic:
         ser.set_print_traffic(data)
+    elif action == CLIAction.SetHeartbeat:
+        drone.enable_heartbeat(data)
+    elif action == CLIAction.SetTelemetry:
+        drone.set_params(3, 1 if data else 0)
 
 
 if __name__ == "__main__":
@@ -64,10 +66,10 @@ if __name__ == "__main__":
     joystick = eventloop.joystick()
     keyboard = eventloop.keyboard()
 
-    ser = Serial(port=args.port, baud=args.baud, command_handler=new_cmd_handler)
     cli = CLI(action_handler=new_action_handler)
+    ser = Serial(cli, port=args.port, baud=args.baud, command_handler=new_cmd_handler)
 
-    drone = Drone(ser)
+    drone = Drone(cli, ser)
     controller = Controller(drone, joystick, keyboard)
 
     if not args.no_gui:

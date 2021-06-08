@@ -48,6 +48,7 @@ bool demo_done;
 
 struct FlightController *fc = NULL;
 struct CommandHandler *ch = NULL;
+struct Telemetry *telemetry = NULL;
 
 void changed_mode_handler(struct FlightController *self, enum FlightControllerMode new_mode, enum FlightControllerMode old_mode)
 {
@@ -74,6 +75,12 @@ void changed_mode_handler(struct FlightController *self, enum FlightControllerMo
         nrf_gpio_pin_set(GREEN);
         nrf_gpio_pin_set(BLUE);
     }
+}
+
+void heartbeat_lost()
+{
+    FlightController_change_mode(fc, Panic);
+    DEBUG(0, "Heartbeat lost :(");
 }
 
 void command_handler_function(struct Command *command)
@@ -108,7 +115,18 @@ void command_handler_function(struct Command *command)
 
             if (data)
             {
-                FlightController_set_params(fc, data->id , data->value);
+                switch (data->id)
+                {
+                case 0:
+                case 1:
+                case 2: // P values
+                    FlightController_set_params(fc, data->id , data->value);
+                    break;
+                case 3:
+                    Telemetry_set_enabled(telemetry, data->value == 1);
+                    break;
+
+                }
             }
         }
             break;
@@ -154,19 +172,17 @@ int main(void)
 
     ch = CommandHandler_create(COMM_SERIAL, command_handler_function);
 
+    CommandHandler_add_comms(ch, COMM_SERIAL, serial_comms);
+//    CommandHandler_add_comms(comm_handler, ble_comms, COMM_BLE);
+    CommandHandler_set_on_heartbeat_lost(ch, 5000 * 1000 /* in us */, heartbeat_lost);
+
     fc = FlightController_create(imu, (struct Rotor *[]){ r1, r2, r3, r4 }, 4, ch);
     FlightController_set_on_change_mode(fc, changed_mode_handler);
 
-    CommandHandler_add_comms(ch, COMM_SERIAL, serial_comms);
-//    CommandHandler_add_comms(comm_handler, ble_comms, COMM_BLE);
-
-    struct Telemetry *telemetry = Telemetry_create(ch, imu, (struct Rotor *[]){ r1, r2, r3, r4 }, 4);
-
-//    uint32_t time = 0;
+    telemetry = Telemetry_create(ch, imu, (struct Rotor *[]){ r1, r2, r3, r4 }, 4);
 
 	while (running)
 	{
-//        time = get_time_us();
         LoopHandler_loop(lh, LH_LINK(fc), LH_HZ_TO_PERIOD(200));
 
         LoopHandler_loop(lh, LH_LINK(r1), 0);
@@ -182,7 +198,6 @@ int main(void)
         LoopHandler_loop(lh, LH_LINK(ch), 0);
 
         LoopHandler_loop(lh, LH_LINK(telemetry), LH_HZ_TO_PERIOD(1));
-//        DEBUG(0, "%d", (get_time_us() - time));
 	}
 
 	printf("\n\t Goodbye \n\n");

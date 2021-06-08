@@ -5,6 +5,7 @@
 #include "Serial.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include "Debug.h"
 #include "../hal/uart.h"
 
 struct Comms *Serial_create(int32_t baud_rate)

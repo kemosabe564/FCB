@@ -8,7 +8,8 @@ from drone.command import Command, SerialCommandDecoder
 
 
 class Serial:
-    def __init__(self, port: str, baud: int, command_handler: Callable = None):
+    def __init__(self, cli, port: str, baud: int, command_handler: Callable = None):
+        self.cli = cli
         self.port = port
         self.baud = baud
         self.command_handlers = []
@@ -37,9 +38,10 @@ class Serial:
         with self.serial as ser:
             while not self.terminate:
                 command = self.send_queue.get()
+                buffer = command.encode()
                 if self.print_traffic:
-                    print(">> {}".format(command))
-                ser.write(command.encode())
+                    self.cli.to_cli("[serial] -> {} (raw = {})".format(command, buffer))
+                ser.write(buffer)
                 ser.flush()
 
                 # removed sleep since thread will sleep on get()
@@ -66,16 +68,15 @@ class Serial:
         for handler in self.command_handlers:
             handler(command)
 
-
     def set_protocol(self, enabled):
         if enabled:
-            print('[serial] Protocol enabled')
+            self.cli.to_cli("[serial] Protocol enabled")
             self.ascii_buffer.clear()
         self.protocol_enabled = enabled
 
     def set_print_traffic(self, enabled):
         if enabled:
-            print("[serial] Printing traffic enabled")
+            self.cli.to_cli("[serial] Printing traffic enabled")
         self.print_traffic = enabled
 
     def __handle_ascii_data(self, byte):
@@ -102,7 +103,7 @@ class Serial:
         while not self.decoder.empty():
             command = self.decoder.get()
             if self.print_traffic:
-                print("<< {}".format(command))
+                self.cli.to_cli("[serial] <- {} (raw = {})".format(command, command.encode()))
             self.__dispatch_command(command)
 
     def send_command(self, command: Command):

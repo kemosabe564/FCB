@@ -5,6 +5,8 @@
 #ifndef QUADCOPTER_FCB_IMU_H
 #define QUADCOPTER_FCB_IMU_H
 
+#define BARO_WIN 5
+
 #include "LoopHandler.h"
 
 #include <stdbool.h>
@@ -55,7 +57,7 @@ struct IMU
     int16_t pitch_angle_offset;
 
     //height  holding
-    int32_t barometer_readings[10];
+    int32_t barometer_readings[BARO_WIN];
     int32_t barometer_average;
     uint8_t barometer_iterator;
     int16_t imu_height_rate;

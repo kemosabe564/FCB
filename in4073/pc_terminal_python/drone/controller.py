@@ -34,7 +34,8 @@ class Controller:
         self.P1 = 30
         self.P2 = 80
 
-        self.H = 10
+        #gets multiplied by 10 so this adds or sub 50rpm
+        self.H = 5
 
 
         # start the thread loop now
@@ -198,7 +199,7 @@ class Controller:
     def thread_function(self):
         while not self.terminate:
             if self.joystick.available():
-                if self.drone.mode in [FlightMode.Manual, FlightMode.Yaw, FlightMode.Full, FlightMode.HoldHeight]:
+                if self.drone.mode in [FlightMode.Manual, FlightMode.Yaw, FlightMode.Full, FlightMode.Raw, FlightMode.HoldHeight]:
                     self.update_inputs()
                     self.yaw = self.limit(self.input_yaw + self.offset_yaw)
                     self.pitch = self.limit(self.input_pitch + self.offset_pitch)

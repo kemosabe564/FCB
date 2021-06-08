@@ -291,7 +291,10 @@ void FlightController_loop(void *context, uint32_t delta_us)
 
             //error is 0 - rate
             int16_t height_error = 0 - self->imu->imu_height_rate;
-            int16_t lift_compensation = (self->H/10) * height_error;
+            int16_t lift_compensation = self->H * 10 * height_error;
+
+            DEBUG(0,"%d %d %d",self->imu->barometer_average,self->imu->imu_height_rate,lift_compensation);
+
 
             //increase or decrease lift
             uint16_t rpm0 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(self->hold_throttle + lift_compensation + pitch_rate_compensation - yaw_compensation)]);
@@ -372,7 +375,7 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
         result->P = 18;
         result->P1 = 30;
         result->P2 = 80;
-        result->H = 10;
+        result->H = 5;
     }
 
     return result;

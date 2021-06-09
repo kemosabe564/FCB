@@ -240,7 +240,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 Rotor_set_rpm(self->rotors[2], rpm2);
                 Rotor_set_rpm(self->rotors[3], rpm3);
 
-//                DEBUG(0, "%d,%d,%d", t, self->P1, self->P2);
+                //DEBUG(0, "%d,%d,%d", t, self->P1, self->P2);
                 //DEBUG(0, "%d,%d,%d", phi_setPoint, roll_rate_error, roll_rate_compensation);
             }
         }
@@ -293,7 +293,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
             int16_t height_error = 0 - self->imu->imu_height_rate;
             int16_t lift_compensation = self->H * 10 * height_error;
 
-            DEBUG(0,"%d %d %d",self->imu->barometer_average,self->imu->imu_height_rate,lift_compensation);
+            //DEBUG(0,"%d %d %d",self->imu->barometer_average,self->imu->imu_height_rate,lift_compensation);
 
 
             //increase or decrease lift

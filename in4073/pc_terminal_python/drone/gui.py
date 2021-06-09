@@ -167,7 +167,7 @@ class GUI:
         text_p = font2.render(p_str, True, black, white)
         text_inputs = font2.render(inputs_str, True, (102, 0, 51), white)
 
-        # rotated = pygame.transform.rotate(self.screen, (phi + 32767) / 65535)
+        #rotated = pygame.transform.rotate(self.screen, (phi + 32767) / 65535)
 
         self.screen.fill((white))
         pygame.draw.rect(self.screen, (255, 0, 0), rect)
@@ -183,9 +183,9 @@ class GUI:
         if self.drone.mode == FlightMode.Safe:
             self.screen.blit(text_safe, (30, height - 90))
 
-        graph_drawing(self.phi_fig, self.phi_data.data_queue, [-1, 105], [-127, 127], (900, 50), self.screen, 'Phi')
-        graph_drawing(self.phi_fig, self.theta_data.data_queue, [-1, 105], [-127, 127], (900, 275), self.screen, 'Theta')
-        graph_drawing(self.phi_fig, self.psi_data.data_queue, [-1, 105], [-127, 127], (900, 500), self.screen, 'Psi')
+        #graph_drawing(self.phi_fig, self.phi_data.data_queue, [-1, 105], [-127, 127], (900, 50), self.screen, 'Phi')
+        #graph_drawing(self.phi_fig, self.theta_data.data_queue, [-1, 105], [-127, 127], (900, 275), self.screen, 'Theta')
+        #graph_drawing(self.phi_fig, self.psi_data.data_queue, [-1, 105], [-127, 127], (900, 500), self.screen, 'Psi')
 
         # graph_drawing(self.pitch_fig, self.pitch_data.data_queue, [-1, 105], [-1.1, 1.1], (25, 150), self.screen)
         # graph_drawing(self.pitch_fig, self.roll_data.data_queue, [-1, 105], [-1.1, 1.1], (25, 375), self.screen)

@@ -12,6 +12,7 @@
 #include "CommandHandler.h"
 #include "IMU.h"
 #include "Rotor.h"
+#include "Debug.h"
 
 
 #include "../hal/gpio.h"
@@ -38,6 +39,7 @@ struct Telemetry *Telemetry_create(struct CommandHandler *ch, struct IMU *imu, s
 void Telemetry_loop(void *context, uint32_t delta_us)
 {
     struct Telemetry *self = (struct Telemetry *)context;
+    DEBUG(0,"b %d",self->imu->battery_voltage);
 
     struct Command *cmd = Command_make_telemetry(
         self->imu->roll_angle,

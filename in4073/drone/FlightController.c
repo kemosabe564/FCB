@@ -184,8 +184,8 @@ void FlightController_loop(void *context, uint32_t delta_us)
             //self->hold_throttle_raw = self->throttle;
             self->hold_throttle =t;
             //get set points
-            int16_t phi_setPoint = (self->roll_angle)/4;
-            int16_t theta_setPoint = (self->pitch_angle)/4;
+            int16_t phi_setPoint = (self->roll_angle)/8;
+            int16_t theta_setPoint = -(self->pitch_angle)/8;
             int16_t  yaw_setPoint = self->yaw_rate;
             //calculate rate of change
 //            int16_t  psi_rate = (self-> current_psi - self->previous_psi );
@@ -215,8 +215,8 @@ void FlightController_loop(void *context, uint32_t delta_us)
             int16_t pitch_rate_error = pitch_rate_setPoint - theta_rate;
 
             //calculate compensation 2
-            int16_t roll_rate_compensation = -(self->P2 * roll_rate_error) / 10;
-            int16_t pitch_rate_compensation = -(self->P2 * pitch_rate_error) / 10;
+            int16_t roll_rate_compensation = -(self->P2 * roll_rate_error) / 5;
+            int16_t pitch_rate_compensation = -(self->P2 * pitch_rate_error) / 5;
             //pitch_rate_compensation = 0;//-(self->P2 * pitch_rate_error) / 10;
 
 
@@ -277,8 +277,8 @@ void FlightController_loop(void *context, uint32_t delta_us)
             int16_t pitch_rate_error = pitch_rate_setPoint - theta_rate;
 
             //calculate compensation 2
-            int16_t roll_rate_compensation = -(self->P2 * roll_rate_error) / 10;
-            int16_t pitch_rate_compensation = -(self->P2 * pitch_rate_error) / 10;
+            int16_t roll_rate_compensation = -(self->P2 * roll_rate_error) / 5;
+            int16_t pitch_rate_compensation = -(self->P2 * pitch_rate_error) / 5;
 
 //            if((self->throttle - self->hold_throttle_raw) != 0)
 //            {
@@ -372,9 +372,9 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
         result->roll_angle = 0;
         result->hold_throttle = 0;
         //result->hold_throttle_raw = 0;
-        result->P = 18;
-        result->P1 = 30;
-        result->P2 = 80;
+        result->P = 3;
+        result->P1 = 7;
+        result->P2 = 115;
         result->H = 5;
     }
 

@@ -201,7 +201,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
             int16_t  phi_rate = self->imu->measured_p;
             int16_t  theta_rate = self->imu->measured_q;
 
-            DEBUG( 0 , "PR %d",phi_rate);
+            //DEBUG( 0 , "PR %d",phi_rate);
 
             //calculate error1
             int16_t yaw_error = yaw_setPoint - psi_rate;
@@ -222,9 +222,9 @@ void FlightController_loop(void *context, uint32_t delta_us)
             int16_t pitch_rate_error = pitch_rate_setPoint - theta_rate;
 
             //calculate compensation 2
-            int16_t roll_rate_compensation = -(self->P2 * roll_rate_error);// / 5;
-            //DEBUG(0,"RC%d",roll_rate_compensation);
-            int16_t pitch_rate_compensation = -(self->P2 * pitch_rate_error);// / 5;
+            int16_t roll_rate_compensation = -(self->P2 * roll_rate_error) / 10;
+            DEBUG(0,"RC%d",roll_rate_compensation);
+            int16_t pitch_rate_compensation = -(self->P2 * pitch_rate_error) / 10;
             //pitch_rate_compensation = 0;//-(self->P2 * pitch_rate_error) / 10;
 
 
@@ -376,9 +376,9 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
         result->roll_angle = 0;
         result->hold_throttle = 0;
         //result->hold_throttle_raw = 0;
-        result->P = 3;
-        result->P1 = 7;
-        result->P2 = 115;
+        result->P = 1;
+        result->P1 = 1;
+        result->P2 = 1;
         result->H = 5;
     }
 

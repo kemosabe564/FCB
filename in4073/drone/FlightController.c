@@ -34,11 +34,11 @@ void FlightController_loop(void *context, uint32_t delta_us)
 //    static int incrementing = 1;
 
       //comment this for debugging
-//    if (self->imu->battery_voltage < BAT_THRESHOLD && self->mode != Safe && self->mode != Panic)
-//    {
-//        FlightController_change_mode(self,Panic);
-//        DEBUG(0, "BATTERY LOW: %d", bat_volt);
-//    }
+    if (self->imu->battery_average < BAT_THRESHOLD && self->mode != Safe && self->mode != Panic)
+    {
+        FlightController_change_mode(self,Panic);
+        DEBUG(0, "BAT LOW: %d", bat_volt);
+    }
 
     switch (self->mode) {
         case Init:

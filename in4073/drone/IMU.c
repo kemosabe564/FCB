@@ -42,6 +42,12 @@ struct IMU *IMU_create(bool dmp, uint16_t frequency)
         {
             result->barometer_readings[i]=102400;
         }
+        for (int i=0; i<BAT_WIN; i++)
+        {
+            result->battery_voltage[i]=1100;
+        }
+        result->battery_iterator = 0;
+        result->battery_average = 1100;
 
         result->barometer_average = 102400;
         result->barometer_iterator = 0;
@@ -79,14 +85,27 @@ void IMU_loop(void *context, uint32_t delta_us)
             }
             adc_request_sample();
             read_baro();
+            //decide if iterator index needs to loop back
+            if (imu->battery_iterator >= BAT_WIN)
+            {
+                imu->battery_iterator=0;
+            }
+            //set the required index
+            imu->battery_voltage[imu->battery_iterator]=bat_volt;
+            imu->battery_iterator++;
+            int32_t bat_sum =0;
+            for (int i=0; i<BAT_WIN; i++)
+            {
+                bat_sum = bat_sum + imu->battery_voltage[i];
+            }
+            imu->battery_average = bat_sum/BAT_WIN;
 
-            imu->battery_voltage=bat_volt;
+
             imu->barometer_iterator++;
             if (imu->barometer_iterator >= BARO_WIN)
             {
                 imu->barometer_iterator=0;
             }
-
             imu->barometer_readings[imu->barometer_iterator]=pressure;
 
             int32_t sum =0;

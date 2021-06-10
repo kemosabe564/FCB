@@ -6,6 +6,7 @@
 #define QUADCOPTER_FCB_IMU_H
 
 #define BARO_WIN 5
+#define BAT_WIN 5
 
 #include "LoopHandler.h"
 
@@ -63,8 +64,9 @@ struct IMU
     int16_t imu_height_rate;
 
     //battery
-    uint16_t battery_voltage;
-
+    uint16_t battery_voltage[BAT_WIN];
+    uint8_t battery_iterator;
+    uint16_t battery_average;
 
     bool calibrated;
     uint32_t calibration_start_ts;

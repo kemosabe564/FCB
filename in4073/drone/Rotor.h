@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include "LoopHandler.h"
 
-#define SAFE_RPM_LIMIT 500
+#define SAFE_RPM_LIMIT 600
 
 
 struct Rotor

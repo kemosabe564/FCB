@@ -149,7 +149,7 @@ int main(void)
     timers_init();
     adc_init();
     twi_init();
-    imu_init(true, 100);
+    imu_init(true, 300);
     baro_init();
     spi_flash_init();
     quad_ble_init();
@@ -183,14 +183,16 @@ int main(void)
 
 	while (running)
 	{
-        LoopHandler_loop(lh, LH_LINK(fc), LH_HZ_TO_PERIOD(200));
+
+//        time = get_time_us();
+        LoopHandler_loop(lh, LH_LINK(fc), LH_HZ_TO_PERIOD(300));
 
         LoopHandler_loop(lh, LH_LINK(r1), 0);
         LoopHandler_loop(lh, LH_LINK(r2), 0);
         LoopHandler_loop(lh, LH_LINK(r3), 0);
         LoopHandler_loop(lh, LH_LINK(r4), 0);
 
-        LoopHandler_loop(lh, LH_LINK(imu), LH_HZ_TO_PERIOD(100));
+        LoopHandler_loop(lh, LH_LINK(imu), LH_HZ_TO_PERIOD(300));
 
         LoopHandler_loop(lh, LH_LINK(serial_comms), 0);
 //        LoopHandler_loop(lh, LH_LINK(ble_comms), LH_HZ_TO_PERIOD(50));

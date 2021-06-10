@@ -12,6 +12,7 @@
 #include "CommandHandler.h"
 #include "IMU.h"
 #include "Rotor.h"
+#include "Debug.h"
 
 
 #include "../hal/gpio.h"
@@ -47,6 +48,7 @@ void Telemetry_set_enabled(struct Telemetry *self, bool enabled)
 void Telemetry_loop(void *context, uint32_t delta_us)
 {
     struct Telemetry *self = (struct Telemetry *)context;
+    //DEBUG(0,"b %d",self->imu->battery_average);
 
     if (self->enabled)
     {

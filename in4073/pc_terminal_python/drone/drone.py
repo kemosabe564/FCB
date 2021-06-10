@@ -32,6 +32,10 @@ class Drone:
         self.phi = 0
         self.theta = 0
         self.psi = 0
+        self.rpm0 = 0
+        self.rpm1 = 0
+        self.rpm2 = 0
+        self.rpm3 = 0
 
         self.heartbeat_enabled = True
         self.heartbeat_seq = 0
@@ -58,6 +62,10 @@ class Drone:
             self.phi = command.get_data("roll_angle")
             self.theta = command.get_data("pitch_angle")
             self.psi = command.get_data("yaw_angle")
+            self.rpm0 = command.get_data("rpm0")
+            self.rpm1 = command.get_data("rpm1")
+            self.rpm2 = command.get_data("rpm2")
+            self.rpm3 = command.get_data("rpm3")
         elif command.type == CommandType.Heartbeat:
             self.heartbeat_ack_queue.put(command.get_data("argument"))
 
@@ -76,8 +84,12 @@ class Drone:
     def enable_heartbeat(self, enabled):
         self.heartbeat_enabled = enabled
 
+
     def get_angles(self):
         return self.phi, self.theta, self.psi
+
+    def get_rpm(self):
+        return self.rpm0, self.rpm1, self.rpm2, self.rpm3
 
     def change_mode(self, mode: FlightMode):
         command = Command(CommandType.SetOrQueryMode)

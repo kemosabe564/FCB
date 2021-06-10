@@ -39,7 +39,7 @@ struct Telemetry *Telemetry_create(struct CommandHandler *ch, struct IMU *imu, s
 void Telemetry_loop(void *context, uint32_t delta_us)
 {
     struct Telemetry *self = (struct Telemetry *)context;
-    DEBUG(0,"b %d",self->imu->battery_voltage);
+    //DEBUG(0,"b %d",self->imu->battery_average);
 
     struct Command *cmd = Command_make_telemetry(
         self->imu->roll_angle,

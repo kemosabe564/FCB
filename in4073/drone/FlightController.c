@@ -34,11 +34,11 @@ void FlightController_loop(void *context, uint32_t delta_us)
 //    static int incrementing = 1;
 
       //comment this for debugging
-    if (self->imu->battery_average < BAT_THRESHOLD && self->mode != Safe && self->mode != Panic)
-    {
-        FlightController_change_mode(self,Panic);
-        DEBUG(0, "BAT LOW: %d", bat_volt);
-    }
+//    if (self->imu->battery_average < BAT_THRESHOLD && self->mode != Safe && self->mode != Panic)
+//    {
+//        FlightController_change_mode(self,Panic);
+//        DEBUG(0, "BAT LOW: %d ", bat_volt);
+//    }
 
     switch (self->mode) {
         case Init:
@@ -192,31 +192,39 @@ void FlightController_loop(void *context, uint32_t delta_us)
 //            int16_t  phi_rate = (self-> current_phi - self->previous_phi );
 //            int16_t  theta_rate = (self-> current_theta - self->previous_theta );
 
-            int16_t  psi_rate = self->imu->imu_psi_rate;
-            int16_t  phi_rate = self->imu->imu_phi_rate/5;
-            int16_t  theta_rate = self->imu->imu_theta_rate/5;
+//            int16_t  psi_rate = self->imu->imu_psi_rate;
+//            int16_t  phi_rate = self->imu->imu_phi_rate/5;
+//            int16_t  theta_rate = self->imu->imu_theta_rate/5;
 
-//            int16_t  psi_rate = self->imu->measured_r;
-//            int16_t  phi_rate = self->imu->measured_p;
-//            int16_t  theta_rate = self->imu->measured_q;
+            int16_t  psi_rate = self->imu->measured_r;
+            //typical values -2000 to +2000
+            int16_t  phi_rate = self->imu->measured_p;
+            int16_t  theta_rate = self->imu->measured_q;
+
+            DEBUG( 0 , "PR %d",phi_rate);
 
             //calculate error1
             int16_t yaw_error = yaw_setPoint - psi_rate;
+            //roll error verified
+            //typical values are -15 to +15 for usual range
             int16_t roll_error = phi_setPoint - FlightController_roll_over_angle((self->imu->roll_angle - self->imu->roll_angle_offset)/ 256);
+            //DEBUG(0,"RE%d",roll_error);
             int16_t  pitch_error = theta_setPoint - FlightController_roll_over_angle((self->imu->pitch_angle - self->imu->pitch_angle_offset)/ 256);
 
             //calculate compensation 1
             int16_t yaw_compensation = (self->P * yaw_error) / 10;
-            int16_t roll_rate_setPoint = (self->P1 * roll_error) / 10;
-            int16_t pitch_rate_setPoint = (self->P1 * pitch_error) / 10;
+            int16_t roll_rate_setPoint = (self->P1 * roll_error); // / 10;
+            int16_t pitch_rate_setPoint = (self->P1 * pitch_error); // / 10;
 
             //roll and pitch rate error
             int16_t roll_rate_error = roll_rate_setPoint - phi_rate;
+            //DEBUG(0,"RE%d",roll_rate_error);
             int16_t pitch_rate_error = pitch_rate_setPoint - theta_rate;
 
             //calculate compensation 2
-            int16_t roll_rate_compensation = -(self->P2 * roll_rate_error) / 5;
-            int16_t pitch_rate_compensation = -(self->P2 * pitch_rate_error) / 5;
+            int16_t roll_rate_compensation = -(self->P2 * roll_rate_error);// / 5;
+            //DEBUG(0,"RC%d",roll_rate_compensation);
+            int16_t pitch_rate_compensation = -(self->P2 * pitch_rate_error);// / 5;
             //pitch_rate_compensation = 0;//-(self->P2 * pitch_rate_error) / 10;
 
 

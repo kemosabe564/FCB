@@ -141,7 +141,7 @@ class Controller:
                 self.drone.set_params(id=1, value=self.P1)
 
             if event.key == pygame.K_k:
-                if self.P1 > 1:
+                if self.P1 > 0:
                     self.P1 = self.P1 - 1
                     self.drone.set_params(id=1, value=self.P1)
 
@@ -150,7 +150,7 @@ class Controller:
                 self.drone.set_params(id=2, value=self.P2)
 
             if event.key == pygame.K_l:
-                if self.P2 > 1:
+                if self.P2 > 0:
                     self.P2 = self.P2 - 1
                     self.drone.set_params(id=2, value=self.P2)
 

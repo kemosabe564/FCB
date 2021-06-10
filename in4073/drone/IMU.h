@@ -57,6 +57,10 @@ struct IMU
     int16_t roll_angle_offset;
     int16_t pitch_angle_offset;
 
+    int16_t sp_offset;
+    int16_t sq_offset;
+    int16_t sr_offset;
+
     //height  holding
     int32_t barometer_readings[BARO_WIN];
     int32_t barometer_average;

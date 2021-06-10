@@ -35,6 +35,10 @@ struct IMU *IMU_create(bool dmp, uint16_t frequency)
         result->measured_ay = 0;
         result->measured_az = 0;
 
+        result->sp_offset = 0;
+        result->sq_offset = 0;
+        result->sr_offset = 0;
+
         result->roll_angle_offset = 0;
         result->pitch_angle_offset = 0;
 
@@ -99,6 +103,8 @@ void IMU_loop(void *context, uint32_t delta_us)
                 bat_sum = bat_sum + imu->battery_voltage[i];
             }
             imu->battery_average = bat_sum/BAT_WIN;
+            //This works , verified the average
+            //DEBUG(0,"a%dr%d",imu->battery_average,bat_volt);
 
 
             imu->barometer_iterator++;
@@ -126,9 +132,9 @@ void IMU_loop(void *context, uint32_t delta_us)
             imu->pitch_angle = theta;
             imu->yaw_rate = psi;
 
-            imu->measured_p = sp;
-            imu->measured_q = sq;
-            imu->measured_r = sr;
+            imu->measured_p = sp - imu->sp_offset;
+            imu->measured_q = sq - imu->sq_offset;
+            imu->measured_r = sr - imu->sr_offset;
 
             imu->measured_ax = sax;
             imu->measured_ay = say;
@@ -164,6 +170,10 @@ void IMU_loop(void *context, uint32_t delta_us)
 
                 imu->roll_angle_offset = phi;
                 imu->pitch_angle_offset = theta;
+
+                imu->sp_offset = sp;
+                imu->sq_offset = sq;
+                imu->sr_offset = sr;
 
                 imu->calibrated = true; 
                 imu->state = IMU_Measuring;

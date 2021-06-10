@@ -31,9 +31,18 @@ struct Telemetry *Telemetry_create(struct CommandHandler *ch, struct IMU *imu, s
         memcpy(result->rotors, rotors, num_rotors * sizeof(struct Rotor *));
 
         result->loop = LoopHandler_init_controlblock(Telemetry_loop);
+        result->enabled = true;
     }
 
     return result;
+}
+
+void Telemetry_set_enabled(struct Telemetry *self, bool enabled)
+{
+    if (self)
+    {
+        self->enabled = enabled;
+    }
 }
 
 void Telemetry_loop(void *context, uint32_t delta_us)
@@ -41,19 +50,22 @@ void Telemetry_loop(void *context, uint32_t delta_us)
     struct Telemetry *self = (struct Telemetry *)context;
     //DEBUG(0,"b %d",self->imu->battery_average);
 
-    struct Command *cmd = Command_make_telemetry(
-        self->imu->roll_angle,
-        self->imu->pitch_angle,
-        self->imu->yaw_rate,
-        self->rotors[0]->actual_rpm,
-        self->rotors[1]->actual_rpm,
-        self->rotors[2]->actual_rpm,
-        self->rotors[3]->actual_rpm
-    );
+    if (self->enabled)
+    {
+        struct Command *cmd = Command_make_telemetry(
+            self->imu->roll_angle,
+            self->imu->pitch_angle,
+            self->imu->yaw_rate,
+            self->rotors[0]->actual_rpm,
+            self->rotors[1]->actual_rpm,
+            self->rotors[2]->actual_rpm,
+            self->rotors[3]->actual_rpm
+        );
 
-    CommandHandler_send_command(self->ch, cmd);
+        CommandHandler_send_command(self->ch, cmd);
+    }
 
-    nrf_gpio_pin_toggle(RED);
+    nrf_gpio_pin_toggle(BLUE);
 }
 
 void Telemetry_destroy(struct Telemetry *self)

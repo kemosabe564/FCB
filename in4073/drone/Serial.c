@@ -5,7 +5,11 @@
 #include "Serial.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include "Debug.h"
 #include "../hal/uart.h"
+
+#include "nrf_gpio.h"
+#include "nrf_delay.h"
 
 struct Comms *Serial_create(int32_t baud_rate)
 {
@@ -41,7 +45,9 @@ void Serial_loop(void *context, uint32_t delta_us)
 
     while (rx_queue.count)
     {
+        __disable_irq();
         uint8_t b = dequeue(&rx_queue);
+        __enable_irq();
         raw_str[char_id] = b;
 
         if (char_id == 0) // Header byte

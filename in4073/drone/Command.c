@@ -37,6 +37,7 @@ struct Command *Command_decode(uint8_t *data)
             case Invalid:
                 result->data = NULL;
                 break;
+            case Heartbeat:
             case SetOrQueryMode:
             case CurrentMode: {
                 uint8_t *argument = malloc(sizeof(uint8_t));
@@ -362,12 +363,14 @@ uint8_t Command_data_len(uint8_t header)
         case QueryTelemetry:
             return 0;
         case CurrentTelemetry:
-            return 6;
+            return 14;
         case DebugMessage:
             return (header & HEADER_DATA_MASK);
         case SetParam:
             return 1;
         case AckParam:
+            return 0;
+        case Heartbeat:
             return 0;
         case LastCommand:
             return 0;

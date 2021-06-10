@@ -13,6 +13,8 @@ class CLIAction(Enum):
     SendCommand = 2
     SetProtocol = 3
     SetTraffic = 4
+    SetHeartbeat = 5
+    SetTelemetry = 6
 
 
 class CLI:
@@ -71,6 +73,16 @@ class CLI:
                             self.action_handler(CLIAction.SetTraffic, True)
                         elif match.group(2) == 'false':
                             self.action_handler(CLIAction.SetTraffic, False)
+                    elif cmd == 'heartbeat':
+                        if match.group(2) == 'true':
+                            self.action_handler(CLIAction.SetHeartbeat, True)
+                        elif match.group(2) == 'false':
+                            self.action_handler(CLIAction.SetHeartbeat, False)
+                    elif cmd == 'telemetry':
+                        if match.group(2) == 'true':
+                            self.action_handler(CLIAction.SetTelemetry, True)
+                        elif match.group(2) == 'false':
+                            self.action_handler(CLIAction.SetTelemetry, False)
                     else:
                         self.__print("Unknown command")
                         self.print_usage()
@@ -81,10 +93,12 @@ class CLI:
         print(*args)
 
     def __print_welcome_message(self):
-        self.__print("""==== Drone CLI ====
+        self.__print("""\
+==== Drone CLI ====
 press enter to type command
 
-type 'help' for... help""")
+type 'help' for... help\
+""")
 
     def to_cli(self, data):
         if not self.typing:
@@ -103,6 +117,9 @@ exit = terminate application
 cmode(int) = change drone flightmode
 qmode = query mode
 protocol(boolean) = enable or disable the protocol manually
+traffic(boolean) = enable or disable printing of protocol traffic to cli
+heartbeat(boolean) = enable or disable the heartbeat
+telemetry(boolean) = enable or disable the telemetry
         """)
 
     def stop(self):

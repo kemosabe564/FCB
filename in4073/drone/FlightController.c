@@ -333,10 +333,6 @@ void __FlightController_on_changed_mode(struct FlightController *self, enum Flig
             self->yaw_rate = 0;
             self->pitch_angle = 0;
             self->roll_angle = 0;
-            if (new_mode == Panic)
-            {
-                DEBUG(0, "PANIC");
-            }
         }
             break;
         case Calibrate:

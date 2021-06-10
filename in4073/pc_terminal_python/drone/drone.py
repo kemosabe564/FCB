@@ -125,14 +125,11 @@ class Drone:
         self.heartbeat_ack = ack
         self.heartbeat_ack_ts = self.__time_in_ms()
 
-        self.cli.to_cli("[drone] ACK heartbeat ({}, {})".format(self.heartbeat_seq_prev, self.heartbeat_ack))
+        # self.cli.to_cli("[drone] ACK heartbeat ({}, {})".format(self.heartbeat_seq_prev, self.heartbeat_ack))
 
         if self.heartbeat_seq_prev == self.heartbeat_ack:
             self.heartbeat_rt_time = (self.heartbeat_ack_ts - self.heartbeat_seq_ts)
             # self.cli.to_cli("[drone] Heartbeat RT Delay: {}us".format(self.heartbeat_rt_time * 1000))
         else:
             self.cli.to_cli("[drone] Heartbeat missed")
-            # self.heartbeat_seq = 0
-            # self.heartbeat_seq_prev = 0
-            # self.heartbeat_ack = 1
 

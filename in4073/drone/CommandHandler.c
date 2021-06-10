@@ -53,7 +53,6 @@ void CommandHandler_loop(void *context, uint32_t delta_us)
             }
             self->heartbeat_ts = get_time_us();
             uint8_t *seq = (uint8_t *)command->data;
-//            DEBUG(0, "HB: %d", *seq);
             CommandHandler_send_command(self, Command_make_heartbeat(*seq));
         }
 

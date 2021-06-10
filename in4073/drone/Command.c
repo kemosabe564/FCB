@@ -363,7 +363,7 @@ uint8_t Command_data_len(uint8_t header)
         case QueryTelemetry:
             return 0;
         case CurrentTelemetry:
-            return 6;
+            return 14;
         case DebugMessage:
             return (header & HEADER_DATA_MASK);
         case SetParam:

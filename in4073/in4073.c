@@ -174,7 +174,7 @@ int main(void)
 
     CommandHandler_add_comms(ch, COMM_SERIAL, serial_comms);
 //    CommandHandler_add_comms(comm_handler, ble_comms, COMM_BLE);
-    CommandHandler_set_on_heartbeat_lost(ch, 5000 * 1000 /* in us */, heartbeat_lost);
+    CommandHandler_set_on_heartbeat_lost(ch, 600 * 1000 /* in us */, heartbeat_lost);
 
     fc = FlightController_create(imu, (struct Rotor *[]){ r1, r2, r3, r4 }, 4, ch);
     FlightController_set_on_change_mode(fc, changed_mode_handler);

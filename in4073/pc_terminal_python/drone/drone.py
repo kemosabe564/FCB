@@ -40,7 +40,7 @@ class Drone:
         self.heartbeat_ack = 0
         self.heartbeat_ack_ts = 0
         self.heartbeat_rt_time = None
-        self.heartbeat_freq = 1
+        self.heartbeat_freq = 5
         self.heartbeat_margin = 3
         self.heartbeat_ack_queue = Queue()
 

@@ -71,13 +71,6 @@ void FlightController_loop(void *context, uint32_t delta_us)
         }
             break;
         case Manual: {
-            uint32_t now = get_time_us();
-            if (self->input_ts != 0 && (now > self->input_ts) && ((now - self->input_ts) > 50000))
-            {
-                DEBUG(0, "HB:%d, %d, %d", now, self->input_ts, (now - self->input_ts));
-                FlightController_change_mode(self,Panic);
-            }
-
             uint16_t t = FlightController_map_proportional(self);
 
             //DEBUG(0, "Mapped Throttle %d",t);

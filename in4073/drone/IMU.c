@@ -54,6 +54,7 @@ struct IMU *IMU_create(bool dmp, uint16_t frequency)
         result->battery_average = 1100;
 
         result->barometer_average = 102400;
+        result->barometer_to_hold = 102000;
         result->barometer_iterator = 0;
         result->imu_height_rate = 0;
 

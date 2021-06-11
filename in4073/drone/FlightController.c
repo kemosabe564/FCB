@@ -160,6 +160,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
             //saving this in case we go into hold height
             //self->hold_throttle_raw = self->throttle;
             self->hold_throttle = t;
+            self->imu->barometer_to_hold = self->imu->barometer_average;
             //get set points
             int16_t phi_setPoint = (self->roll_angle)/8;
             int16_t theta_setPoint = -(self->pitch_angle)/8;
@@ -237,35 +238,41 @@ void FlightController_loop(void *context, uint32_t delta_us)
             break;
         case HoldHeight:
         {
-            //TODO:write all this in functions to reuse code
 
             //get set points
-            int16_t phi_setPoint = (self->roll_angle)/4;
-            int16_t theta_setPoint = (self->pitch_angle)/4;
-            int16_t  yaw_setPoint = self->yaw_rate;
+            int16_t phi_setPoint = (self->roll_angle)/8;
+            int16_t theta_setPoint = -(self->pitch_angle)/8;
+            int16_t yaw_setPoint = self->yaw_rate * 10;
 
-            //calculate rate of change
-            int16_t  psi_rate = self->imu->imu_psi_rate;
-            int16_t  phi_rate = self->imu->imu_phi_rate/5;
-            int16_t  theta_rate = self->imu->imu_theta_rate/5;
+            int16_t  psi_rate = self->imu->measured_r;
+            int16_t  phi_rate = self->imu->measured_p;
+            int16_t  theta_rate = self->imu->measured_q;
+
+            //DEBUG( 0 , "PR %d", phi_rate);
 
             //calculate error1
             int16_t yaw_error = yaw_setPoint - psi_rate;
+            //roll error verified
+            //typical values are -15 to +15 for usual range
             int16_t roll_error = phi_setPoint - FlightController_roll_over_angle((self->imu->roll_angle - self->imu->roll_angle_offset)/ 256);
+            //DEBUG(0,"RE%d",roll_error);
             int16_t  pitch_error = theta_setPoint - FlightController_roll_over_angle((self->imu->pitch_angle - self->imu->pitch_angle_offset)/ 256);
 
             //calculate compensation 1
-            int16_t yaw_compensation = (self->P * yaw_error) / 10;
-            int16_t roll_rate_setPoint = (self->P1 * roll_error) / 10;
-            int16_t pitch_rate_setPoint = (self->P1 * pitch_error) / 10;
+            int16_t yaw_compensation = (self->P * yaw_error) / 100;
+            int16_t roll_rate_setPoint = (self->P1 * roll_error);// / 10;
+            int16_t pitch_rate_setPoint = (self->P1 * pitch_error);// / 10;
 
             //roll and pitch rate error
             int16_t roll_rate_error = roll_rate_setPoint - phi_rate;
+            //DEBUG(0,"RE%d",roll_rate_error);
             int16_t pitch_rate_error = pitch_rate_setPoint - theta_rate;
 
             //calculate compensation 2
-            int16_t roll_rate_compensation = -(self->P2 * roll_rate_error) / 5;
-            int16_t pitch_rate_compensation = -(self->P2 * pitch_rate_error) / 5;
+            int16_t roll_rate_compensation = -(self->P2 * roll_rate_error) / 100;
+//            DEBUG(0,"RC%d",roll_rate_compensation);
+            int16_t pitch_rate_compensation = -(self->P2 * pitch_rate_error) / 100;
+
 
 //            if((self->throttle - self->hold_throttle_raw) != 0)
 //            {
@@ -277,8 +284,11 @@ void FlightController_loop(void *context, uint32_t delta_us)
             //calculated in self->imu->imu_height_rate
 
             //error is 0 - rate
-            int16_t height_error = 0 - self->imu->imu_height_rate;
-            int16_t lift_compensation = self->H * 10 * height_error;
+            //int16_t height_error = 0 - self->imu->imu_height_rate;
+            int32_t  height_error = self->imu->barometer_average - self->imu->barometer_to_hold;
+            int16_t lift_compensation = (self->H  * height_error ) /10;
+
+            DEBUG(0,"lc%d",lift_compensation);
 
             //DEBUG(0,"%d %d %d",self->imu->barometer_average,self->imu->imu_height_rate,lift_compensation);
 

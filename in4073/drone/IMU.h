@@ -65,6 +65,7 @@ struct IMU
     int32_t barometer_readings[BARO_WIN];
     int32_t barometer_average;
     uint8_t barometer_iterator;
+    int32_t barometer_to_hold;
     int16_t imu_height_rate;
 
     //battery

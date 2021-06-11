@@ -196,12 +196,12 @@ class Controller:
             change = True
         self.input_throttle = new_input_throttle
 
-        # if self.drone.mode == FlightMode.Full or self.drone.mode == FlightMode.HoldHeight:
-        #     self.delta_throttle = self.input_throttle - old_throttle
-        #     if abs(self.delta_throttle) > 1 and self.drone.mode == FlightMode.HoldHeight:
-        #         print('HoldHeight + Throttle change')
-        #         self.drone.change_mode(FlightMode.Full)
-        #         self.delta_throttle = 0
+        if self.drone.mode == FlightMode.Full or self.drone.mode == FlightMode.HoldHeight:
+            self.delta_throttle = self.input_throttle - old_throttle
+            if abs(self.delta_throttle) > 1 and self.drone.mode == FlightMode.HoldHeight:
+                print('HoldHeight + Throttle change')
+                self.drone.change_mode(FlightMode.Full)
+                self.delta_throttle = 0
 
         return change
 

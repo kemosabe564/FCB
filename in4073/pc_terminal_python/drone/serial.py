@@ -8,10 +8,11 @@ from drone.command import Command, SerialCommandDecoder
 
 
 class Serial:
-    def __init__(self, cli, port: str, baud: int, command_handler: Callable = None):
+    def __init__(self, cli, port: str, baud: int, command_handler: Callable = None, idx=None):
         self.cli = cli
         self.port = port
         self.baud = baud
+        self.idx = idx
         self.command_handlers = []
         if command_handler is not None:
             self.add_command_handler(command_handler)
@@ -24,7 +25,7 @@ class Serial:
 
         self.print_traffic = False
 
-        self.serial = serial.Serial(self.port, self.baud, timeout=1)
+        self.serial = None # serial.Serial(self.port, self.baud, timeout=1)
 
         self.terminate = False
         # separate send and receive threads since pyserial busywaits for characters
@@ -34,26 +35,43 @@ class Serial:
         self.receive_thread = threading.Thread(target=self.receive_thread_function)
         self.receive_thread.start()
 
+    def is_open(self):
+        return (self.serial is not None) and self.serial.isOpen()
+
+    def open_port(self):
+        try:
+            self.serial = serial.Serial(self.port, self.baud, timeout=1)
+            self.cli.to_cli("[serial {}   ] port successfully opened".format(self.idx))
+            return True
+        except serial.SerialException:
+            self.cli.to_cli("[serial {}   ] could not open port. Retrying later.".format(self.idx))
+
+        return False
+
     def send_thread_function(self):
-        with self.serial as ser:
-            while not self.terminate:
+        while not self.terminate:
+            if not self.is_open() and not self.open_port():
+                time.sleep(1)
+            else:
                 command = self.send_queue.get()
                 buffer = command.encode()
                 if self.print_traffic:
-                    self.cli.to_cli("[serial] -> {} (raw = {})".format(command, buffer))
-                ser.write(buffer)
-                ser.flush()
+                    self.cli.to_cli("[serial {}   ] --> {} (raw = {})".format(self.idx, command, buffer))
+                self.serial.write(buffer)
+                self.serial.flush()
 
-                # removed sleep since thread will sleep on get()
-                # time.sleep(0.01)
+            # removed sleep since thread will sleep on get()
+            # time.sleep(0.01)
 
     def receive_thread_function(self):
-        with self.serial as ser:
-            while not self.terminate:
+        while not self.terminate:
+            if not self.is_open():
+                time.sleep(1)
+            else:
                 # At first the MCU just spits out initialisation information
                 # only after ten 0xFF characters have been sent do we switch
                 # over to the protocol
-                for byte in ser.read():
+                for byte in self.serial.read():
                     if not self.protocol_enabled:
                         self.__handle_ascii_data(byte)
                     else:
@@ -70,13 +88,13 @@ class Serial:
 
     def set_protocol(self, enabled):
         if enabled:
-            self.cli.to_cli("[serial] Protocol enabled")
+            self.cli.to_cli("[serial {}   ] Protocol enabled".format(self.idx))
             self.ascii_buffer.clear()
         self.protocol_enabled = enabled
 
     def set_print_traffic(self, enabled):
         if enabled:
-            self.cli.to_cli("[serial] Printing traffic enabled")
+            self.cli.to_cli("[serial {}   ] Printing traffic enabled".format(self.idx))
         self.print_traffic = enabled
 
     def __handle_ascii_data(self, byte):
@@ -103,7 +121,7 @@ class Serial:
         while not self.decoder.empty():
             command = self.decoder.get()
             if self.print_traffic:
-                self.cli.to_cli("[serial] <- {} (raw = {})".format(command, command.encode()))
+                self.cli.to_cli("[serial {}   ] <-- {} (raw = {})".format(self.idx, command, command.encode()))
             self.__dispatch_command(command)
 
     def send_command(self, command: Command):

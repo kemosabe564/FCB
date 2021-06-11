@@ -34,10 +34,10 @@ void FlightController_loop(void *context, uint32_t delta_us)
 //    static int incrementing = 1;
 
       //comment this for debugging
-    if (self->imu->battery_average < BAT_THRESHOLD && self->mode != Safe && self->mode != Panic)
+    if (self->battery_check && (self->imu->battery_average < BAT_THRESHOLD && self->mode != Safe && self->mode != Panic))
     {
         FlightController_change_mode(self,Panic);
-        DEBUG(0, "BAT LOW: %d ", self->imu->barometer_average);
+        DEBUG(0, "BAT LOW: %d ", self->imu->battery_average);
     }
 
     switch (self->mode) {
@@ -155,8 +155,6 @@ void FlightController_loop(void *context, uint32_t delta_us)
             break;
         case Full:
         {
-            //DEBUG(0,"height avg %d",self->imu->barometer_average);
-
             //get throttle
             int16_t t = FlightController_map_proportional(self);
             //saving this in case we go into hold height
@@ -339,7 +337,6 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
         result->on_changed_mode = NULL;
         result->on_changed_mode_internal = __FlightController_on_changed_mode;
         result->num_rotors = num_rotors;
-        result->input_ts = 0;
         result->rotors = (struct Rotor **)malloc(num_rotors * sizeof(struct Rotor *));
         memcpy(result->rotors, rotors, num_rotors * sizeof(struct Rotor *));
         result->current_psi = psi;
@@ -357,6 +354,7 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
         result->roll_angle = 0;
         result->hold_throttle = 0;
         //result->hold_throttle_raw = 0;
+        result->battery_check = true;
         result->P = 11;
         result->P1 = 50;
         result->P2 = 20;
@@ -382,9 +380,6 @@ bool FlightController_change_mode(struct FlightController *self, enum FlightCont
                 {
                     self->on_changed_mode(self, mode, self->mode);
                 }
-
-                // might not be necessary
-                self->input_ts = 0;
 
                 self->mode = mode;
                 return true;
@@ -435,8 +430,6 @@ void FlightController_set_controls(struct FlightController *self, int16_t yaw_ra
         self->pitch_angle = pitch_rate - 127;
         self->roll_angle = roll_rate - 127;
         self->throttle = throttle;
-
-        self->input_ts = get_time_us();
     }
 }
 
@@ -447,19 +440,23 @@ void FlightController_set_params(struct FlightController *self, uint8_t pid , ui
         switch(pid){
             case 0:
                 self->P = pvalue;
-                DEBUG(0, "P:%d", pvalue);
+                DEBUG(0, "P: %d", pvalue);
                 break;
             case 1:
                 self->P1 = pvalue;
-                DEBUG(0, "P1:%d", pvalue);
+                DEBUG(0, "P1: %d", pvalue);
                 break;
             case 2:
                 self->P2 = pvalue;
-                DEBUG(0, "P2:%d", pvalue);
+                DEBUG(0, "P2: %d", pvalue);
                 break;
             case 3:
                 self->H = pvalue;
                 DEBUG(0,"H:%d",pvalue);
+                break;
+            case 5:
+                self->battery_check = pvalue > 0;
+                DEBUG(0,"battery check %s", self->battery_check ? "enabled" : "disabled");
                 break;
             default:
                 break;

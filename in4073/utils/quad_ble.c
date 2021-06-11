@@ -44,6 +44,8 @@ Queue ble_rx_queue;
 Queue ble_tx_queue;
 volatile bool radio_active;
 
+static bool ble_init_done = false;
+
 /**@brief Function for the GAP initialization.
  *
  * @details This function will set up all the necessary GAP (Generic Access Profile) parameters of 
@@ -310,6 +312,11 @@ void notifications_init(void)
 
 void quad_ble_init(void)
 {
+    if (ble_init_done)
+    {
+        return;
+    }
+
 	uint32_t err_code;
 
 	init_queue(&ble_rx_queue); // Initialize receive queue
@@ -325,4 +332,5 @@ void quad_ble_init(void)
 	err_code = ble_advertising_start(BLE_ADV_MODE_FAST);
 	APP_ERROR_CHECK(err_code);
 
+	ble_init_done = true;
 }

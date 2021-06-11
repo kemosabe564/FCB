@@ -36,6 +36,7 @@
 #include "drone/RotorMap.h"
 #include "drone/Rotor.h"
 #include "drone/Serial.h"
+#include "drone/BLE.h"
 #include "drone/IMU.h"
 #include "drone/FlightController.h"
 #include "drone/Debug.h"
@@ -116,12 +117,10 @@ void command_handler_function(struct Command *command)
             {
                 switch (data->id)
                 {
-                case 0:
-                case 1:
-                case 2: // P values
+                case 0: case 1: case 2: case 3: case 5: // P values
                     FlightController_set_params(fc, data->id , data->value);
                     break;
-                case 3:
+                case 4:
                     Telemetry_set_enabled(telemetry, data->value == 1);
                     break;
 
@@ -165,14 +164,14 @@ int main(void)
 
     struct IMU *imu = IMU_create(true, 100);
 
-
-//    struct Comms ble_comms BLE_init();
     struct Comms *serial_comms = Serial_create(115200);
+    struct Comms *ble_comms = BLE_create();
 
     ch = CommandHandler_create(COMM_SERIAL, command_handler_function);
 
     CommandHandler_add_comms(ch, COMM_SERIAL, serial_comms);
-//    CommandHandler_add_comms(comm_handler, ble_comms, COMM_BLE);
+    CommandHandler_add_comms(ch, COMM_BLE, ble_comms);
+
     CommandHandler_set_on_heartbeat_lost(ch, 600 * 1000 /* in us */, heartbeat_lost);
 
     fc = FlightController_create(imu, (struct Rotor *[]){ r1, r2, r3, r4 }, 4, ch);
@@ -194,7 +193,7 @@ int main(void)
 
 
         LoopHandler_loop(lh, LH_LINK(serial_comms), 0);
-//        LoopHandler_loop(lh, LH_LINK(ble_comms), LH_HZ_TO_PERIOD(50));
+        LoopHandler_loop(lh, LH_LINK(ble_comms), 0);
 
         LoopHandler_loop(lh, LH_LINK(ch), 0);
 

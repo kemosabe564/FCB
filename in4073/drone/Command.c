@@ -39,6 +39,7 @@ struct Command *Command_decode(uint8_t *data)
                 break;
             case Heartbeat:
             case SetOrQueryMode:
+            case SetComms:
             case CurrentMode: {
                 uint8_t *argument = malloc(sizeof(uint8_t));
 
@@ -103,6 +104,7 @@ struct EncodedCommand Command_encode(struct Command *command)
     switch (command->type)
     {
         case CurrentMode:
+        case CurrentComms:
         case Heartbeat: { // encoding logic of the simple argumented command type
             size = (1 + 0 + 1);
             encoded = (uint8_t *)malloc(size * sizeof(uint8_t));
@@ -222,6 +224,11 @@ struct Command *Command_make_simple(enum CommandType type, uint8_t argument)
     }
 
     return NULL;
+}
+
+struct Command *Command_make_current_comms(uint8_t current_comms)
+{
+    return Command_make_simple(CurrentComms, current_comms);
 }
 
 // alias for Command_make_simple

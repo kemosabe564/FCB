@@ -5,7 +5,7 @@
 #include <stdbool.h>
 
 #include "Command.h"
-#define COMMAND_QUEUE_SIZE 256
+#define COMMAND_QUEUE_SIZE 32
 
 struct CommandQueue
 {

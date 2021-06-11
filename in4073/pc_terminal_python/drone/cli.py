@@ -15,6 +15,7 @@ class CLIAction(Enum):
     SetTraffic = 4
     SetHeartbeat = 5
     SetTelemetry = 6
+    SetComms = 7
 
 
 class CLI:
@@ -68,6 +69,8 @@ class CLI:
                             self.action_handler(CLIAction.SetProtocol, True)
                         elif match.group(2) == 'false':
                             self.action_handler(CLIAction.SetProtocol, False)
+                    elif cmd == 'setcomms':
+                        self.action_handler(CLIAction.SetComms, int(match.group(2)))
                     elif cmd == 'traffic':
                         if match.group(2) == 'true':
                             self.action_handler(CLIAction.SetTraffic, True)

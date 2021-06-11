@@ -22,6 +22,7 @@ struct CommandHandler *CommandHandler_create(uint8_t active_comms, CommandHandle
         result->active_comm_id = active_comms;
         result->handler = handler;
         result->loop = LoopHandler_init_controlblock(CommandHandler_loop);
+        result->state = CH_Init;
         result->heartbeat_seq = 0;
         result->heartbeat_ts = 0;
         result->on_heartbeat_lost = NULL;
@@ -38,37 +39,77 @@ struct CommandHandler *CommandHandler_create(uint8_t active_comms, CommandHandle
 void CommandHandler_loop(void *context, uint32_t delta_us)
 {
     struct CommandHandler *self = (struct CommandHandler *)context;
-    struct Comms *comms = CommandHandler_get_active_comms(self);
 
-    while (!CommandQueue_empty(&comms->receive_queue))
+    switch (self->state)
     {
-        struct Command *command = CommandQueue_pop(&comms->receive_queue);
-
-        // send back heartbeat acknowledge
-        if (command->type == Heartbeat)
+    case CH_Init: {
+        for (uint8_t i = 0; i < COMMANDHANDLER_MAX_COMMS; i += 1)
         {
-            if (self->heartbeat_state == Dead)
+            if (self->comms[i] != NULL)
             {
-                self->heartbeat_state = Alive;
+                CommandQueue_push(&self->comms[i]->send_queue, Command_make_current_comms(self->active_comm_id));
             }
-            self->heartbeat_ts = get_time_us();
-            uint8_t *seq = (uint8_t *)command->data;
-            CommandHandler_send_command(self, Command_make_heartbeat(*seq));
         }
 
-        self->handler(command);
-        Command_destroy(command);
+        self->state = CH_Running;
     }
+        break;
+    case CH_Running: {
+        struct Comms *comms = CommandHandler_get_active_comms(self);
 
-    int32_t heartbeat_diff = (get_time_us() - self->heartbeat_ts);
-    if (self->on_heartbeat_lost && (self->heartbeat_state == Alive) && (heartbeat_diff > 0) && (heartbeat_diff >= self->heartbeat_margin))
-    {
-        self->heartbeat_state = Dead;
+        while (!CommandQueue_empty(&comms->receive_queue))
+        {
+            struct Command *command = CommandQueue_pop(&comms->receive_queue);
 
-        DEBUG(0, "HB: %d, %d, diff: %d", self->heartbeat_ts, get_time_us(), (get_time_us() - self->heartbeat_ts));
-        self->on_heartbeat_lost();
+            __CommandHandler_command_handler_internal(self, command);
+
+            self->handler(command);
+            Command_destroy(command);
+        }
+
+        int32_t heartbeat_diff = (get_time_us() - self->heartbeat_ts);
+        if (self->on_heartbeat_lost && (self->heartbeat_state == Alive) && (heartbeat_diff > 0) && (heartbeat_diff >= self->heartbeat_margin))
+        {
+            self->heartbeat_state = Dead;
+
+            DEBUG(0, "HB: %d, %d, diff: %d", self->heartbeat_ts, get_time_us(), (get_time_us() - self->heartbeat_ts));
+            self->on_heartbeat_lost();
+        }
+    }
+        break;
+    default:
+        break;
     }
 };
+
+void __CommandHandler_command_handler_internal(struct CommandHandler *self, struct Command *command)
+{
+    switch (command->type)
+    {
+    case Heartbeat: {
+        if (self->heartbeat_state == Dead)
+        {
+            self->heartbeat_state = Alive;
+        }
+        self->heartbeat_ts = get_time_us();
+        uint8_t *seq = (uint8_t *)command->data;
+        CommandHandler_send_command(self, Command_make_heartbeat(*seq));
+    }
+        break;
+    case SetComms: {
+        uint8_t *idx = (uint8_t *)command->data;
+
+        if (*idx < COMMANDHANDLER_MAX_COMMS && *idx != self->active_comm_id)
+        {
+            CommandHandler_send_command(self, Command_make_current_comms(*idx)); // send new comm to current comm
+            self->active_comm_id = *idx;
+        }
+    }
+        break;
+    default:
+        break;
+    }
+}
 
 void CommandHandler_add_comms(struct CommandHandler *self, uint8_t id, struct Comms *comms)
 {

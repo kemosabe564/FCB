@@ -15,6 +15,8 @@ class CommandType(Enum):
     SetParam = 0b1000
     AckParam = 0b1001
     Heartbeat = 0b1010
+    SetComms = 0b1011
+    CurrentComms = 0b1100
 
 
 class Command:
@@ -43,6 +45,11 @@ class Command:
         if self.type == CommandType.SetParam:
             self.args = ["argument", "value"]
 
+        if self.type == CommandType.SetComms:
+            self.args = ["argument"]
+
+        if self.type == CommandType.CurrentComms:
+            self.args = ["argument"]
 
     def set_data(self, **kwargs):
         for key, value in kwargs.items():
@@ -81,6 +88,8 @@ class Command:
             buffer.append(self.get_data("throttle") & 0b11111111)
             crc_len = 5
         elif self.type == CommandType.Heartbeat:
+            buffer.append((self.type.value << 4) | (self.get_data("argument") & 0b1111))
+        elif self.type == CommandType.SetComms:
             buffer.append((self.type.value << 4) | (self.get_data("argument") & 0b1111))
         elif self.type == CommandType.SetParam:
             buffer.append((self.type.value << 4) | (self.get_data("argument") & 0b1111))
@@ -142,6 +151,8 @@ class SerialCommandDecoder:
         if type == CommandType.CurrentMode:
             cmd.set_data(argument=(header & 0b1111))
         elif type == CommandType.Heartbeat:
+            cmd.set_data(argument=(header & 0b1111))
+        elif type == CommandType.CurrentComms:
             cmd.set_data(argument=(header & 0b1111))
         elif type == CommandType.DebugMessage:
             message = bytearray()

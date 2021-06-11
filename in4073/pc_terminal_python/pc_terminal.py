@@ -11,6 +11,7 @@ from drone.eventloop import Eventloop
 from drone.crc8 import crc8
 
 ser = None
+ble = None
 cli = None
 controller = None
 gui = None
@@ -39,23 +40,28 @@ def on_quit():
 
 def new_action_handler(action, data=None):
     if action == CLIAction.SendCommand:
-        ser.send_command(data)
+        drone.send_command(data)
     elif action == CLIAction.Exit:
         on_quit()
     elif action == CLIAction.SetProtocol:
         ser.set_protocol(data)
+        ble.set_protocol(data)
     elif action == CLIAction.SetTraffic:
         ser.set_print_traffic(data)
+        ble.set_print_traffic(data)
     elif action == CLIAction.SetHeartbeat:
         drone.enable_heartbeat(data)
     elif action == CLIAction.SetTelemetry:
-        drone.set_params(3, 1 if data else 0)
+        drone.set_params(4, 1 if data else 0)
+    elif action == CLIAction.SetComms:
+        drone.set_comms(data)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--port', type=str, default='/dev/ttyUSB0', help='COM port of the drone')
+    parser.add_argument('--ble', type=str, default='/dev/pts/4', help='Pseudo COM port of the BLE')
     parser.add_argument('--baud', type=int, default=115200, help='Baudrate for drone')
     parser.add_argument('--no-gui', action='store_true', default=False, help='Only use CLI without GUI')
 
@@ -67,19 +73,21 @@ if __name__ == "__main__":
     keyboard = eventloop.keyboard()
 
     cli = CLI(action_handler=new_action_handler)
-    ser = Serial(cli, port=args.port, baud=args.baud, command_handler=new_cmd_handler)
+    ser = Serial(cli, port=args.port, baud=args.baud, command_handler=new_cmd_handler, idx=0)
+    ble = Serial(cli, port=args.ble, baud=args.baud, command_handler=new_cmd_handler, idx=1)
+    ble.set_protocol(True)
 
-    drone = Drone(cli, ser)
+    drone = Drone(cli, [ser, ble], 0)
     controller = Controller(drone, joystick, keyboard)
 
     if not args.no_gui:
         gui = GUI((1200, 840), drone, controller)
 
     while running:
+        eventloop.update()
+
         if gui:
             gui.draw()
-
-        eventloop.update()
 
     cli.join()
     ser.join()

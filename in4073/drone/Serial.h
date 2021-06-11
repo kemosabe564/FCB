@@ -2,8 +2,8 @@
 // Created by nathan on 28-04-21.
 //
 
-#ifndef QUADCOPTER_FCB_SERIAL_H_H
-#define QUADCOPTER_FCB_SERIAL_H_H
+#ifndef QUADCOPTER_FCB_SERIAL_H
+#define QUADCOPTER_FCB_SERIAL_H
 
 #include "Comms.h"
 

@@ -2,7 +2,7 @@ from enum import Enum
 import time
 import threading
 from queue import Queue
-
+from typing import List
 from drone.serial import Serial
 from drone.command import Command, CommandType
 
@@ -21,12 +21,14 @@ class FlightMode(Enum):
 
 
 class Drone:
-    def __init__(self, cli, serial: Serial):
+    def __init__(self, cli, serials: List[Serial], serial_idx):
         self.terminate = False
 
         self.cli = cli
-        self.serial = serial
-        self.serial.add_command_handler(self.handle_command)
+        self.serials = serials
+        self.active_serial = serial_idx
+        for ser in self.serials:
+            ser.add_command_handler(self.handle_command)
 
         self.mode = None
         self.phi = 0
@@ -52,6 +54,12 @@ class Drone:
         self.thread = threading.Thread(target=self.__thread_function)
         self.thread.start()
 
+    def send_command(self, command, idx=None):
+        if idx is None:
+            idx = self.active_serial
+
+        self.serials[idx].send_command(command)
+
     def handle_command(self, command):
         if type(command) != Command:
             return
@@ -68,6 +76,13 @@ class Drone:
             self.rpm3 = command.get_data("rpm3")
         elif command.type == CommandType.Heartbeat:
             self.heartbeat_ack_queue.put(command.get_data("argument"))
+        elif command.type == CommandType.CurrentComms:
+            self.__receive_current_comms(command.get_data("argument"))
+
+    def __receive_current_comms(self, idx):
+        if idx != self.active_serial:
+            self.active_serial = idx
+            self.cli.to_cli("[drone      ] changed to comm {}".format(idx))
 
     def __thread_function(self):
         while not self.terminate:
@@ -77,7 +92,7 @@ class Drone:
             if self.heartbeat_enabled and self.mode is not None:
                 self.beat_heart()
                 if self.get_heartbeat_distance() > self.heartbeat_margin:
-                    self.cli.to_cli("[drone] heartbeat distance exceeded {}".format(self.heartbeat_margin))
+                    self.cli.to_cli("[drone      ] heartbeat distance exceeded {}".format(self.heartbeat_margin))
                     self.mode = None
             time.sleep(1 / self.heartbeat_freq)
 
@@ -95,19 +110,25 @@ class Drone:
         command = Command(CommandType.SetOrQueryMode)
         command.set_data(argument=mode.value)
 
-        self.serial.send_command(command)
+        self.send_command(command)
+
+    def set_comms(self, idx):
+        command = Command(CommandType.SetComms)
+        command.set_data(argument=idx)
+
+        self.send_command(command)
 
     def set_control(self, yaw, pitch, roll, throttle):
         command = Command(CommandType.SetControl)
         command.set_data(argument=self.mode.value, yaw=yaw, pitch=pitch, roll=roll, throttle=throttle)
 
-        self.serial.send_command(command)
+        self.send_command(command)
 
     def set_params(self, id, value):
         command = Command(CommandType.SetParam)
         command.set_data(argument=id, value=value)
 
-        self.serial.send_command(command)
+        self.send_command(command)
 
     def __time_in_ms(self):
         return time.time() / 1000
@@ -119,13 +140,13 @@ class Drone:
 
     def beat_heart(self):
         if self.heartbeat_seq_prev != self.heartbeat_ack:
-            self.cli.to_cli("[drone] previous heartbeat not acknowledged ({} != {})".format(self.heartbeat_seq_prev, self.heartbeat_ack))
+            self.cli.to_cli("[drone      ] previous heartbeat not acknowledged ({} != {})".format(self.heartbeat_seq_prev, self.heartbeat_ack))
 
         command = Command(CommandType.Heartbeat)
         command.set_data(argument=int(self.heartbeat_seq))
         self.heartbeat_seq_prev = self.heartbeat_seq
 
-        self.serial.send_command(command)
+        self.send_command(command)
         self.heartbeat_seq_ts = self.__time_in_ms()
 
         if self.heartbeat_seq == 15:
@@ -143,5 +164,5 @@ class Drone:
             self.heartbeat_rt_time = (self.heartbeat_ack_ts - self.heartbeat_seq_ts)
             # self.cli.to_cli("[drone] Heartbeat RT Delay: {}us".format(self.heartbeat_rt_time * 1000))
         else:
-            self.cli.to_cli("[drone] Heartbeat missed")
+            self.cli.to_cli("[drone      ] Heartbeat missed")
 

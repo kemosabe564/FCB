@@ -51,7 +51,6 @@ struct FlightController
     int16_t pitch_angle;
     int16_t roll_angle;
     uint16_t throttle;
-    uint32_t input_ts;
 
     int16_t current_psi;
     int16_t previous_psi;
@@ -73,6 +72,8 @@ struct FlightController
     uint8_t P1;
     uint8_t P2;
     uint8_t H;
+
+    bool battery_check;
 
     struct CommandHandler *ch;
 

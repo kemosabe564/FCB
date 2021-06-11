@@ -22,12 +22,19 @@ enum HeartbeatState
     Alive = 1,
 };
 
+enum CommandHandlerState
+{
+    CH_Init = 0,
+    CH_Running = 1,
+};
+
 struct CommandHandler
 {
     CommandHandlerFunction handler;
     uint8_t active_comm_id;
     struct LoopHandlerControlBlock loop;
     struct Comms* comms[COMMANDHANDLER_MAX_COMMS];
+    enum CommandHandlerState state;
 
     uint8_t heartbeat_seq;
     uint32_t heartbeat_ts;
@@ -40,6 +47,7 @@ struct CommandHandler *CommandHandler_create(uint8_t active_comms, CommandHandle
 void CommandHandler_add_comms(struct CommandHandler *self, uint8_t id, struct Comms *comms);
 struct Comms *CommandHandler_get_active_comms(struct CommandHandler *self);
 void CommandHandler_set_on_heartbeat_lost(struct CommandHandler *self, uint32_t heartbeat_margin, CommandHandlerHeartbeatLostFunction handler);
+void __CommandHandler_command_handler_internal(struct CommandHandler *self, struct Command *command);
 void CommandHandler_send_command(struct CommandHandler *self, struct Command *command);;
 void CommandHandler_loop(void *context, uint32_t delta_us);
 void CommandHandler_destroy(struct CommandHandler *self);

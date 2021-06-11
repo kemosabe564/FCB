@@ -58,6 +58,7 @@ $(abspath ./drone/LoopHandler.c) \
 $(abspath ./drone/Rotor.c) \
 $(abspath ./drone/RotorMap.c) \
 $(abspath ./drone/Serial.c) \
+$(abspath ./drone/BLE.c) \
 $(abspath ./drone/Telemetry.c) \
 $(abspath ./drone/utils/crc8.c) \
 $(abspath ./utils/quad_ble.c) \

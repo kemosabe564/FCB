@@ -23,6 +23,8 @@ enum CommandType {
     SetParam = 0b1000,
     AckParam = 0b1001,
     Heartbeat = 0b1010,
+    SetComms = 0b1011,
+    CurrentComms = 0b1100,
     LastCommand // Used for checking if command in valid range
 };
 
@@ -70,6 +72,7 @@ struct Command *Command_make_current_mode(uint8_t mode);
 struct Command *Command_make_debug_format(uint8_t id, const char *format, ...);
 struct Command *Command_make_debug_n(uint8_t id, const char *string, uint16_t n);
 struct Command *Command_make_heartbeat(uint8_t sequence_number);
+struct Command *Command_make_current_comms(uint8_t current_comms);
 struct Command *Command_make_telemetry(int16_t roll_angle, int16_t pitch_angle, int16_t yaw_angle, int16_t rpm0, int16_t rpm1, int16_t rpm2, int16_t rpm3);
 
 void Command_destroy(struct Command *self);

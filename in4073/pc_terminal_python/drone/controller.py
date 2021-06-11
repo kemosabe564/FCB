@@ -30,9 +30,9 @@ class Controller:
         self.input_throttle = 0
         self.delta_throttle = 0
 
-        self.P = 1
-        self.P1 = 1
-        self.P2 = 1
+        self.P = 11
+        self.P1 = 50
+        self.P2 = 20
 
         #gets multiplied by 10 so this adds or sub 50rpm
         self.H = 5

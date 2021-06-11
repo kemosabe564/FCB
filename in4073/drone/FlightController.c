@@ -34,11 +34,11 @@ void FlightController_loop(void *context, uint32_t delta_us)
 //    static int incrementing = 1;
 
       //comment this for debugging
-//    if (self->imu->battery_average < BAT_THRESHOLD && self->mode != Safe && self->mode != Panic)
-//    {
-//        FlightController_change_mode(self,Panic);
-//        DEBUG(0, "BAT LOW: %d ", bat_volt);
-//    }
+    if (self->imu->battery_average < BAT_THRESHOLD && self->mode != Safe && self->mode != Panic)
+    {
+        FlightController_change_mode(self,Panic);
+        DEBUG(0, "BAT LOW: %d ", self->imu->barometer_average);
+    }
 
     switch (self->mode) {
         case Init:
@@ -123,13 +123,6 @@ void FlightController_loop(void *context, uint32_t delta_us)
             }
             break;
         case Yaw: {
-            uint32_t now = get_time_us();
-            if (self->input_ts != 0 && (now > self->input_ts) && ((now - self->input_ts) > 50000))
-            {
-                DEBUG(0, "HB:%d, %d, %d", now, self->input_ts, (now - self->input_ts));
-                FlightController_change_mode(self,Panic);
-            }
-
             int16_t t = FlightController_map_proportional(self);
             //get set point
             int16_t setPoint = self->yaw_rate;
@@ -169,24 +162,17 @@ void FlightController_loop(void *context, uint32_t delta_us)
             break;
         case Full:
         {
-            uint32_t now = get_time_us();
-            if (self->input_ts != 0 && (now > self->input_ts) && ((now - self->input_ts) > 50000))
-            {
-                DEBUG(0, "HB:%d, %d, %d", now, self->input_ts, (now - self->input_ts));
-                FlightController_change_mode(self,Panic);
-            }
-
             //DEBUG(0,"height avg %d",self->imu->barometer_average);
 
             //get throttle
             int16_t t = FlightController_map_proportional(self);
             //saving this in case we go into hold height
             //self->hold_throttle_raw = self->throttle;
-            self->hold_throttle =t;
+            self->hold_throttle = t;
             //get set points
             int16_t phi_setPoint = (self->roll_angle)/8;
             int16_t theta_setPoint = -(self->pitch_angle)/8;
-            int16_t  yaw_setPoint = self->yaw_rate;
+            int16_t yaw_setPoint = self->yaw_rate * 10;
             //calculate rate of change
 //            int16_t  psi_rate = (self-> current_psi - self->previous_psi );
 //            int16_t  phi_rate = (self-> current_phi - self->previous_phi );
@@ -201,7 +187,9 @@ void FlightController_loop(void *context, uint32_t delta_us)
             int16_t  phi_rate = self->imu->measured_p;
             int16_t  theta_rate = self->imu->measured_q;
 
-            //DEBUG( 0 , "PR %d",phi_rate);
+
+
+            //DEBUG( 0 , "PR %d", phi_rate);
 
             //calculate error1
             int16_t yaw_error = yaw_setPoint - psi_rate;
@@ -212,9 +200,9 @@ void FlightController_loop(void *context, uint32_t delta_us)
             int16_t  pitch_error = theta_setPoint - FlightController_roll_over_angle((self->imu->pitch_angle - self->imu->pitch_angle_offset)/ 256);
 
             //calculate compensation 1
-            int16_t yaw_compensation = (self->P * yaw_error) / 10;
-            int16_t roll_rate_setPoint = (self->P1 * roll_error); // / 10;
-            int16_t pitch_rate_setPoint = (self->P1 * pitch_error); // / 10;
+            int16_t yaw_compensation = (self->P * yaw_error) / 100;
+            int16_t roll_rate_setPoint = (self->P1 * roll_error);// / 10;
+            int16_t pitch_rate_setPoint = (self->P1 * pitch_error);// / 10;
 
             //roll and pitch rate error
             int16_t roll_rate_error = roll_rate_setPoint - phi_rate;
@@ -222,9 +210,9 @@ void FlightController_loop(void *context, uint32_t delta_us)
             int16_t pitch_rate_error = pitch_rate_setPoint - theta_rate;
 
             //calculate compensation 2
-            int16_t roll_rate_compensation = -(self->P2 * roll_rate_error) / 10;
-            DEBUG(0,"RC%d",roll_rate_compensation);
-            int16_t pitch_rate_compensation = -(self->P2 * pitch_rate_error) / 10;
+            int16_t roll_rate_compensation = -(self->P2 * roll_rate_error) / 100;
+//            DEBUG(0,"RC%d",roll_rate_compensation);
+            int16_t pitch_rate_compensation = -(self->P2 * pitch_rate_error) / 100;
             //pitch_rate_compensation = 0;//-(self->P2 * pitch_rate_error) / 10;
 
 
@@ -376,9 +364,9 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
         result->roll_angle = 0;
         result->hold_throttle = 0;
         //result->hold_throttle_raw = 0;
-        result->P = 1;
-        result->P1 = 1;
-        result->P2 = 1;
+        result->P = 11;
+        result->P1 = 50;
+        result->P2 = 20;
         result->H = 5;
     }
 

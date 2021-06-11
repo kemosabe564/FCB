@@ -80,7 +80,6 @@ void changed_mode_handler(struct FlightController *self, enum FlightControllerMo
 void heartbeat_lost()
 {
     FlightController_change_mode(fc, Panic);
-    DEBUG(0, "Heartbeat lost :(");
 }
 
 void command_handler_function(struct Command *command)
@@ -149,7 +148,7 @@ int main(void)
     timers_init();
     adc_init();
     twi_init();
-    imu_init(true, 300);
+    imu_init(true, 100);
     baro_init();
     spi_flash_init();
     quad_ble_init();
@@ -185,6 +184,7 @@ int main(void)
 	{
 
 //        time = get_time_us();
+        LoopHandler_loop(lh, LH_LINK(imu), LH_HZ_TO_PERIOD(300));
         LoopHandler_loop(lh, LH_LINK(fc), LH_HZ_TO_PERIOD(300));
 
         LoopHandler_loop(lh, LH_LINK(r1), 0);
@@ -192,7 +192,6 @@ int main(void)
         LoopHandler_loop(lh, LH_LINK(r3), 0);
         LoopHandler_loop(lh, LH_LINK(r4), 0);
 
-        LoopHandler_loop(lh, LH_LINK(imu), LH_HZ_TO_PERIOD(300));
 
         LoopHandler_loop(lh, LH_LINK(serial_comms), 0);
 //        LoopHandler_loop(lh, LH_LINK(ble_comms), LH_HZ_TO_PERIOD(50));

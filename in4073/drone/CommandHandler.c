@@ -60,9 +60,12 @@ void CommandHandler_loop(void *context, uint32_t delta_us)
         Command_destroy(command);
     }
 
-    if (self->on_heartbeat_lost && (self->heartbeat_state == Alive) && ((get_time_us() - self->heartbeat_ts) >= self->heartbeat_margin))
+    int32_t heartbeat_diff = (get_time_us() - self->heartbeat_ts);
+    if (self->on_heartbeat_lost && (self->heartbeat_state == Alive) && (heartbeat_diff > 0) && (heartbeat_diff >= self->heartbeat_margin))
     {
         self->heartbeat_state = Dead;
+
+        DEBUG(0, "HB: %d, %d, diff: %d", self->heartbeat_ts, get_time_us(), (get_time_us() - self->heartbeat_ts));
         self->on_heartbeat_lost();
     }
 };

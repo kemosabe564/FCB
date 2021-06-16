@@ -118,15 +118,13 @@ void FlightController_loop(void *context, uint32_t delta_us)
         case Yaw: {
             int16_t t = FlightController_map_proportional(self);
             //get set point
-            int16_t setPoint = self->yaw_rate;
+            int16_t yaw_setPoint = self->yaw_rate * 10;
             //get sensor reading
-            //int16_t  psi_rate = (self->current_psi - self->previous_psi);
-            //int16_t  psi_rate = (self->imu->measured_r);
-            int16_t psi_rate = self->imu->imu_psi_rate;
+            int16_t  psi_rate = self->imu->measured_r;
             //calculate error
             int16_t yaw_error = setPoint - psi_rate;
             //calculate compensation and apply
-            int16_t yaw_compensation = (self->P * yaw_error) / 10;
+            int16_t yaw_compensation = (self->P * yaw_error) / 100;
 
             if (t<1)
             {
@@ -148,7 +146,6 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 Rotor_set_rpm(self->rotors[2], rpm2);
                 Rotor_set_rpm(self->rotors[3], rpm3);
 
-                //DEBUG(0, "%d,%d,%d",t,psi_rate, yaw_compensation);
             }
 
         }

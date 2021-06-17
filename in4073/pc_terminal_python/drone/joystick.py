@@ -100,8 +100,9 @@ class Joystick:
 
     def __parse_axis(self, axis, raw):
         parsed = raw
+
         if axis in self.__map_axis:
-            parsed = map_to(parsed, self.__map_axis[axis])
+            parsed = self.__map_axis[axis](parsed)
 
         if axis in self.__round_axis:
             parsed = round(parsed)
@@ -152,10 +153,15 @@ class Joystick:
             for i in range(self.__num_buttons):
                 self.__buttons[i] = (self.__joystick.get_button(i) == 1)
 
-    def set_axis_map(self, axis: JoystickAxis, mapping: tuple, do_round):
-        self.__map_axis[axis.value] = mapping
+    def set_axis_map(self, axis: JoystickAxis, mapping, do_round):
+        # if mapping is a tuple then it will assume a linear mapping
+        self.__map_axis[axis.value] = (lambda x: map_to(x, mapping)) if (type(mapping) is tuple) else mapping
         self.__round_axis[axis.value] = do_round
 
     def get_axis(self, axis: JoystickAxis):
         if axis.value in self.__parsed_axis:
             return self.__parsed_axis[axis.value]
+
+    def get_axis_raw(self, axis: JoystickAxis):
+        if axis.value in self.__parsed_axis:
+            return self.__raw_axis[axis.value]

@@ -1,6 +1,18 @@
 from drone.pygame import pygame
 from drone.joystick import Joystick, JoystickAxis, JoystickButton
 from drone.keyboard import Keyboard
+import math
+
+
+def tangent_map(x):
+    value = 235*math.atan(-x + 0.85)
+
+    if value < 0:
+        return 0
+    if value > 255:
+        return 255
+
+    return value
 
 
 class Eventloop:
@@ -11,7 +23,9 @@ class Eventloop:
         self.__joystick.set_axis_map(JoystickAxis.Yaw,      (-1, 1, 0, 255), True)
         self.__joystick.set_axis_map(JoystickAxis.Pitch,    (-1, 1, 0, 255), True)
         self.__joystick.set_axis_map(JoystickAxis.Roll,     (-1, 1, 0, 255),  True)
-        self.__joystick.set_axis_map(JoystickAxis.Throttle, (0.85, -1, 0, 255), True)  # 0.15 deadzone
+        # self.__joystick.set_axis_map(JoystickAxis.Throttle, (0.85, -1, 0, 255), True)  # 0.15 deadzone
+
+        self.__joystick.set_axis_map(JoystickAxis.Throttle, tangent_map, True)
 
         self.__keyboard = Keyboard()
 

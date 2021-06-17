@@ -1,19 +1,16 @@
 import matplotlib.backends.backend_agg as agg
 import matplotlib.pyplot as plt
-
 from drone.pygame import pygame
-
 from drone.pygame import matplotlib
-
 from drone.pygame import pylab
-
 from drone.drone import Drone, FlightMode
-
 from drone.joystick import Joystick, JoystickAxis, JoystickButton
-
 from drone.controller import Controller
-
 from drone.keyboard import Keyboard
+from drone.tripled.wireframe import Wireframe
+from drone.tripled.wireframeviewer import WireframeViewer
+import numpy as np
+import math
 
 
 def init_fig(Figsize, Dpi):
@@ -64,7 +61,6 @@ class Display_Data_Queue():
             self.data_queue = newinput[0:length] + self.data_queue[0:N-length]
 
 
-
 class GUI:
     def __init__(self, size, drone: Drone , controller: Controller):
         self.drone = drone
@@ -76,6 +72,17 @@ class GUI:
 
         self.screen = pygame.display.set_mode(size)
         #self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+
+        self.wfviewer = WireframeViewer(self.screen)
+
+        cube = Wireframe()
+        cube_nodes = [(x, y, z) for x in (50, 250) for y in (50, 250) for z in (50, 250)]
+        cube.addNodes(np.array(cube_nodes))
+        cube.addEdges([(n, n + 4) for n in range(0, 4)] + [(n, n + 1) for n in range(0, 8, 2)] + [(n, n + 2) for n in
+                                                                                                  (0, 1, 4, 5)])
+
+        self.wfviewer.add_wireframe('cube', cube)
+        self.wfviewer.set_wireframe_position('cube', (size[0] / 2, size[1] / 2))
 
         self.update_title()
         self.__init_display()
@@ -190,6 +197,11 @@ class GUI:
         # graph_drawing(self.pitch_fig, self.pitch_data.data_queue, [-1, 105], [-1.1, 1.1], (25, 150), self.screen)
         # graph_drawing(self.pitch_fig, self.roll_data.data_queue, [-1, 105], [-1.1, 1.1], (25, 375), self.screen)
         # graph_drawing(self.pitch_fig, self.yaw_data.data_queue, [-1, 105], [-1.1, 1.1], (25, 600), self.screen)
+
+        self.wfviewer.rotate(((phi / 256) * math.pi * 2, (theta / 256) * math.pi * 2, (psi / 256) * math.pi * 2))
+        # self.wfviewer.rotate((0.5, 0.5, 0))
+
+        self.wfviewer.display()
 
         pygame.display.flip()
         self.update_title()

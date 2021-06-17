@@ -63,8 +63,32 @@ struct IMU *IMU_create(bool dmp, uint16_t frequency)
         result->calibration_time_us = 10000000;
         result->dmp_enabled = dmp;
         result->frequency = frequency;
-//        imu_init(true, frequency);
-//        timers_init();
+
+        //initializing all readings to 0
+        for(int i=0; i<BUTTERWORTH_N; i++)
+        {
+            result->sp_x[i]=0;
+            result->sq_x[i]=0;
+            result->sr_x[i]=0;
+            result->sp_y[i]=0;
+            result->sq_y[i]=0;
+            result->sr_y[i]=0;
+        }
+
+        //need to replace these with MATLAB constants
+        //on debugging this a0 became 329 in int
+        //that is correct
+
+        result->a0 = float2fix(0.020083372);
+        result->a1 = float2fix(0.040166743);
+        result->a2 = float2fix(0.020083372);
+        result->b0 = float2fix(1);
+        result->b1 = float2fix(-1.5610181);
+        result->b2 = float2fix(0.6413515);
+
+
+
+
     }
 
     return result;
@@ -141,13 +165,35 @@ void IMU_loop(void *context, uint32_t delta_us)
             imu->measured_ay = say;
             imu->measured_az = saz;
 
-
             // adjusted angles. More processing might be added here
             //This can overflow - needs to be changed
             //roll over handled in fc
             imu->cal_roll_angle = imu->roll_angle - imu->roll_angle_offset;
             imu->cal_pitch_angle = imu->pitch_angle - imu->pitch_angle_offset;
 
+            //BUTTERWORTH
+            //DEBUG(0,"a%d",imu->a0); //works fine
+
+            //moving all values and reading the new input
+            imu->sp_x[2]=imu->sp_x[1];
+            imu->sp_x[1]=imu->sp_x[0];
+            imu->sp_x[0] = sp;
+
+            //moving all y values
+            imu->sp_y[2]=imu->sp_y[1];
+            imu->sp_y[1]=imu->sp_y[0];
+
+            //warning:be careful of terrible naming convention
+            int16_t sp_x0 = float2fix(imu->sp_x[0]);
+            int16_t sp_x1 = float2fix(imu->sp_x[1]);
+            int16_t sp_x2 = float2fix(imu->sp_x[2]);
+            int16_t sp_y1 = float2fix(imu->sp_y[1]);
+            int16_t sp_y2 = float2fix(imu->sp_y[2]);
+
+            int16_t sp_y0 = fixmul(imu->a0,sp_x0)+fixmul(imu->a1,sp_x1)+fixmul(imu->a2,sp_x2)-
+                     fixmul(imu->b1,sp_y1)-fixmul(imu->b2,sp_y2);
+            imu->sp_y[0]= fix2float(sp_y0);
+            DEBUG(0,"y%d",imu->sp_y[0]);
         }
             break;
         case IMU_StartCalibration: {
@@ -200,4 +246,43 @@ void IMU_destroy(struct IMU *self)
     {
         free(self);
     }
+}
+
+/*----------------------------------------------------------------
+ * float2fix -- convert float to fixed point 18+14 bits
+ *----------------------------------------------------------------
+ */
+int     float2fix(double x)
+{
+    int	y;
+
+    y = x * (1 << 14);
+    return y;
+}
+
+
+/*----------------------------------------------------------------
+ * fix2float -- convert fixed 18+14 bits to float
+ *----------------------------------------------------------------
+ */
+double 	fix2float(int x)
+{
+    double	y;
+
+    y = ((double) x) / (1 << 14);
+    return y;
+}
+
+
+/*----------------------------------------------------------------
+ * fixmul -- multiply fixed 18+14 bits to float
+ *----------------------------------------------------------------
+ */
+double 	fixmul(int x1, int x2)
+{
+    int	y;
+
+    y = x1 * x2; // Note: be sure this fits in 32 bits !!!!
+    y = (y >> 14);
+    return y;
 }

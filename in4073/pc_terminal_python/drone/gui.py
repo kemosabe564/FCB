@@ -151,7 +151,7 @@ class GUI:
         angle_str = 'Phi: {: 6d}   Theta: {: 6d}   Psi: {: 6d}'.format(phi, theta, psi)
         rpm_str = 'Rotor RPM {: 4d} {: 4d} {: 4d} {: 4d}'.format(r0, r1, r2, r3)
         p_str = 'P: {: 2d}  P1: {: 2d}  P2: {: 2d}  H: {: 2d}                               Offsets: Yaw: {: 3d}   Roll: {: 3d}   Pitch: {: 3d}'.format(self.controller.P, self.controller.P1, self.controller.P2, self.controller.H, self.controller.offset_yaw,  self.controller.offset_roll, self.controller.offset_pitch)
-        inputs_str = 'Inputs: Throttle: {}   Yaw: {}   Roll: {}   Pitch: {}   dThrottle: {}'.format(str(self.controller.input_throttle), str(self.controller.yaw), str(self.controller.roll), str(self.controller.pitch), str(self.controller.delta_throttle))
+        inputs_str = 'Inputs: Throttle: {}   Yaw: {}   Roll: {}   Pitch: {} '.format(str(self.controller.input_throttle), str(self.controller.yaw), str(self.controller.roll), str(self.controller.pitch))
         if self.controller.input_safe(self.drone.mode == FlightMode.Safe):
             safe_str = 'Inputs safe'
             text_safe = font2.render(safe_str, True, green, white)
@@ -160,7 +160,7 @@ class GUI:
             text_safe = font2.render(safe_str, True, black, red)
 
         if self.controller.battery_check:
-            bat_str = 'Battery check enabled. Press key Z to disable'
+            bat_str = 'Battery check enabled. Press z to disable'
             text_bat = font2.render(bat_str,True, green,white)
         else:
             bat_str = 'Battery check disabled'
@@ -191,9 +191,14 @@ class GUI:
         if self.drone.mode == FlightMode.Safe:
             self.screen.blit(text_safe, (30, height - 90))
 
-        #graph_drawing(self.phi_fig, self.phi_data.data_queue, [-1, 105], [-127, 127], (900, 50), self.screen, 'Phi')
-        #graph_drawing(self.phi_fig, self.theta_data.data_queue, [-1, 105], [-127, 127], (900, 275), self.screen, 'Theta')
-        #graph_drawing(self.phi_fig, self.psi_data.data_queue, [-1, 105], [-127, 127], (900, 500), self.screen, 'Psi')
+        if self.controller.draw_graphs:
+            graph_drawing(self.phi_fig, self.phi_data.data_queue, [-1, 105], [-127, 127], (900, 50), self.screen, 'Phi')
+            graph_drawing(self.phi_fig, self.theta_data.data_queue, [-1, 105], [-127, 127], (900, 275), self.screen, 'Theta')
+            graph_drawing(self.phi_fig, self.psi_data.data_queue, [-1, 105], [-127, 127], (900, 500), self.screen, 'Psi')
+
+
+
+
 
         # graph_drawing(self.pitch_fig, self.pitch_data.data_queue, [-1, 105], [-1.1, 1.1], (25, 150), self.screen)
         # graph_drawing(self.pitch_fig, self.roll_data.data_queue, [-1, 105], [-1.1, 1.1], (25, 375), self.screen)

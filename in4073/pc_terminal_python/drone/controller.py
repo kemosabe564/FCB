@@ -36,6 +36,7 @@ class Controller:
         self.delta_throttle = 0
 
         self.battery_check = True
+        self.draw_graphs = False
 
         self.P = 11
         self.P1 = 50
@@ -107,7 +108,8 @@ class Controller:
             if event.key == pygame.K_z:
                 self.battery_check = not self.battery_check
                 self.drone.set_params(5, 1 if self.battery_check else 0)
-
+            if event.key == pygame.K_g:
+                self.draw_graphs = not self.draw_graphs
             if event.key == pygame.K_0:  # safe mode
                 self.drone.change_mode(FlightMode.Safe)
             if event.key == pygame.K_1:  # panic mode
@@ -131,6 +133,11 @@ class Controller:
                     self.drone.change_mode(FlightMode.Full)
                 else:
                     print("NOT SAFE")
+            if event.key == pygame.K_6:
+                if self.drone.mode == FlightMode.Safe and self.input_safe(True):
+                    self.drone.change_mode(FlightMode.Raw)
+                else:
+                    print('NOT SAFE')
 
             if event.key == pygame.K_7:
                 if self.drone.mode == FlightMode.Full or self.drone.mode == FlightMode.Raw:

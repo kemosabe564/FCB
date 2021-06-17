@@ -7,6 +7,7 @@
 
 #define BARO_WIN 5
 #define BAT_WIN 5
+#define BUTTERWORTH_N 3
 
 #include "LoopHandler.h"
 
@@ -73,6 +74,25 @@ struct IMU
     uint8_t battery_iterator;
     uint16_t battery_average;
 
+    //butterworth
+    int16_t sp_x[BUTTERWORTH_N];
+    int16_t sq_x[BUTTERWORTH_N];
+    int16_t sr_x[BUTTERWORTH_N];
+
+    int16_t sp_y[BUTTERWORTH_N];
+    int16_t sq_y[BUTTERWORTH_N];
+    int16_t sr_y[BUTTERWORTH_N];
+
+    int16_t a0;
+    int16_t a1;
+    int16_t a2;
+
+    int16_t b0;
+    int16_t b1;
+    int16_t b2;
+
+
+
     bool calibrated;
     uint32_t calibration_start_ts;
     uint32_t calibration_time_us;
@@ -85,5 +105,9 @@ void IMU_loop(void *context, uint32_t delta_us);
 struct IMU *IMU_create(bool dmp, uint16_t frequency);
 void IMU_calibrate(struct IMU *self);
 void IMU_destroy(struct IMU *self);
+
+int     float2fix(double x);
+double 	fix2float(int x);
+double 	fixmul(int x1, int x2);
 
 #endif //QUADCOPTER_FCB_IMU_H

@@ -35,6 +35,8 @@ class Controller:
         self.input_throttle = 0
         self.delta_throttle = 0
 
+        self.trim_changed = False
+
         self.battery_check = True
         self.draw_graphs = False
 
@@ -52,11 +54,13 @@ class Controller:
     def inc_check_limits(self, value):
         if (value + self.step) < 127:
             value = value + self.step
+            self.trim_changed = True
         return value
 
     def dec_check_limits(self, value):
         if (value - self.step) > -127:
             value = value - self.step
+            self.trim_changed = True
         return value
 
     def handle_joystick_button_event(self, button: JoystickButton, active: bool):
@@ -241,11 +245,12 @@ class Controller:
         while not self.terminate:
             if self.joystick.available():
                 if self.drone.mode in [FlightMode.Manual, FlightMode.Yaw, FlightMode.Full, FlightMode.Raw, FlightMode.HoldHeight]:
-                    if self.update_inputs():
+                    if self.update_inputs() or self.trim_changed:
                         self.roll = self.limit(self.input_roll + self.offset_roll)
                         self.pitch = self.limit(self.input_pitch + self.offset_pitch)
                         self.yaw = self.limit(self.input_yaw + self.offset_yaw)
                         self.drone.set_control(roll=self.roll, pitch=self.pitch, yaw=self.yaw, throttle=self.input_throttle)
+                        self.trim_changed = False
             time.sleep(0.0125)
 
     def stop(self):

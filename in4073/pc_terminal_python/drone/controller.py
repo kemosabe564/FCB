@@ -35,13 +35,17 @@ class Controller:
         self.input_throttle = 0
         self.delta_throttle = 0
 
+        self.trim_changed = False
+
         self.battery_check = True
+        self.draw_graphs = False
+
+        self.isCalibrated = False
 
         self.P = 11
         self.P1 = 50
         self.P2 = 20
 
-        #gets multiplied by 10 so this adds or sub 50rpm
         self.H = 5
 
 
@@ -52,34 +56,40 @@ class Controller:
     def inc_check_limits(self, value):
         if (value + self.step) < 127:
             value = value + self.step
+            self.trim_changed = True
         return value
 
     def dec_check_limits(self, value):
         if (value - self.step) > -127:
             value = value - self.step
+            self.trim_changed = True
         return value
 
     def handle_joystick_button_event(self, button: JoystickButton, active: bool):
         if button == JoystickButton.Trigger and active and self.drone.mode != FlightMode.Safe:
             self.drone.change_mode(FlightMode.Panic)
         if button == JoystickButton.Thumb:
-            if self.drone.mode == FlightMode.Safe and self.input_safe():
+            if self.drone.mode == FlightMode.Safe and self.input_safe(True):
                 self.drone.change_mode(FlightMode.Manual)
             else:
                 print('NOT SAFE')
         if button == JoystickButton.B3:
             self.drone.change_mode(FlightMode.Calibrate)
         if button == JoystickButton.B4:  # yaw rate
-            if self.drone.mode == FlightMode.Safe and self.input_safe():
+            if self.drone.mode == FlightMode.Safe and self.input_safe(True):
                 self.drone.change_mode(FlightMode.Yaw)
             else:
                 print("NOT SAFE")
         if button == JoystickButton.B5:  # fullcontrol
-            if self.drone.mode == FlightMode.Safe and self.input_safe():
+            if self.drone.mode == FlightMode.Safe and self.input_safe(True):
                 self.drone.change_mode(FlightMode.Full)
             else:
                 print("NOT SAFE")
-
+        if button == JoystickButton.B6:
+            if self.drone.mode == FlightMode.Safe and self.input_safe(True):
+                self.drone.change_mode(FlightMode.Raw)
+            else:
+                print("NOT SAFE")
         if button == JoystickButton.B7:
             if self.drone.mode == FlightMode.Full or self.drone.mode == FlightMode.Raw:
                 self.drone.change_mode(FlightMode.HoldHeight)
@@ -108,7 +118,8 @@ class Controller:
             if event.key == pygame.K_z:
                 self.battery_check = not self.battery_check
                 self.drone.set_params(5, 1 if self.battery_check else 0)
-
+            if event.key == pygame.K_g:
+                self.draw_graphs = not self.draw_graphs
             if event.key == pygame.K_0:  # safe mode
                 self.drone.change_mode(FlightMode.Safe)
             if event.key == pygame.K_1:  # panic mode
@@ -130,6 +141,11 @@ class Controller:
             if event.key == pygame.K_5:  # fullcontrol
                 if self.drone.mode == FlightMode.Safe and self.input_safe(True):
                     self.drone.change_mode(FlightMode.Full)
+                else:
+                    print("NOT SAFE")
+            if event.key == pygame.K_6:
+                if self.drone.mode == FlightMode.Safe and self.input_safe(True):
+                    self.drone.change_mode(FlightMode.Raw)
                 else:
                     print("NOT SAFE")
 
@@ -227,13 +243,19 @@ class Controller:
 
     def thread_function(self):
         while not self.terminate:
+
+            if not self.isCalibrated:
+                if self.drone.mode == FlightMode.Calibrate:
+                    self.isCalibrated = True
+
             if self.joystick.available():
                 if self.drone.mode in [FlightMode.Manual, FlightMode.Yaw, FlightMode.Full, FlightMode.Raw, FlightMode.HoldHeight]:
-                    if self.update_inputs():
+                    if self.update_inputs() or self.trim_changed:
                         self.roll = self.limit(self.input_roll + self.offset_roll)
                         self.pitch = self.limit(self.input_pitch + self.offset_pitch)
                         self.yaw = self.limit(self.input_yaw + self.offset_yaw)
                         self.drone.set_control(roll=self.roll, pitch=self.pitch, yaw=self.yaw, throttle=self.input_throttle)
+                        self.trim_changed = False
             time.sleep(0.0125)
 
     def stop(self):

@@ -24,9 +24,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
 {
     struct FlightController *self = (struct FlightController *)context;
 
-    self->current_psi = self->imu->yaw_rate;
-    self->current_phi = self->imu->roll_angle;
-    self->current_theta = self->imu->pitch_angle;
+
 
 //    static int check = 0;
 //    printf("FlightController_loop %d - Bat %4d - Motor %d - Mode::%s \n", check++, bat_volt, motor[0], FlightControllerMode_to_str(self->mode));
@@ -38,6 +36,11 @@ void FlightController_loop(void *context, uint32_t delta_us)
     {
         FlightController_change_mode(self,Panic);
         DEBUG(0, "BAT LOW: %d ", self->imu->battery_average);
+    }
+
+    if (self->battery_check && (self->imu->battery_average < BAT_WARN && self->imu->battery_average > BAT_THRESHOLD && self->mode != Safe && self->mode != Panic))
+    {
+        DEBUG(0,"B WARN %d",self->imu->battery_average);
     }
 
     switch (self->mode) {
@@ -118,15 +121,13 @@ void FlightController_loop(void *context, uint32_t delta_us)
         case Yaw: {
             int16_t t = FlightController_map_proportional(self);
             //get set point
-            int16_t setPoint = self->yaw_rate;
+            int16_t yaw_setPoint = self->yaw_rate * 10;
             //get sensor reading
-            //int16_t  psi_rate = (self->current_psi - self->previous_psi);
-            //int16_t  psi_rate = (self->imu->measured_r);
-            int16_t psi_rate = self->imu->imu_psi_rate;
+            int16_t  psi_rate = self->imu->r;
             //calculate error
-            int16_t yaw_error = setPoint - psi_rate;
+            int16_t yaw_error = yaw_setPoint - psi_rate;
             //calculate compensation and apply
-            int16_t yaw_compensation = (self->P * yaw_error) / 10;
+            int16_t yaw_compensation = (self->P * yaw_error) / 100;
 
             if (t<1)
             {
@@ -148,7 +149,6 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 Rotor_set_rpm(self->rotors[2], rpm2);
                 Rotor_set_rpm(self->rotors[3], rpm3);
 
-                //DEBUG(0, "%d,%d,%d",t,psi_rate, yaw_compensation);
             }
 
         }
@@ -166,18 +166,15 @@ void FlightController_loop(void *context, uint32_t delta_us)
             int16_t theta_setPoint = -(self->pitch_angle)/8;
             int16_t yaw_setPoint = self->yaw_rate * 10;
             //calculate rate of change
-//            int16_t  psi_rate = (self-> current_psi - self->previous_psi );
-//            int16_t  phi_rate = (self-> current_phi - self->previous_phi );
-//            int16_t  theta_rate = (self-> current_theta - self->previous_theta );
 
 //            int16_t  psi_rate = self->imu->imu_psi_rate;
 //            int16_t  phi_rate = self->imu->imu_phi_rate/5;
 //            int16_t  theta_rate = self->imu->imu_theta_rate/5;
 
-            int16_t  psi_rate = self->imu->measured_r;
+            int16_t  psi_rate = self->imu->r;
             //typical values -2000 to +2000
-            int16_t  phi_rate = self->imu->measured_p;
-            int16_t  theta_rate = self->imu->measured_q;
+            int16_t  phi_rate = self->imu->p;
+            int16_t  theta_rate = self->imu->q;
 
 
 
@@ -244,9 +241,9 @@ void FlightController_loop(void *context, uint32_t delta_us)
             int16_t theta_setPoint = -(self->pitch_angle)/8;
             int16_t yaw_setPoint = self->yaw_rate * 10;
 
-            int16_t  psi_rate = self->imu->measured_r;
-            int16_t  phi_rate = self->imu->measured_p;
-            int16_t  theta_rate = self->imu->measured_q;
+            int16_t  psi_rate = self->imu->r;
+            int16_t  phi_rate = self->imu->p;
+            int16_t  theta_rate = self->imu->q;
 
             //DEBUG( 0 , "PR %d", phi_rate);
 
@@ -274,12 +271,6 @@ void FlightController_loop(void *context, uint32_t delta_us)
             int16_t pitch_rate_compensation = -(self->P2 * pitch_rate_error) / 100;
 
 
-//            if((self->throttle - self->hold_throttle_raw) != 0)
-//            {
-//                DEBUG(0,"Throttle touched");
-//                FlightController_change_mode(self,Full);
-//            }
-
             //get height rate
             //calculated in self->imu->imu_height_rate
 
@@ -288,7 +279,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
             int32_t  height_error = self->imu->barometer_average - self->imu->barometer_to_hold;
             int16_t lift_compensation = (self->H  * height_error ) /10;
 
-            DEBUG(0,"lc%d",lift_compensation);
+            //DEBUG(0,"lc%d",lift_compensation);
 
             //DEBUG(0,"%d %d %d",self->imu->barometer_average,self->imu->imu_height_rate,lift_compensation);
 
@@ -308,9 +299,6 @@ void FlightController_loop(void *context, uint32_t delta_us)
             break;
     }
 
-    self->previous_psi = self->current_psi;
-    self->previous_phi = self->current_phi;
-    self-> previous_theta = self->current_theta;
 
 }
 
@@ -326,6 +314,16 @@ void __FlightController_on_changed_mode(struct FlightController *self, enum Flig
             break;
         case Calibrate:
             IMU_calibrate(self->imu);
+            break;
+        case Full:
+        {
+//            IMU_go_full(self->imu);
+        }
+            break;
+        case Raw:
+        {
+            IMU_go_raw(self->imu);
+        }
             break;
         default: break;
     }
@@ -349,12 +347,6 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
         result->num_rotors = num_rotors;
         result->rotors = (struct Rotor **)malloc(num_rotors * sizeof(struct Rotor *));
         memcpy(result->rotors, rotors, num_rotors * sizeof(struct Rotor *));
-        result->current_psi = psi;
-        result->previous_psi = psi;
-        result->current_phi=phi;
-        result->previous_phi=phi;
-        result->current_theta=theta;
-        result->previous_theta=theta;
         result->ch = ch;
         result->phi_offset = phi;
         result->theta_offset=theta;

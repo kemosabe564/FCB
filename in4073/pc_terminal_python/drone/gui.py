@@ -82,7 +82,7 @@ class GUI:
                                                                                                   (0, 1, 4, 5)])
 
         self.wfviewer.add_wireframe('cube', cube)
-        self.wfviewer.set_wireframe_position('cube', (size[0] / 2, size[1] / 2))
+        self.wfviewer.set_wireframe_position('cube', ((size[0] / 2) - 150, (size[1] / 2) - 150))
 
         self.update_title()
         self.__init_display()
@@ -184,7 +184,7 @@ class GUI:
         #rotated = pygame.transform.rotate(self.screen, (phi + 32767) / 65535)
 
         self.screen.fill((white))
-        pygame.draw.rect(self.screen, (255, 0, 0), rect)
+        # pygame.draw.rect(self.screen, (255, 0, 0), rect)
 
         self.screen.blit(font.render('{:^10}'.format(status), True, (204, 0, 0), (255, 225, 225)), (30, height - 150))
         self.screen.blit(text_angles, (30,40))
@@ -214,8 +214,7 @@ class GUI:
         # graph_drawing(self.pitch_fig, self.roll_data.data_queue, [-1, 105], [-1.1, 1.1], (25, 375), self.screen)
         # graph_drawing(self.pitch_fig, self.yaw_data.data_queue, [-1, 105], [-1.1, 1.1], (25, 600), self.screen)
 
-        self.wfviewer.rotate(((phi / 256) * math.pi * 2, (theta / 256) * math.pi * 2, (psi / 256) * math.pi * 2))
-        # self.wfviewer.rotate((0.5, 0.5, 0))
+        self.wfviewer.rotate(((phi / 256) * math.pi * 2, (psi / 256) * math.pi * 2, (theta / 256) * math.pi * 2))
 
         self.wfviewer.display()
 

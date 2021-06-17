@@ -10,8 +10,8 @@ class WireframeViewer:
         self.wireframes = {}
         self.displayNodes = True
         self.displayEdges = True
-        self.nodeColour = (255, 255, 255)
-        self.edgeColour = (200, 200, 200)
+        self.nodeColour = (255, 0, 0)
+        self.edgeColour = (200, 0, 0)
         self.nodeRadius = 4
 
         self.positions = {}

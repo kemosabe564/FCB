@@ -21,8 +21,8 @@ class Wireframe:
         (x, y, z) = self.angles
 
         nodes = self.rotateX(center, self.shape, x)
-        nodes = self.rotateY(center, self.shape, y)
-        nodes = self.rotateZ(center, self.shape, z)
+        nodes = self.rotateY(center, nodes, y)
+        nodes = self.rotateZ(center, nodes, z)
 
         return nodes
 
@@ -37,7 +37,7 @@ class Wireframe:
     def rotateX(self, point, nodes, radians):
         (cx, cy, cz) = point
 
-        copy = nodes
+        copy = np.vstack(nodes)
         for node in copy:
             y = node[1] - cy
             z = node[2] - cz
@@ -51,7 +51,7 @@ class Wireframe:
     def rotateY(self, point, nodes, radians):
         (cx, cy, cz) = point
 
-        copy = nodes
+        copy = np.vstack(nodes)
         for node in copy:
             x = node[0] - cx
             z = node[2] - cz
@@ -65,7 +65,7 @@ class Wireframe:
     def rotateZ(self, point, nodes, radians):
         (cx, cy, cz) = point
 
-        copy = nodes
+        copy = np.vstack(nodes)
         for node in copy:
             x = node[0] - cx
             y = node[1] - cy

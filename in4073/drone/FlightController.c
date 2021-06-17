@@ -317,7 +317,7 @@ void __FlightController_on_changed_mode(struct FlightController *self, enum Flig
             break;
         case Full:
         {
-            IMU_go_full(self->imu);
+//            IMU_go_full(self->imu);
         }
             break;
         case Raw:

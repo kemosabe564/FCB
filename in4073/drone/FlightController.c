@@ -38,6 +38,11 @@ void FlightController_loop(void *context, uint32_t delta_us)
         DEBUG(0, "BAT LOW: %d ", self->imu->battery_average);
     }
 
+    if (self->battery_check && (self->imu->battery_average < BAT_WARN && self->imu->battery_average > BAT_THRESHOLD && self->mode != Safe && self->mode != Panic))
+    {
+        DEBUG(0,"B WARN %d",self->imu->battery_average);
+    }
+
     switch (self->mode) {
         case Init:
             self->debug_mode = (bat_volt == 0);

@@ -186,6 +186,9 @@ class GUI:
         self.screen.blit(text_p, (30, height - 60))
         self.screen.blit(text_bat, (700, height - 60))
 
+        if self.drone.mode in [FlightMode.Full , FlightMode.Yaw , FlightMode.Yaw ,FlightMode.HoldHeight] and not self.controller.isCalibrated:
+            self.screen.blit(font2.render('Warning: Not Calibrated', True, red, white),(700,height - 90))
+
         if self.drone.mode != FlightMode.Safe and self.drone.mode != FlightMode.Panic:
             self.screen.blit(text_inputs, (30, height - 30))
         if self.drone.mode == FlightMode.Safe:

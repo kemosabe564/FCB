@@ -40,6 +40,8 @@ class Controller:
         self.battery_check = True
         self.draw_graphs = False
 
+        self.isCalibrated = False
+
         self.P = 11
         self.P1 = 50
         self.P2 = 20
@@ -88,8 +90,6 @@ class Controller:
                 self.drone.change_mode(FlightMode.Raw)
             else:
                 print("NOT SAFE")
-
-
         if button == JoystickButton.B7:
             if self.drone.mode == FlightMode.Full or self.drone.mode == FlightMode.Raw:
                 self.drone.change_mode(FlightMode.HoldHeight)
@@ -243,6 +243,11 @@ class Controller:
 
     def thread_function(self):
         while not self.terminate:
+
+            if not self.isCalibrated:
+                if self.drone.mode == FlightMode.Calibrate:
+                    self.isCalibrated = True
+
             if self.joystick.available():
                 if self.drone.mode in [FlightMode.Manual, FlightMode.Yaw, FlightMode.Full, FlightMode.Raw, FlightMode.HoldHeight]:
                     if self.update_inputs() or self.trim_changed:

@@ -9,6 +9,10 @@
 #define BAT_WIN 5
 #define BUTTERWORTH_N 3
 
+#define P2PHI float2fix(1)
+#define C1 float2fix(1)
+#define C2 float2fix(1000)
+
 #include "LoopHandler.h"
 
 #include <stdbool.h>
@@ -78,12 +82,12 @@ struct IMU
 
     //butterworth
     int32_t sp_x[BUTTERWORTH_N];
-//    int16_t sq_x[BUTTERWORTH_N];
-//    int16_t sr_x[BUTTERWORTH_N];
+    int16_t sq_x[BUTTERWORTH_N];
+    int16_t sr_x[BUTTERWORTH_N];
 
     int32_t sp_y[BUTTERWORTH_N];
-//    int16_t sq_y[BUTTERWORTH_N];
-//    int16_t sr_y[BUTTERWORTH_N];
+    int16_t sq_y[BUTTERWORTH_N];
+    int16_t sr_y[BUTTERWORTH_N];
 
     int16_t a0;
     int16_t a1;
@@ -92,6 +96,12 @@ struct IMU
     int16_t b0;
     int16_t b1;
     int16_t b2;
+
+    //kalman
+    int32_t bias_phi;
+    int32_t p_estimate;
+    int32_t e_phi;
+    int32_t phi_kalman;
 
     bool calibrated;
     uint32_t calibration_start_ts;
@@ -105,6 +115,8 @@ void IMU_loop(void *context, uint32_t delta_us);
 struct IMU *IMU_create(bool dmp, uint16_t frequency);
 void IMU_calibrate(struct IMU *self);
 void IMU_destroy(struct IMU *self);
+void IMU_go_raw(struct IMU *self);
+void IMU_go_full(struct IMU *self);
 
 int32_t     float2fix(double x);
 int32_t 	fix2float(int x);

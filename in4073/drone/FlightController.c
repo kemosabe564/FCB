@@ -311,12 +311,15 @@ void __FlightController_on_changed_mode(struct FlightController *self, enum Flig
             IMU_calibrate(self->imu);
             break;
         case Full:
-            imu_init(true,100);
+        {
+            IMU_go_full(self->imu);
+        }
             break;
         case Raw:
-            imu_init(false,500);
+        {
+            IMU_go_raw(self->imu);
+        }
             break;
-
         default: break;
     }
 }

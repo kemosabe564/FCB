@@ -72,23 +72,28 @@ struct IMU *IMU_create(bool dmp, uint16_t frequency)
         for(int i=0; i<BUTTERWORTH_N; i++)
         {
             result->sp_x[i]=0;
-//            result->sq_x[i]=0;
-//            result->sr_x[i]=0;
+            result->sq_x[i]=0;
+            result->sr_x[i]=0;
             result->sp_y[i]=0;
-//            result->sq_y[i]=0;
-//            result->sr_y[i]=0;
+            result->sq_y[i]=0;
+            result->sr_y[i]=0;
         }
 
         //need to replace these with MATLAB constants
-        //on debugging this a0 became 329 in int
-        //that is correct
 
-        result->a0 = float2fix(0.0006098547);
-        result->a1 = float2fix(0.0006098547 * 2);
-        result->a2 = float2fix(0.0006098547);
+        result->a0 = float2fix(0.0095257623);
+        result->a1 = float2fix(0.0190515247);
+        result->a2 = float2fix(0.0095257623);
         result->b0 = float2fix(1);
-        result->b1 = float2fix(-1.9289423);
-        result->b2 = float2fix(0.9313817);
+        result->b1 = float2fix(-1.705552145);
+        result->b2 = float2fix(0.743655195);
+
+        //kalman
+
+        result->bias_phi = 0;
+        result->e_phi = 0;
+        result->phi_kalman = 0;
+        result->p_estimate = 0;
 
     }
 
@@ -153,6 +158,9 @@ void IMU_loop(void *context, uint32_t delta_us)
             imu->imu_height_rate = (sum/BARO_WIN) - imu->barometer_average;
             imu->barometer_average = sum/BARO_WIN;
 
+            //****END COMMON****
+            //**** MEASURING FULL  *****
+
             imu->roll_angle = phi;
             imu->pitch_angle = theta;
             imu->yaw_rate = psi;
@@ -169,9 +177,59 @@ void IMU_loop(void *context, uint32_t delta_us)
             imu->measured_ay = say;
             imu->measured_az = saz;
 
+            //**** END MEASURING FULL ****
+        }
+            break;
 
-            //BUTTERWORTH
+        case IMU_MeasuringRaw:
+        {
+            //****COMMON****
 
+            if (check_sensor_int_flag())
+            {
+                get_sensor_data();
+            }
+            adc_request_sample();
+            read_baro();
+            //decide if iterator index needs to loop back
+            if (imu->battery_iterator >= BAT_WIN)
+            {
+                imu->battery_iterator=0;
+            }
+            //set the required index
+            imu->battery_voltage[imu->battery_iterator]=bat_volt;
+            imu->battery_iterator++;
+            int32_t bat_sum =0;
+            for (int i=0; i<BAT_WIN; i++)
+            {
+                bat_sum = bat_sum + imu->battery_voltage[i];
+            }
+            imu->battery_average = bat_sum/BAT_WIN;
+            //This works , verified the average
+            //DEBUG(0,"a%dr%d",imu->battery_average,bat_volt);
+
+
+            imu->barometer_iterator++;
+            if (imu->barometer_iterator >= BARO_WIN)
+            {
+                imu->barometer_iterator=0;
+            }
+            imu->barometer_readings[imu->barometer_iterator]=pressure;
+
+            int32_t sum =0;
+            for (int i=0; i<BARO_WIN; i++)
+            {
+                sum = sum + imu->barometer_readings[i];
+            }
+
+
+            imu->imu_height_rate = (sum/BARO_WIN) - imu->barometer_average;
+            imu->barometer_average = sum/BARO_WIN;
+
+            //****END COMMON****
+            //**** MEASURING RAW ****
+
+            //sp
             //moving all values and reading the new input
             imu->sp_x[2]=imu->sp_x[1];
             imu->sp_x[1]=imu->sp_x[0];
@@ -180,14 +238,61 @@ void IMU_loop(void *context, uint32_t delta_us)
             //moving all y values
             imu->sp_y[2]=imu->sp_y[1];
             imu->sp_y[1]=imu->sp_y[0];
-
             imu->sp_y[0] = fixmul(imu->a0,imu->sp_x[0])+fixmul(imu->a1,imu->sp_x[1])+fixmul(imu->a2,imu->sp_x[2])-
-                     fixmul(imu->b1,imu->sp_y[1])-fixmul(imu->b2,imu->sp_y[2]);
-            DEBUG(0,"y%d", fix2float(imu->sp_y[0]));
-        }
-            break;
+                           fixmul(imu->b1,imu->sp_y[1])-fixmul(imu->b2,imu->sp_y[2]);
+            DEBUG(0,"sp%d",sp);
 
-        case IMU_MeasuringRaw:
+            //sq
+            imu->sq_x[2]=imu->sq_x[1];
+            imu->sq_x[1]=imu->sq_x[0];
+            imu->sq_x[0] = float2fix(sq);
+            DEBUG(0,"sq%d",sq);
+
+            //moving all y values
+            imu->sq_y[2]=imu->sq_y[1];
+            imu->sq_y[1]=imu->sq_y[0];
+
+            imu->sq_y[0] = fixmul(imu->a0,imu->sq_x[0])+fixmul(imu->a1,imu->sq_x[1])+fixmul(imu->a2,imu->sq_x[2])-
+                           fixmul(imu->b1,imu->sq_y[1])-fixmul(imu->b2,imu->sq_y[2]);
+
+            //sr
+            imu->sr_x[2]=imu->sr_x[1];
+            imu->sr_x[1]=imu->sr_x[0];
+            imu->sr_x[0] = float2fix(sr);
+
+            //moving all y values
+            imu->sr_y[2]=imu->sr_y[1];
+            imu->sr_y[1]=imu->sr_y[0];
+
+            imu->sr_y[0] = fixmul(imu->a0,imu->sr_x[0])+fixmul(imu->a1,imu->sr_x[1])+fixmul(imu->a2,imu->sr_x[2])-
+                           fixmul(imu->b1,imu->sr_y[1])-fixmul(imu->b2,imu->sr_y[2]);
+
+            imu->p = fix2float(imu->sp_y[0]) - imu->sp_offset;
+            imu->q = fix2float(imu->sq_y[0]) - imu->sq_offset;
+            imu->r = fix2float(imu->sr_y[0]) - imu->sr_offset;
+            //DEBUG(0,"p%d",imu->p);
+            //DEBUG(0, "q%d",imu->q);
+
+            //kalman for phi and theta
+
+            //p = sp - b
+            imu->p_estimate = imu->sp_y[0] - imu->bias_phi;
+
+            //phi = phi + p * P2PHI
+            imu->phi_kalman = imu->phi_kalman + fixmul(imu->p_estimate,P2PHI);
+
+            //e = phi – sphi
+            imu->e_phi = imu->phi_kalman - phi;
+
+            //phi = phi – e / C1
+            imu->phi_kalman = imu->phi_kalman - (imu->e_phi / C1);
+
+            //b = b + (e/P2PHI) / C2
+            imu->bias_phi = imu->bias_phi + (imu->e_phi/P2PHI) / C2;
+
+            //****END MEASURING RAW ****
+            //DEBUG(0,"y%d", fix2float(imu->sp_y[0]));
+        }
             break;
 
         case IMU_StartCalibration: {
@@ -241,6 +346,19 @@ void IMU_destroy(struct IMU *self)
         free(self);
     }
 }
+
+void IMU_go_raw(struct IMU *self)
+{
+    imu_init(false, 300);
+    self->state = IMU_MeasuringRaw;
+}
+
+void IMU_go_full(struct IMU *self)
+{
+    imu_init(true, 100);
+    self->state = IMU_Measuring;
+}
+
 
 /*----------------------------------------------------------------
  * float2fix -- convert float to fixed point 18+14 bits

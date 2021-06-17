@@ -161,6 +161,8 @@ void IMU_loop(void *context, uint32_t delta_us)
             //****END COMMON****
             //**** MEASURING FULL  *****
 
+// sss asdasd ASAS
+
             imu->roll_angle = phi;
             imu->pitch_angle = theta;
             imu->yaw_rate = psi;

@@ -233,20 +233,20 @@ void IMU_loop(void *context, uint32_t delta_us)
             //moving all values and reading the new input
             imu->sp_x[2]=imu->sp_x[1];
             imu->sp_x[1]=imu->sp_x[0];
-            imu->sp_x[0] = float2fix(sp);
+            imu->sp_x[0] = float2fix(sq);
 
             //moving all y values
             imu->sp_y[2]=imu->sp_y[1];
             imu->sp_y[1]=imu->sp_y[0];
             imu->sp_y[0] = fixmul(imu->a0,imu->sp_x[0])+fixmul(imu->a1,imu->sp_x[1])+fixmul(imu->a2,imu->sp_x[2])-
                            fixmul(imu->b1,imu->sp_y[1])-fixmul(imu->b2,imu->sp_y[2]);
-            DEBUG(0,"sp%d",sp);
+            //DEBUG(0,"sp%d",sp);
 
             //sq
             imu->sq_x[2]=imu->sq_x[1];
             imu->sq_x[1]=imu->sq_x[0];
-            imu->sq_x[0] = float2fix(sq);
-            DEBUG(0,"sq%d",sq);
+            imu->sq_x[0] = float2fix(sp);
+            //DEBUG(0,"sq%d",sq);
 
             //moving all y values
             imu->sq_y[2]=imu->sq_y[1];
@@ -270,8 +270,9 @@ void IMU_loop(void *context, uint32_t delta_us)
             imu->p = fix2float(imu->sp_y[0]) - imu->sp_offset;
             imu->q = fix2float(imu->sq_y[0]) - imu->sq_offset;
             imu->r = fix2float(imu->sr_y[0]) - imu->sr_offset;
-            //DEBUG(0,"p%d",imu->p);
-            //DEBUG(0, "q%d",imu->q);
+
+            DEBUG(0, "p%d",imu->p);
+            DEBUG(0, "q%d",imu->q);
 
             //kalman for phi and theta
 

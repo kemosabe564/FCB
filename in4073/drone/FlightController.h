@@ -52,14 +52,6 @@ struct FlightController
     int16_t roll_angle;
     uint16_t throttle;
 
-    int16_t current_psi;
-    int16_t previous_psi;
-
-    int16_t current_phi;
-    int16_t previous_phi;
-
-    int16_t current_theta;
-    int16_t previous_theta;
 
     uint32_t calibrate_start_time;
     int16_t phi_offset;

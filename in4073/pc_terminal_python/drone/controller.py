@@ -36,12 +36,12 @@ class Controller:
         self.delta_throttle = 0
 
         self.battery_check = True
+        self.draw_graphs = False
 
         self.P = 11
         self.P1 = 50
         self.P2 = 20
 
-        #gets multiplied by 10 so this adds or sub 50rpm
         self.H = 5
 
 
@@ -63,22 +63,28 @@ class Controller:
         if button == JoystickButton.Trigger and active and self.drone.mode != FlightMode.Safe:
             self.drone.change_mode(FlightMode.Panic)
         if button == JoystickButton.Thumb:
-            if self.drone.mode == FlightMode.Safe and self.input_safe():
+            if self.drone.mode == FlightMode.Safe and self.input_safe(True):
                 self.drone.change_mode(FlightMode.Manual)
             else:
                 print('NOT SAFE')
         if button == JoystickButton.B3:
             self.drone.change_mode(FlightMode.Calibrate)
         if button == JoystickButton.B4:  # yaw rate
-            if self.drone.mode == FlightMode.Safe and self.input_safe():
+            if self.drone.mode == FlightMode.Safe and self.input_safe(True):
                 self.drone.change_mode(FlightMode.Yaw)
             else:
                 print("NOT SAFE")
         if button == JoystickButton.B5:  # fullcontrol
-            if self.drone.mode == FlightMode.Safe and self.input_safe():
+            if self.drone.mode == FlightMode.Safe and self.input_safe(True):
                 self.drone.change_mode(FlightMode.Full)
             else:
                 print("NOT SAFE")
+        if button == JoystickButton.B6:
+            if self.drone.mode == FlightMode.Safe and self.input_safe(True):
+                self.drone.change_mode(FlightMode.Raw)
+            else:
+                print("NOT SAFE")
+
 
         if button == JoystickButton.B7:
             if self.drone.mode == FlightMode.Full or self.drone.mode == FlightMode.Raw:
@@ -108,7 +114,8 @@ class Controller:
             if event.key == pygame.K_z:
                 self.battery_check = not self.battery_check
                 self.drone.set_params(5, 1 if self.battery_check else 0)
-
+            if event.key == pygame.K_g:
+                self.draw_graphs = not self.draw_graphs
             if event.key == pygame.K_0:  # safe mode
                 self.drone.change_mode(FlightMode.Safe)
             if event.key == pygame.K_1:  # panic mode
@@ -130,6 +137,11 @@ class Controller:
             if event.key == pygame.K_5:  # fullcontrol
                 if self.drone.mode == FlightMode.Safe and self.input_safe(True):
                     self.drone.change_mode(FlightMode.Full)
+                else:
+                    print("NOT SAFE")
+            if event.key == pygame.K_6:
+                if self.drone.mode == FlightMode.Safe and self.input_safe(True):
+                    self.drone.change_mode(FlightMode.Raw)
                 else:
                     print("NOT SAFE")
 

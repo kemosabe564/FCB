@@ -19,6 +19,11 @@ class FlightMode(Enum):
     Raw = 8
     HoldHeight = 9
 
+class HeartbeatMode(Enum):
+    Init = 0
+    Waiting = 1
+    Active = 2
+
 
 class Drone:
     def __init__(self, cli, serials: List[Serial], serial_idx):
@@ -49,6 +54,7 @@ class Drone:
         self.heartbeat_freq = 5
         self.heartbeat_margin = 3
         self.heartbeat_ack_queue = Queue()
+        self.heartbeat_mode = HeartbeatMode.Init
 
         # start the thread loop now
         self.thread = threading.Thread(target=self.__thread_function)
@@ -142,20 +148,24 @@ class Drone:
         return seq - self.heartbeat_ack
 
     def beat_heart(self):
-        if self.heartbeat_seq_prev != self.heartbeat_ack:
-            self.cli.to_cli("[drone      ] previous heartbeat not acknowledged ({} != {})".format(self.heartbeat_seq_prev, self.heartbeat_ack))
+        if self.heartbeat_mode in [HeartbeatMode.Init, HeartbeatMode.Active]:
+            if self.heartbeat_seq_prev != self.heartbeat_ack:
+                self.cli.to_cli("[drone      ] previous heartbeat not acknowledged ({} != {})".format(self.heartbeat_seq_prev, self.heartbeat_ack))
 
-        command = Command(CommandType.Heartbeat)
-        command.set_data(argument=int(self.heartbeat_seq))
-        self.heartbeat_seq_prev = self.heartbeat_seq
+            command = Command(CommandType.Heartbeat)
+            command.set_data(argument=int(self.heartbeat_seq))
+            self.heartbeat_seq_prev = self.heartbeat_seq
 
-        self.send_command(command)
-        self.heartbeat_seq_ts = self.__time_in_ms()
+            self.send_command(command)
+            self.heartbeat_seq_ts = self.__time_in_ms()
 
-        if self.heartbeat_seq == 15:
-            self.heartbeat_seq = 0
-        else:
-            self.heartbeat_seq += 1
+            if self.heartbeat_seq == 15:
+                self.heartbeat_seq = 0
+            else:
+                self.heartbeat_seq += 1
+
+            if self.heartbeat_mode == HeartbeatMode.Init:
+                self.heartbeat_mode = HeartbeatMode.Waiting
 
     def ack_heartbeat(self, ack):
         self.heartbeat_ack = ack
@@ -168,4 +178,7 @@ class Drone:
             # self.cli.to_cli("[drone] Heartbeat RT Delay: {}us".format(self.heartbeat_rt_time * 1000))
         else:
             self.cli.to_cli("[drone      ] Heartbeat missed")
+
+        if self.heartbeat_mode == HeartbeatMode.Waiting:
+            self.heartbeat_mode = HeartbeatMode.Active
 

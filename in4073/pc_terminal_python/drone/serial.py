@@ -24,6 +24,7 @@ class Serial:
         self.send_queue = queue.Queue()
 
         self.print_traffic = False
+        self.failed_message = False
 
         self.serial = None # serial.Serial(self.port, self.baud, timeout=1)
 
@@ -42,42 +43,51 @@ class Serial:
         try:
             self.serial = serial.Serial(self.port, self.baud, timeout=1)
             self.cli.to_cli("[serial {}   ] port successfully opened".format(self.idx))
+            self.failed_message = False
             return True
         except serial.SerialException:
-            self.cli.to_cli("[serial {}   ] could not open port. Retrying later.".format(self.idx))
+            if not self.failed_message:
+                self.cli.to_cli("[serial {}   ] could not open port".format(self.idx))
+                self.failed_message = True
 
         return False
 
+    def close_port(self):
+        if self.serial:
+            self.serial.close()
+            self.cli.to_cli("[serial {}   ] closing port".format(self.idx))
+
     def send_thread_function(self):
         while not self.terminate:
-            if not self.is_open() and not self.open_port():
+            if not self.is_open():
                 time.sleep(1)
             else:
                 command = self.send_queue.get()
                 buffer = command.encode()
                 if self.print_traffic:
                     self.cli.to_cli("[serial {}   ] --> {} (raw = {})".format(self.idx, command, buffer))
-                self.serial.write(buffer)
-                self.serial.flush()
-
-            # removed sleep since thread will sleep on get()
-            # time.sleep(0.01)
+                try:
+                    self.serial.write(buffer)
+                    self.serial.flush()
+                except serial.SerialException:
+                    self.close_port()
 
     def receive_thread_function(self):
         while not self.terminate:
-            if not self.is_open():
+            if not self.is_open() and not self.open_port():
                 time.sleep(1)
             else:
                 # At first the MCU just spits out initialisation information
                 # only after ten 0xFF characters have been sent do we switch
                 # over to the protocol
-                for byte in self.serial.read():
-                    if not self.protocol_enabled:
-                        self.__handle_ascii_data(byte)
-                    else:
-                        self.__handle_protocol_data(byte)
-                # removed sleep since thread will sleep on read()
-                # time.sleep(0.01)
+                try:
+                    for byte in self.serial.read():
+                        if not self.protocol_enabled:
+                            self.__handle_ascii_data(byte)
+                        else:
+                            self.__handle_protocol_data(byte)
+                except serial.SerialException:
+                    self.close_port()
 
     def add_command_handler(self, handler: Callable):
         self.command_handlers.append(handler)

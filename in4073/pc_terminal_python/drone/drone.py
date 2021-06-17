@@ -113,10 +113,13 @@ class Drone:
         self.send_command(command)
 
     def set_comms(self, idx):
-        command = Command(CommandType.SetComms)
-        command.set_data(argument=idx)
+        if self.mode is FlightMode.Safe:
+            command = Command(CommandType.SetComms)
+            command.set_data(argument=idx)
 
-        self.send_command(command)
+            self.send_command(command)
+        else:
+            self.cli.to_cli("[drone      ] cannot change comm while not in mode Safe (current mode = {})".format(self.mode.name))
 
     def set_control(self, yaw, pitch, roll, throttle):
         command = Command(CommandType.SetControl)

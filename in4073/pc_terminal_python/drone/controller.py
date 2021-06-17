@@ -63,22 +63,28 @@ class Controller:
         if button == JoystickButton.Trigger and active and self.drone.mode != FlightMode.Safe:
             self.drone.change_mode(FlightMode.Panic)
         if button == JoystickButton.Thumb:
-            if self.drone.mode == FlightMode.Safe and self.input_safe():
+            if self.drone.mode == FlightMode.Safe and self.input_safe(True):
                 self.drone.change_mode(FlightMode.Manual)
             else:
                 print('NOT SAFE')
         if button == JoystickButton.B3:
             self.drone.change_mode(FlightMode.Calibrate)
         if button == JoystickButton.B4:  # yaw rate
-            if self.drone.mode == FlightMode.Safe and self.input_safe():
+            if self.drone.mode == FlightMode.Safe and self.input_safe(True):
                 self.drone.change_mode(FlightMode.Yaw)
             else:
                 print("NOT SAFE")
         if button == JoystickButton.B5:  # fullcontrol
-            if self.drone.mode == FlightMode.Safe and self.input_safe():
+            if self.drone.mode == FlightMode.Safe and self.input_safe(True):
                 self.drone.change_mode(FlightMode.Full)
             else:
                 print("NOT SAFE")
+        if button == JoystickButton.B6:
+            if self.drone.mode == FlightMode.Safe and self.input_safe(True):
+                self.drone.change_mode(FlightMode.Raw)
+            else:
+                print("NOT SAFE")
+
 
         if button == JoystickButton.B7:
             if self.drone.mode == FlightMode.Full or self.drone.mode == FlightMode.Raw:
@@ -137,7 +143,7 @@ class Controller:
                 if self.drone.mode == FlightMode.Safe and self.input_safe(True):
                     self.drone.change_mode(FlightMode.Raw)
                 else:
-                    print('NOT SAFE')
+                    print("NOT SAFE")
 
             if event.key == pygame.K_7:
                 if self.drone.mode == FlightMode.Full or self.drone.mode == FlightMode.Raw:

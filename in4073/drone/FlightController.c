@@ -122,7 +122,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
             //get sensor reading
             int16_t  psi_rate = self->imu->measured_r;
             //calculate error
-            int16_t yaw_error = setPoint - psi_rate;
+            int16_t yaw_error = yaw_setPoint - psi_rate;
             //calculate compensation and apply
             int16_t yaw_compensation = (self->P * yaw_error) / 100;
 
@@ -271,12 +271,6 @@ void FlightController_loop(void *context, uint32_t delta_us)
             int16_t pitch_rate_compensation = -(self->P2 * pitch_rate_error) / 100;
 
 
-//            if((self->throttle - self->hold_throttle_raw) != 0)
-//            {
-//                DEBUG(0,"Throttle touched");
-//                FlightController_change_mode(self,Full);
-//            }
-
             //get height rate
             //calculated in self->imu->imu_height_rate
 
@@ -285,7 +279,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
             int32_t  height_error = self->imu->barometer_average - self->imu->barometer_to_hold;
             int16_t lift_compensation = (self->H  * height_error ) /10;
 
-            DEBUG(0,"lc%d",lift_compensation);
+            //DEBUG(0,"lc%d",lift_compensation);
 
             //DEBUG(0,"%d %d %d",self->imu->barometer_average,self->imu->imu_height_rate,lift_compensation);
 

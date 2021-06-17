@@ -158,6 +158,13 @@ class GUI:
         else:
             safe_str = 'INPUTS NOT SAFE'
             text_safe = font2.render(safe_str, True, black, red)
+
+        if self.controller.battery_check:
+            bat_str = 'Battery check enabled. Press key Z to disable'
+            text_bat = font2.render(bat_str,True, green,white)
+        else:
+            bat_str = 'Battery check disabled'
+            text_bat = font2.render(bat_str,True,black,red)
         status = self.drone.mode.name if self.drone.mode else "Disconnected"
 
 
@@ -177,6 +184,7 @@ class GUI:
         self.screen.blit(text_rpm, (30, 80))
         self.screen.blit(text_torques, (30, 120))
         self.screen.blit(text_p, (30, height - 60))
+        self.screen.blit(text_bat, (700, height - 60))
 
         if self.drone.mode != FlightMode.Safe and self.drone.mode != FlightMode.Panic:
             self.screen.blit(text_inputs, (30, height - 30))

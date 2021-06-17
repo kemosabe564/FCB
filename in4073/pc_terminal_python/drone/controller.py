@@ -41,7 +41,6 @@ class Controller:
         self.P1 = 50
         self.P2 = 20
 
-        #gets multiplied by 10 so this adds or sub 50rpm
         self.H = 5
 
 

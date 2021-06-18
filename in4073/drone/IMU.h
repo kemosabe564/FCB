@@ -103,6 +103,11 @@ struct IMU
     int32_t e_phi;
     int32_t phi_kalman;
 
+    int32_t bias_theta;
+    int32_t q_estimate;
+    int32_t e_theta;
+    int32_t theta_kalman;
+
     bool calibrated;
     uint32_t calibration_start_ts;
     uint32_t calibration_time_us;

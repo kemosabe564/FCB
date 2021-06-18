@@ -19,7 +19,6 @@
 #include "Debug.h"
 #include "Rotor.h"
 
-
 void FlightController_loop(void *context, uint32_t delta_us)
 {
     struct FlightController *self = (struct FlightController *)context;
@@ -38,9 +37,10 @@ void FlightController_loop(void *context, uint32_t delta_us)
         DEBUG(0, "BAT LOW: %d ", self->imu->battery_average);
     }
 
-    if (self->battery_check && (self->imu->battery_average < BAT_WARN && self->imu->battery_average > BAT_THRESHOLD && self->mode != Safe && self->mode != Panic))
+    if (self->battery_check && !self->battery_warned && (self->imu->battery_average < BAT_WARN && self->imu->battery_average > BAT_THRESHOLD && self->mode != Safe && self->mode != Panic))
     {
-        DEBUG(0,"B WARN %d",self->imu->battery_average);
+        DEBUG(0,"BAT WARN: %d",self->imu->battery_average);
+        self->battery_warned = true;
     }
 
     switch (self->mode) {
@@ -423,6 +423,7 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
         result->hold_throttle = 0;
         //result->hold_throttle_raw = 0;
         result->battery_check = true;
+        result->battery_warned = false;
         result->P = 11;
         result->P1 = 50;
         result->P2 = 20;

@@ -69,7 +69,7 @@ void changed_mode_handler(struct FlightController *self, enum FlightControllerMo
         nrf_gpio_pin_set(GREEN);
         nrf_gpio_pin_set(BLUE);
     }
-    else if (new_mode == Manual)
+    else if (new_mode == Manual || new_mode == Full || new_mode == Yaw || new_mode == HoldHeight || new_mode == Raw)
     {
         nrf_gpio_pin_set(RED);
         nrf_gpio_pin_clear(YELLOW);

@@ -122,7 +122,7 @@ class Controller:
                 self.draw_graphs = not self.draw_graphs
             if event.key == pygame.K_0:  # safe mode
                 self.drone.change_mode(FlightMode.Safe)
-            if event.key == pygame.K_1:  # panic mode
+            if event.key in [pygame.K_1, pygame.K_ESCAPE, pygame.K_SPACE]:  # panic mode
                 self.drone.change_mode(FlightMode.Panic)
             if event.key == pygame.K_2:  # manual mode
                 if self.drone.mode == FlightMode.Safe and self.input_safe(True):

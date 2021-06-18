@@ -67,6 +67,7 @@ struct FlightController
     uint8_t H;
 
     bool battery_check;
+    bool battery_warned;
 
     struct CommandHandler *ch;
 

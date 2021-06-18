@@ -254,6 +254,7 @@ class Controller:
                         self.roll = self.limit(self.input_roll + self.offset_roll)
                         self.pitch = self.limit(self.input_pitch + self.offset_pitch)
                         self.yaw = self.limit(self.input_yaw + self.offset_yaw)
+
                         self.drone.set_control(roll=self.roll, pitch=self.pitch, yaw=self.yaw, throttle=self.input_throttle)
                         self.trim_changed = False
             time.sleep(0.0125)

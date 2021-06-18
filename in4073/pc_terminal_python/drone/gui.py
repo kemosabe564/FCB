@@ -214,8 +214,13 @@ class GUI:
             graph_drawing(self.phi_fig, self.psi_data.data_queue, [-1, 105], [-127, 127], (900, 500), self.screen, 'Psi')
 
 
+        # draw throttle
+        throttle_bg = pygame.Rect(1120, 600, 50, 200)
+        pygame.draw.rect(self.screen, (200, 200, 200), throttle_bg)
 
-
+        throttle_height = round((self.controller.input_throttle / 255) * 200)
+        throttle = pygame.Rect(1120, 800 - throttle_height, 50, throttle_height)
+        pygame.draw.rect(self.screen, (255, 40, 40), throttle)
 
         # graph_drawing(self.pitch_fig, self.pitch_data.data_queue, [-1, 105], [-1.1, 1.1], (25, 150), self.screen)
         # graph_drawing(self.pitch_fig, self.roll_data.data_queue, [-1, 105], [-1.1, 1.1], (25, 375), self.screen)

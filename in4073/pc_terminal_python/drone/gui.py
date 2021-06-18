@@ -75,14 +75,21 @@ class GUI:
 
         self.wfviewer = WireframeViewer(self.screen)
 
-        cube = Wireframe()
+        cross = Wireframe((0, 0, 255), (30, 30, 230))
+        cross_nodes = [(125, 125, 0), (125, 125, 250), (0, 125, 125), (250, 125, 125)]
+        cross.addNodes(np.array(cross_nodes))
+        cross.addEdges([(0, 1), (2, 3)])
+
+        cube = Wireframe((255, 0, 0), (230, 30, 30))
         cube_nodes = [(x, y, z) for x in (50, 250) for y in (50, 250) for z in (50, 250)]
         cube.addNodes(np.array(cube_nodes))
-        cube.addEdges([(n, n + 4) for n in range(0, 4)] + [(n, n + 1) for n in range(0, 8, 2)] + [(n, n + 2) for n in
-                                                                                                  (0, 1, 4, 5)])
+        cube.addEdges([(n, n + 4) for n in range(0, 4)] + [(n, n + 1) for n in range(0, 8, 2)] + [(n, n + 2) for n in (0, 1, 4, 5)])
 
         self.wfviewer.add_wireframe('cube', cube)
-        self.wfviewer.set_wireframe_position('cube', ((size[0] / 2) - 150, (size[1] / 2) - 150))
+        self.wfviewer.set_wireframe_position('cube', ((size[0] / 2) - 175, (size[1] / 2) - 175))
+
+        self.wfviewer.add_wireframe('cross', cross)
+        self.wfviewer.set_wireframe_position('cross', ((size[0] / 2) - 150, (size[1] / 2) - 150))
 
         self.update_title()
         self.__init_display()

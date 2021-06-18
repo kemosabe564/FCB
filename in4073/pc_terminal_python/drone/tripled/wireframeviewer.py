@@ -34,11 +34,11 @@ class WireframeViewer:
 
             if self.displayEdges:
                 for n1, n2 in wireframe.edges:
-                    pygame.draw.aaline(self.screen, self.edgeColour, pos + nodes[n1][:2], pos + nodes[n2][:2], 1)
+                    pygame.draw.aaline(self.screen, wireframe.edge_color, pos + nodes[n1][:2], pos + nodes[n2][:2], 1)
 
             if self.displayNodes:
                 for node in nodes:
-                    pygame.draw.circle(self.screen, self.nodeColour, (pos[0] + int(node[0]), pos[1] + int(node[1])), self.nodeRadius, 0)
+                    pygame.draw.circle(self.screen, wireframe.node_color, (pos[0] + int(node[0]), pos[1] + int(node[1])), self.nodeRadius, 0)
 
     def scale(self, scale):
         """ Scale all wireframes by a given scale, centred on the centre of the screen. """

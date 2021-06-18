@@ -3,10 +3,12 @@ import math
 
 
 class Wireframe:
-    def __init__(self):
+    def __init__(self, node_color, edge_color):
         self.shape = np.zeros((0, 4))
         self.edges = []
         self.angles = (0.5, 0, 0)
+        self.node_color = node_color
+        self.edge_color = edge_color
 
     def addNodes(self, node_array):
         ones_column = np.ones((len(node_array), 1))

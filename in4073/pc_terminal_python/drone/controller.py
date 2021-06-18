@@ -255,7 +255,6 @@ class Controller:
                         self.pitch = self.limit(self.input_pitch + self.offset_pitch)
                         self.yaw = self.limit(self.input_yaw + self.offset_yaw)
 
-                        print("{}, {}".format(self.joystick.get_axis_raw(JoystickAxis.Throttle), self.joystick.get_axis(JoystickAxis.Throttle)))
                         self.drone.set_control(roll=self.roll, pitch=self.pitch, yaw=self.yaw, throttle=self.input_throttle)
                         self.trim_changed = False
             time.sleep(0.0125)

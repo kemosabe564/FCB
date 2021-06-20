@@ -6,7 +6,7 @@
 
 #include <stddef.h>
 #include <stdio.h>
-
+//authored by Nathan
 void Comms_init(struct Comms *self)
 {
     if (self)
@@ -21,7 +21,7 @@ void Comms_init(struct Comms *self)
         self->data_len = 0;
     }
 }
-
+//authored by Nathan
 bool Comms_decoder_append_byte(struct Comms *self, uint8_t byte)
 {
     self->buffer[self->char_id] = byte;

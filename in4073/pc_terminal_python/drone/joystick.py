@@ -1,14 +1,14 @@
 from drone.pygame import pygame
 from enum import Enum
 
-
+    #authored by Nathan
 class JoystickAxis(Enum):
     Roll = 0
     Pitch = 1
     Yaw = 2
     Throttle = 3
 
-
+    #authored by Nathan
 class JoystickButton(Enum):
     Trigger = 0
     Thumb = 1
@@ -23,7 +23,7 @@ class JoystickButton(Enum):
     B11 = 10
     B12 = 11
 
-
+    #authored by Nathan
 def map_to(value, mapping: tuple, limit_input=True):
     x_s, x_e, y_s, y_e = mapping
 
@@ -70,7 +70,7 @@ class Joystick:
         self.__on_button_event = None
         self.__on_disconnect_event = None
         self.__on_connect_event = None
-
+    #authored by Nathan
     def __init_joystick(self):
         pygame.joystick.init()
 
@@ -91,13 +91,13 @@ class Joystick:
 
         else:
             self.__joystick = None
-
+    #authored by Nathan
     def available(self):
         return self.__available
-
+    #authored by Nathan
     def events(self):
         return self.__events
-
+    #authored by Nathan
     def __parse_axis(self, axis, raw):
         parsed = raw
 
@@ -108,7 +108,7 @@ class Joystick:
             parsed = round(parsed)
 
         return parsed
-
+    #authored by Nathan
     def __handle_event(self, event):
         if event.type == pygame.JOYBUTTONDOWN:
             if self.__on_button_event:
@@ -127,19 +127,19 @@ class Joystick:
 
             if self.__on_connect_event:
                 self.__on_connect_event()
-
+    #authored by Nathan
     def pass_event(self, event):
         self.__handle_event(event)
-
+    #authored by Nathan
     def set_on_button_event(self, handler):
         self.__on_button_event = handler
-
+    #authored by Nathan
     def set_on_disconnect_event(self, handler):
         self.__on_disconnect_event = handler
-
+    #authored by Nathan
     def set_on_connect_event(self, handler):
         self.__on_connect_event = handler
-
+    #authored by Nathan
     def update(self):
         if self.__available:
             if self.get_events:
@@ -152,16 +152,16 @@ class Joystick:
 
             for i in range(self.__num_buttons):
                 self.__buttons[i] = (self.__joystick.get_button(i) == 1)
-
+    #authored by Nathan
     def set_axis_map(self, axis: JoystickAxis, mapping, do_round):
         # if mapping is a tuple then it will assume a linear mapping
         self.__map_axis[axis.value] = (lambda x: map_to(x, mapping)) if (type(mapping) is tuple) else mapping
         self.__round_axis[axis.value] = do_round
-
+    #authored by Nathan
     def get_axis(self, axis: JoystickAxis):
         if axis.value in self.__parsed_axis:
             return self.__parsed_axis[axis.value]
-
+    #authored by Nathan
     def get_axis_raw(self, axis: JoystickAxis):
         if axis.value in self.__parsed_axis:
             return self.__raw_axis[axis.value]

@@ -52,19 +52,19 @@ class Controller:
         # start the thread loop now
         self.thread = threading.Thread(target=self.thread_function)
         self.thread.start()
-
+    #authored by Vivian
     def inc_check_limits(self, value):
         if (value + self.step) < 127:
             value = value + self.step
             self.trim_changed = True
         return value
-
+    #authored by Vivian
     def dec_check_limits(self, value):
         if (value - self.step) > -127:
             value = value - self.step
             self.trim_changed = True
         return value
-
+    #authored by Nathan
     def handle_joystick_button_event(self, button: JoystickButton, active: bool):
         if button == JoystickButton.Trigger and active and self.drone.mode != FlightMode.Safe:
             self.drone.change_mode(FlightMode.Panic)
@@ -95,12 +95,12 @@ class Controller:
                 self.drone.change_mode(FlightMode.HoldHeight)
 
 
-
+    #authored by Nathan
     def handle_joystick_disconnect_event(self):
         if self.drone.mode != FlightMode.Safe:
             print("Joystick disconnected...")
             self.drone.change_mode(FlightMode.Panic)
-
+    #authored by vivian
     def handle_keyboard_event(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_q:  # yaw down
@@ -188,7 +188,7 @@ class Controller:
                 if self.H > 1:
                     self.H = self.H - 1
                     self.drone.set_params(id=3, value=self.H)
-
+    #authored by Nathan
     def update_inputs(self):
         change = False
         new_input_roll = self.joystick.get_axis(JoystickAxis.Roll)
@@ -206,12 +206,13 @@ class Controller:
             change = True
         self.input_yaw = new_input_yaw
 
+        #authored by Vivian
         old_throttle = self.input_throttle
         new_input_throttle = self.joystick.get_axis(JoystickAxis.Throttle)
         if self.input_throttle != new_input_throttle:
             change = True
         self.input_throttle = new_input_throttle
-
+        #authored by Vivian
         if self.drone.mode == FlightMode.Full or self.drone.mode == FlightMode.HoldHeight:
             self.delta_throttle = self.input_throttle - old_throttle
             if abs(self.delta_throttle) > 1 and self.drone.mode == FlightMode.HoldHeight:
@@ -220,27 +221,27 @@ class Controller:
                 self.delta_throttle = 0
 
         return change
-
+    #authored by Nathan
     def at_deadpoint(self, x):
         if (x > 120) and (x < 134):
             return True
         return False
-
+    #authored by Nathan
     def input_safe(self, update=False):
         if update:
             self.update_inputs()
         return (self.input_throttle == 0) and self.at_deadpoint(self.input_yaw) and self.at_deadpoint(self.input_pitch) and self.at_deadpoint(self.input_roll)
-
+    #authored by Nathan
     def map(self, x):
         return int((x + 1) * 127)
-
+    #authored by Nathan
     def limit(self, x):
         if x > 255:
             x = 255
         if x < 0:
             x = 0
         return x
-
+    #authored by Nathan
     def thread_function(self):
         while not self.terminate:
 
@@ -258,9 +259,9 @@ class Controller:
                         self.drone.set_control(roll=self.roll, pitch=self.pitch, yaw=self.yaw, throttle=self.input_throttle)
                         self.trim_changed = False
             time.sleep(0.0125)
-
+    #authored by Nathan
     def stop(self):
         self.terminate = True
-
+    #authored by Nathan
     def join(self):
         self.thread.join()

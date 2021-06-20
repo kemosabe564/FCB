@@ -18,7 +18,7 @@ gui = None
 drone = None
 running = True
 
-
+#authored by Nathan
 def new_cmd_handler(data):
     if type(data) == Command:
         if data.type == CommandType.DebugMessage:
@@ -28,7 +28,7 @@ def new_cmd_handler(data):
     else:
         cli.to_cli(data)
 
-
+#authored by Nathan
 def on_quit():
     ser.stop()
     cli.stop()
@@ -37,7 +37,7 @@ def on_quit():
     global running
     running = False
 
-
+#authored by Nathan
 def new_action_handler(action, data=None):
     if action == CLIAction.SendCommand:
         drone.send_command(data)
@@ -56,7 +56,7 @@ def new_action_handler(action, data=None):
     elif action == CLIAction.SetComms:
         drone.set_comms(data)
 
-
+#authored by Nathan
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 

@@ -17,7 +17,7 @@
 
 #include "../hal/gpio.h"
 #include "nrf_gpio.h"
-
+//authored by Nathan
 struct Telemetry *Telemetry_create(struct CommandHandler *ch, struct IMU *imu, struct Rotor *rotors[], uint8_t num_rotors)
 {
     struct Telemetry *result = (struct Telemetry *)malloc(sizeof(struct Telemetry));
@@ -36,7 +36,7 @@ struct Telemetry *Telemetry_create(struct CommandHandler *ch, struct IMU *imu, s
 
     return result;
 }
-
+//authored by Nathan
 void Telemetry_set_enabled(struct Telemetry *self, bool enabled)
 {
     if (self)
@@ -44,7 +44,7 @@ void Telemetry_set_enabled(struct Telemetry *self, bool enabled)
         self->enabled = enabled;
     }
 }
-
+//authored by Nathan
 void Telemetry_loop(void *context, uint32_t delta_us)
 {
     struct Telemetry *self = (struct Telemetry *)context;
@@ -67,7 +67,7 @@ void Telemetry_loop(void *context, uint32_t delta_us)
 
     nrf_gpio_pin_toggle(BLUE);
 }
-
+//authored by Nathan
 void Telemetry_destroy(struct Telemetry *self)
 {
     if (self)

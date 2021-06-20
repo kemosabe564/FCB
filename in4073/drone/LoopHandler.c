@@ -9,6 +9,7 @@
 #include "../hal/timers.h"
 #include "../mpu6050/mpu6050.h"
 
+//authored by Nathan
 struct LoopHandler *LoopHandler_create()
 {
     struct LoopHandler *result = (struct LoopHandler *)malloc(sizeof(struct LoopHandler));
@@ -20,7 +21,7 @@ struct LoopHandler *LoopHandler_create()
 
     return result;
 }
-
+//authored by Nathan
 struct LoopHandlerControlBlock LoopHandler_init_controlblock(LoopHandlerFunction function)
 {
     struct LoopHandlerControlBlock cb = {
@@ -31,7 +32,7 @@ struct LoopHandlerControlBlock LoopHandler_init_controlblock(LoopHandlerFunction
 
     return cb;
 }
-
+//authored by Nathan
 void LoopHandler_loop(struct LoopHandler *self, struct LoopHandlerControlBlock *cb, void *context, uint32_t period_us) {
     uint32_t now = get_time_us();
 
@@ -56,7 +57,7 @@ void LoopHandler_loop(struct LoopHandler *self, struct LoopHandlerControlBlock *
 
 
 }
-
+//authored by Nathan
 void LoopHandler_destroy(struct LoopHandler *self)
 {
     if (self)

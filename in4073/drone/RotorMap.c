@@ -5,7 +5,7 @@
 #include "RotorMap.h"
 
 #include <stdlib.h>
-
+//authored by Nathan
 struct RotorMap *RotorMap_create(uint16_t rpm_min, uint16_t rpm_max)
 {
     struct RotorMap *result = (struct RotorMap *)malloc(sizeof (struct RotorMap));
@@ -18,7 +18,7 @@ struct RotorMap *RotorMap_create(uint16_t rpm_min, uint16_t rpm_max)
 
     return result;
 }
-
+//authored by Nathan
 void RotorMap_destroy(struct RotorMap *self)
 {
     if (self)

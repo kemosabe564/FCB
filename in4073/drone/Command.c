@@ -12,7 +12,7 @@
 
 #include "utils/crc8.h"
 
-
+//authored by Nathan
 struct Command *Command_decode(uint8_t *data)
 {
     const uint8_t header = data[0];
@@ -95,7 +95,7 @@ struct Command *Command_decode(uint8_t *data)
 
     return result;
 }
-
+//authored by Nathan
 struct EncodedCommand Command_encode(struct Command *command)
 {
     uint8_t *encoded = NULL;
@@ -197,6 +197,7 @@ struct EncodedCommand Command_encode(struct Command *command)
 }
 
 // allocate and initialize a simple argumented command on the heap
+//authored by Nathan
 struct Command *Command_make_simple(enum CommandType type, uint8_t argument)
 {
     struct Command *cmd = (struct Command *)malloc(sizeof(struct Command));
@@ -225,25 +226,28 @@ struct Command *Command_make_simple(enum CommandType type, uint8_t argument)
 
     return NULL;
 }
-
+//authored by Nathan
 struct Command *Command_make_current_comms(uint8_t current_comms)
 {
     return Command_make_simple(CurrentComms, current_comms);
 }
 
 // alias for Command_make_simple
+//authored by Nathan
 struct Command *Command_make_heartbeat(uint8_t sequence_number)
 {
     return Command_make_simple(Heartbeat, sequence_number);
 }
 
 // alias for Command_make_simple
+//authored by Nathan
 struct Command *Command_make_current_mode(uint8_t mode)
 {
     return Command_make_simple(CurrentMode, mode);
 }
 
 // allocate and initialize a formatted string command on the heap
+//authored by Nathan
 struct Command *Command_make_debug_format(uint8_t id, const char *format, ...)
 {
     struct Command *cmd = (struct Command *)malloc(sizeof(struct Command));
@@ -285,6 +289,7 @@ struct Command *Command_make_debug_format(uint8_t id, const char *format, ...)
 }
 
 // allocate and initialize a formatted string command on the heap
+//authored by Nathan
 struct Command *Command_make_debug_n(uint8_t id, const char *string, uint16_t n)
 {
     struct Command *cmd = (struct Command *)malloc(sizeof(struct Command));
@@ -321,7 +326,7 @@ struct Command *Command_make_debug_n(uint8_t id, const char *string, uint16_t n)
 
     return NULL;
 }
-
+//authored by Nathan
 struct Command *Command_make_telemetry(int16_t roll_angle, int16_t pitch_angle, int16_t yaw_angle, int16_t rpm0, int16_t rpm1, int16_t rpm2, int16_t rpm3)
 {
     struct Command *cmd = (struct Command *)malloc(sizeof(struct Command));
@@ -352,7 +357,7 @@ struct Command *Command_make_telemetry(int16_t roll_angle, int16_t pitch_angle, 
 
     return NULL;
 }
-
+//authored by Nathan
 uint8_t Command_data_len(uint8_t header)
 {
     switch ((header & HEADER_TYPE_MASK) >> 4)
@@ -385,7 +390,7 @@ uint8_t Command_data_len(uint8_t header)
             return 0;
     }
 }
-
+//authored by Nathan
 void Command_destroy(struct Command *self)
 {
     if (self)

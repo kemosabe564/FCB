@@ -6,7 +6,7 @@ from typing import Callable
 
 from drone.command import Command, SerialCommandDecoder
 
-
+#authored by Nathan
 class Serial:
     def __init__(self, cli, port: str, baud: int, command_handler: Callable = None, idx=None):
         self.cli = cli
@@ -35,10 +35,10 @@ class Serial:
 
         self.receive_thread = threading.Thread(target=self.receive_thread_function)
         self.receive_thread.start()
-
+    #authored by Nathan
     def is_open(self):
         return (self.serial is not None) and self.serial.isOpen()
-
+    #authored by Nathan
     def open_port(self):
         try:
             self.serial = serial.Serial(self.port, self.baud, timeout=1)
@@ -51,12 +51,12 @@ class Serial:
                 self.failed_message = True
 
         return False
-
+    #authored by Nathan
     def close_port(self):
         if self.serial:
             self.serial.close()
             self.cli.to_cli("[serial {}   ] closing port".format(self.idx))
-
+    #authored by Nathan
     def send_thread_function(self):
         while not self.terminate:
             if not self.is_open():
@@ -71,7 +71,7 @@ class Serial:
                     self.serial.flush()
                 except serial.SerialException:
                     self.close_port()
-
+    #authored by Nathan
     def receive_thread_function(self):
         while not self.terminate:
             if not self.is_open() and not self.open_port():
@@ -88,25 +88,25 @@ class Serial:
                             self.__handle_protocol_data(byte)
                 except serial.SerialException:
                     self.close_port()
-
+    #authored by Nathan
     def add_command_handler(self, handler: Callable):
         self.command_handlers.append(handler)
-
+    #authored by Nathan
     def __dispatch_command(self, command: Command):
         for handler in self.command_handlers:
             handler(command)
-
+    #authored by Nathan
     def set_protocol(self, enabled):
         if enabled:
             self.cli.to_cli("[serial {}   ] Protocol enabled".format(self.idx))
             self.ascii_buffer.clear()
         self.protocol_enabled = enabled
-
+    #authored by Nathan
     def set_print_traffic(self, enabled):
         if enabled:
             self.cli.to_cli("[serial {}   ] Printing traffic enabled".format(self.idx))
         self.print_traffic = enabled
-
+    #authored by Nathan
     def __handle_ascii_data(self, byte):
         self.ascii_buffer.append(byte)
 
@@ -124,7 +124,7 @@ class Serial:
         if byte == 10:  # ASCII \n = 10
             self.__dispatch_command(self.ascii_buffer)
             self.ascii_buffer.clear()
-
+    #authored by Nathan
     def __handle_protocol_data(self, byte):
         self.decoder.append(byte)
 
@@ -133,13 +133,13 @@ class Serial:
             if self.print_traffic:
                 self.cli.to_cli("[serial {}   ] <-- {} (raw = {})".format(self.idx, command, command.encode()))
             self.__dispatch_command(command)
-
+    #authored by Nathan
     def send_command(self, command: Command):
         self.send_queue.put(command)
-
+    #authored by Nathan
     def stop(self):
         self.terminate = True
-
+    #authored by Nathan
     def join(self):
         self.send_thread.join()
         self.receive_thread.join()

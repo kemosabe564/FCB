@@ -23,20 +23,13 @@ void FlightController_loop(void *context, uint32_t delta_us)
 {
     struct FlightController *self = (struct FlightController *)context;
 
-
-
-//    static int check = 0;
-//    printf("FlightController_loop %d - Bat %4d - Motor %d - Mode::%s \n", check++, bat_volt, motor[0], FlightControllerMode_to_str(self->mode));
-//
-//    static int incrementing = 1;
-
-      //comment this for debugging
+    //battery check authored by Vivian
     if (self->battery_check && (self->imu->battery_average < BAT_THRESHOLD && self->mode != Safe && self->mode != Panic))
     {
         FlightController_change_mode(self,Panic);
         DEBUG(0, "BAT LOW: %d ", self->imu->battery_average);
     }
-
+    //battery warning authored by Vivian
     if (self->battery_check && !self->battery_warned && (self->imu->battery_average < BAT_WARN && self->imu->battery_average > BAT_THRESHOLD && self->mode != Safe && self->mode != Panic))
     {
         DEBUG(0,"BAT WARN: %d",self->imu->battery_average);
@@ -44,19 +37,19 @@ void FlightController_loop(void *context, uint32_t delta_us)
     }
 
     switch (self->mode) {
-        case Init:
+        case Init: //authored by Nathan
             self->debug_mode = (bat_volt == 0);
 
             FlightController_change_mode(self, Safe);
             break;
-        case Safe:
+        case Safe: //authored by Vivian
             for (int i =0; i <self->num_rotors; i++)
             {
                 Rotor_set_rpm(self->rotors[i],0);
             }
 
             break;
-        case Panic: {
+        case Panic: { //authored by Vivian
             bool check_if_all_zero = true;
             for (int i = 0; i < self->num_rotors; i++)
             {
@@ -73,7 +66,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
             }
         }
             break;
-        case Manual: {
+        case Manual: { //authored by Vivian
             uint16_t t = FlightController_map_proportional(self);
 
             //DEBUG(0, "Mapped Throttle %d",t);
@@ -103,7 +96,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
     
         }
             break;
-        case Calibrate:
+        case Calibrate: //authored by Vivian
             //turning down all the motors
             for (int i =0; i <self->num_rotors; i++)
             {
@@ -118,7 +111,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
                 FlightController_change_mode(self, Safe);
             }
             break;
-        case Yaw: {
+        case Yaw: { //authored by Vivian
             int16_t t = FlightController_map_proportional(self);
             //get set point
             int16_t yaw_setPoint = self->yaw_rate * 10;
@@ -153,7 +146,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
 
         }
             break;
-        case Full:
+        case Full: //authored by Vivian
         {
             //get throttle
             int16_t t = FlightController_map_proportional(self);
@@ -230,7 +223,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
             }
         }
             break;
-        case Raw:
+        case Raw: //authored by Vivian
             {
                 //get throttle
                 int16_t t = FlightController_map_proportional(self);
@@ -299,7 +292,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
 
 
             break;
-        case HoldHeight:
+        case HoldHeight: //authored by Vivian
         {
 
             //get set points
@@ -367,7 +360,7 @@ void FlightController_loop(void *context, uint32_t delta_us)
 
 
 }
-
+//authored by Nathan
 void __FlightController_on_changed_mode(struct FlightController *self, enum FlightControllerMode new_mode, enum FlightControllerMode old_mode)
 {
     switch (new_mode) {
@@ -394,7 +387,7 @@ void __FlightController_on_changed_mode(struct FlightController *self, enum Flig
         default: break;
     }
 }
-
+//authored by Nathan
 struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *rotors[], uint8_t num_rotors, struct CommandHandler *ch)
 {
     struct FlightController *result = (struct FlightController *)malloc(sizeof(struct FlightController));
@@ -432,7 +425,7 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
 
     return result;
 }
-
+//authored by Vivian
 bool FlightController_change_mode(struct FlightController *self, enum FlightControllerMode mode)
 {
     if (self)
@@ -457,7 +450,7 @@ bool FlightController_change_mode(struct FlightController *self, enum FlightCont
     }
     return false;
 }
-
+//authored by Nathan
 void FlightController_set_on_change_mode(struct FlightController *self, FlightControllerChangedMode handler)
 {
     if (self)
@@ -465,7 +458,7 @@ void FlightController_set_on_change_mode(struct FlightController *self, FlightCo
         self->on_changed_mode = handler;
     }
 }
-
+//authored by Vivian
 bool FlightController_check_rotors_safe(struct FlightController *self)
 {
     if (self)
@@ -481,7 +474,7 @@ bool FlightController_check_rotors_safe(struct FlightController *self)
     return true;
 }
 
-
+//authored by Nathan
 void FlightController_set_throttle(struct FlightController *self, uint16_t throttle)
 {
     if (self)
@@ -490,7 +483,7 @@ void FlightController_set_throttle(struct FlightController *self, uint16_t throt
     }
 }
 
-
+//authored by Vivian
 void FlightController_set_controls(struct FlightController *self, int16_t yaw_rate, int16_t pitch_rate, int16_t roll_rate, uint16_t throttle)
 {
     if (self)
@@ -501,7 +494,7 @@ void FlightController_set_controls(struct FlightController *self, int16_t yaw_ra
         self->throttle = throttle;
     }
 }
-
+//authored by Vivian
 void FlightController_set_params(struct FlightController *self, uint8_t pid , uint8_t pvalue)
 {
     if (self)
@@ -533,7 +526,7 @@ void FlightController_set_params(struct FlightController *self, uint8_t pid , ui
 
     }
 }
-
+//authored by Nathan
 char *FlightControllerMode_to_str(enum FlightControllerMode mode)
 {
     switch (mode) {
@@ -549,7 +542,7 @@ char *FlightControllerMode_to_str(enum FlightControllerMode mode)
     }
     return "";
 }
-
+//authored by Nathan
 void FlightController_destroy(struct FlightController *self)
 {
     if (self)
@@ -557,7 +550,7 @@ void FlightController_destroy(struct FlightController *self)
         free(self);
     }
 }
-
+//authored by Vivian
 uint16_t FlightController_map_throttle(struct  FlightController *self)
 {
     uint16_t t;
@@ -571,7 +564,7 @@ uint16_t FlightController_map_throttle(struct  FlightController *self)
     }
     return t;
 }
-
+//authored by Vivian
 uint16_t FlightController_map_proportional(struct FlightController *self)
 {
     uint16_t t;
@@ -585,7 +578,7 @@ uint16_t FlightController_map_proportional(struct FlightController *self)
     }
     return t;
 }
-
+//authored by Vivian
 uint16_t FlightController_set_limited_rpm(uint16_t rpm)
 {
     if (rpm < MINIMUM_RPM)
@@ -594,7 +587,7 @@ uint16_t FlightController_set_limited_rpm(uint16_t rpm)
     }
     return rpm;
 }
-
+//authored by Vivian
 int16_t FlightController_roll_over_angle(int16_t angle)
 {
     if(angle > 127)
@@ -607,7 +600,7 @@ int16_t FlightController_roll_over_angle(int16_t angle)
     }
     return angle;
 }
-
+//authored by Vivian
 uint16_t FlightController_sqrt_index_bounds(int16_t rpm_in)
 {
     if (rpm_in> 2499){

@@ -14,12 +14,12 @@
 #include "CommandHandler.h"
 
 struct CommandHandler **global_channel = NULL;
-
+//authored by Nathan
 void DEBUG_SET_CHANNEL(struct CommandHandler **debug_channel)
 {
     global_channel = debug_channel;
 }
-
+//authored by Nathan
 void DEBUG(uint8_t id, const char *format, ...)
 {
     if (*global_channel == NULL)

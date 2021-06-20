@@ -21,7 +21,7 @@ CRC8_LUT = [
     0x15, 0x3b, 0x0a, 0x59, 0x68, 0xff, 0xce, 0x9d, 0xac
 ]
 
-
+#authored by Nathan
 def crc8(bytes, n=None):
     if n is None:
         n = len(bytes)

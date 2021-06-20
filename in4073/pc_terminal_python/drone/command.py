@@ -50,30 +50,30 @@ class Command:
 
         if self.type == CommandType.CurrentComms:
             self.args = ["argument"]
-
+    #authored by Nathan
     def set_data(self, **kwargs):
         for key, value in kwargs.items():
             self.__set_datum(key, value)
-
+    #authored by Nathan
     def __set_datum(self, key: str, value):
         if key in self.args:
             self.data[key] = value
         else:
             raise NameError("Command does not contain field '{}'".format(key))
-
+    #authored by Nathan
     def __str__(self):
         parts = []
         for key, value in self.data.items():
             parts.append("{}={}".format(key, value))
 
         return "Command(type={}, data=({}))".format(self.type.name, ", ".join(parts))
-
+    #authored by Nathan
     def get_data(self, key: str):
         if key in self.args:
             return self.data[key]
 
         raise NameError("Command does not contain field '{}'".format(key))
-
+    #authored by Nathan
     def encode(self):
         buffer = bytearray()
         crc_len = 1
@@ -100,7 +100,7 @@ class Command:
         buffer.append(crc)
 
         return buffer
-
+    #authored by Nathan
 def TO_INT16(value):
     return value if value <= 32767 else value - 65535
 
@@ -112,7 +112,7 @@ class SerialCommandDecoder:
         self.header = True
 
         self.commands = Queue()
-
+    #authored by Nathan
     def append(self, byte):
         # print(byte)
         self.buffer.append(byte)
@@ -136,13 +136,13 @@ class SerialCommandDecoder:
                     self.clear_buffer()
             else:
                 self.data_len -= 1
-
+    #authored by Nathan
     def empty(self):
         return self.commands.empty()
-
+    #authored by Nathan
     def get(self):
         return self.commands.get()
-
+    #authored by Nathan
     def extract_command(self):
         header = self.buffer[0]
         type = CommandType(header >> 4)
@@ -180,13 +180,13 @@ class SerialCommandDecoder:
 
         self.commands.put(cmd)
         self.clear_buffer()
-
+    #authored by Nathan
     def clear_buffer(self):
         self.buffer.clear()
         self.header = True
         self.ext_header = 0
         self.data_len = 0
-
+    #authored by Nathan
     @staticmethod
     def get_data_length_from_header(header):
         type = (header[0] >> 4)
@@ -198,7 +198,7 @@ class SerialCommandDecoder:
             return 7 * 2
 
         return 0
-
+    #authored by Nathan
     @staticmethod
     def get_ext_header_size(header):
         type = (header >> 4)

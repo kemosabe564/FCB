@@ -8,7 +8,7 @@
 #include "../utils/quad_ble.h"
 
 #include "Debug.h"
-
+//authored by Nathan
 struct Comms *BLE_create()
 {
     struct Comms *result = (struct Comms *)malloc(sizeof(struct Comms));
@@ -23,7 +23,7 @@ struct Comms *BLE_create()
 
     return result;
 }
-
+//authored by Nathan
 void BLE_loop(void *context, uint32_t delta_us)
 {
     struct Comms *self = (struct Comms *)context;
@@ -53,7 +53,7 @@ void BLE_loop(void *context, uint32_t delta_us)
 
     quad_ble_send();
 }
-
+//authored by Nathan
 void BLE_destroy(struct Comms *self)
 {
     if (self)

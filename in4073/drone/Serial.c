@@ -10,7 +10,7 @@
 
 #include "nrf_gpio.h"
 #include "nrf_delay.h"
-
+//authored by Nathan
 struct Comms *Serial_create(int32_t baud_rate)
 {
     struct Comms *result = (struct Comms *)malloc(sizeof(struct Comms));
@@ -30,7 +30,7 @@ struct Comms *Serial_create(int32_t baud_rate)
 
     return result;
 }
-
+//authored by Nathan
 void Serial_loop(void *context, uint32_t delta_us)
 {
     struct Comms *self = (struct Comms *)context;
@@ -55,7 +55,7 @@ void Serial_loop(void *context, uint32_t delta_us)
         Command_destroy(command);
     }
 }
-
+//authored by Nathan
 void Serial_destroy(struct Comms *self)
 {
     if (self)

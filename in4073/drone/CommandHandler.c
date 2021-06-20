@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stddef.h>
-
+//authored by Nathan
 struct CommandHandler *CommandHandler_create(uint8_t active_comms, CommandHandlerFunction handler)
 {
     struct CommandHandler *result = (struct CommandHandler *)malloc(sizeof(struct CommandHandler));
@@ -35,7 +35,7 @@ struct CommandHandler *CommandHandler_create(uint8_t active_comms, CommandHandle
 
     return result;
 };
-
+//authored by Nathan
 void CommandHandler_loop(void *context, uint32_t delta_us)
 {
     struct CommandHandler *self = (struct CommandHandler *)context;
@@ -81,7 +81,7 @@ void CommandHandler_loop(void *context, uint32_t delta_us)
         break;
     }
 };
-
+//authored by Nathan
 void __CommandHandler_command_handler_internal(struct CommandHandler *self, struct Command *command)
 {
     switch (command->type)
@@ -110,7 +110,7 @@ void __CommandHandler_command_handler_internal(struct CommandHandler *self, stru
         break;
     }
 }
-
+//authored by Nathan
 void CommandHandler_add_comms(struct CommandHandler *self, uint8_t id, struct Comms *comms)
 {
     if (self && id < COMMANDHANDLER_MAX_COMMS)
@@ -118,7 +118,7 @@ void CommandHandler_add_comms(struct CommandHandler *self, uint8_t id, struct Co
         self->comms[id] = comms;
     }
 };
-
+//authored by Nathan
 struct Comms *CommandHandler_get_active_comms(struct CommandHandler *self)
 {
     if (self)
@@ -128,7 +128,7 @@ struct Comms *CommandHandler_get_active_comms(struct CommandHandler *self)
 
     return NULL;
 }
-
+//authored by Nathan
 void CommandHandler_send_command(struct CommandHandler *self, struct Command *command)
 {
     if (self && command)
@@ -144,7 +144,7 @@ void CommandHandler_send_command(struct CommandHandler *self, struct Command *co
         }
     }
 }
-
+//authored by Nathan
 void CommandHandler_set_on_heartbeat_lost(struct CommandHandler *self, uint32_t heartbeat_margin, CommandHandlerHeartbeatLostFunction handler)
 {
     if (self)
@@ -153,7 +153,7 @@ void CommandHandler_set_on_heartbeat_lost(struct CommandHandler *self, uint32_t 
         self->on_heartbeat_lost = handler;
     }
 }
-
+//authored by Nathan
 void CommandHandler_destroy(struct CommandHandler *self)
 {
     if (self)

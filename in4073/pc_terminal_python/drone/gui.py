@@ -12,13 +12,13 @@ from drone.tripled.wireframeviewer import WireframeViewer
 import numpy as np
 import math
 
-
+#authored by Nathan
 def init_fig(Figsize, Dpi):
     fig = pylab.figure(figsize = Figsize, 
                     dpi = Dpi,        
                     )  
     return fig
-
+#authored by Yiting
 def graph_drawing(fig, data, xlim, ylim, position, screen, title):
     # figzie Inches, dpi dots per inch
     # fig = pylab.figure(figsize = Figsize, 
@@ -41,7 +41,7 @@ def graph_drawing(fig, data, xlim, ylim, position, screen, title):
     # surf and screen are from pygame
     surf = pygame.image.fromstring(raw_data, size, "RGB")
     screen.blit(surf, position) 
-
+#authored by Nathan
 class Display_Data_Queue():
     # rename as Display_Data_Queue
     def __init__(self, N):
@@ -96,6 +96,7 @@ class GUI:
         #
 
     # init the text printer and queue for receiving data from joys and snesors
+    #authored by Nathan
     def __init_display(self):
         N = 100
         # for JS
@@ -114,20 +115,16 @@ class GUI:
         self.phi_fig     = init_fig([3, 2], 100)
         self.theta_fig   = init_fig([3, 2], 100)
         self.psi_fig     = init_fig([3, 2], 100)
-
+    #authored by Nathan
     def update_title(self):
         status = self.drone.mode.name if self.drone.mode else "Disconnected"
         pygame.display.set_caption("Drone ({})".format(status))
-
+    #authored by Vivian
     def get_torques(self):
         (r0, r1, r2, r3) = self.drone.get_rpm()
         yaw_torque = r1**2 + r3**2 - r0**2 - r2**2
         roll_torque = r3**2 - r1**2
         pitch_torque = r0**2 - r2**2
-
-        # self.pitch_data.queue_storing(pygame.joystick.Joystick(0).get_axis(0), 1)
-        # self.roll_data.queue_storing(pygame.joystick.Joystick(0).get_axis(1), 1)
-        # self.yaw_data.queue_storing(pygame.joystick.Joystick(0).get_axis(2), 1)
 
         self.pitch_data.queue_storing(pitch_torque, 1)
         self.roll_data.queue_storing(roll_torque, 1)
@@ -135,7 +132,7 @@ class GUI:
         torques_str = 'Generated Torques - Yaw: {}    Roll: {}    Pitch: {}'.format(str(int(yaw_torque/1000)), str(int(roll_torque/1000)), str(int(pitch_torque/1000)))
         return torques_str
 
-
+    #authored by Vivian
     def draw(self):
         width, height = self.screen_size
         rect = pygame.Rect((width / 2) - 25, (height / 2) - 25, 50, 50)
@@ -188,10 +185,8 @@ class GUI:
         text_p = font2.render(p_str, True, black, white)
         text_inputs = font2.render(inputs_str, True, (102, 0, 51), white)
 
-        #rotated = pygame.transform.rotate(self.screen, (phi + 32767) / 65535)
 
         self.screen.fill((white))
-        # pygame.draw.rect(self.screen, (255, 0, 0), rect)
 
         self.screen.blit(font.render('{:^10}'.format(status), True, (204, 0, 0), (255, 225, 225)), (30, height - 150))
         self.screen.blit(text_angles, (30,40))
@@ -223,9 +218,6 @@ class GUI:
             graph_drawing(self.phi_fig, self.theta_data.data_queue, [-1, 105], [-127, 127], (900, 275), self.screen, 'Theta')
             graph_drawing(self.phi_fig, self.psi_data.data_queue, [-1, 105], [-127, 127], (900, 500), self.screen, 'Psi')
 
-        # graph_drawing(self.pitch_fig, self.pitch_data.data_queue, [-1, 105], [-1.1, 1.1], (25, 150), self.screen)
-        # graph_drawing(self.pitch_fig, self.roll_data.data_queue, [-1, 105], [-1.1, 1.1], (25, 375), self.screen)
-        # graph_drawing(self.pitch_fig, self.yaw_data.data_queue, [-1, 105], [-1.1, 1.1], (25, 600), self.screen)
 
         self.wfviewer.rotate(((phi / 256) * math.pi * 2, (psi / 256) * math.pi * 2, (theta / 256) * math.pi * 2))
 

@@ -59,13 +59,13 @@ class Drone:
         # start the thread loop now
         self.thread = threading.Thread(target=self.__thread_function)
         self.thread.start()
-
+    #authored by Nathan
     def send_command(self, command, idx=None):
         if idx is None:
             idx = self.active_serial
 
         self.serials[idx].send_command(command)
-
+    #authored by Nathan
     def handle_command(self, command):
         if type(command) != Command:
             return
@@ -84,12 +84,12 @@ class Drone:
             self.heartbeat_ack_queue.put(command.get_data("argument"))
         elif command.type == CommandType.CurrentComms:
             self.__receive_current_comms(command.get_data("argument"))
-
+    #authored by Nathan
     def __receive_current_comms(self, idx):
         if idx != self.active_serial:
             self.active_serial = idx
             self.cli.to_cli("[drone      ] changed to comm {}".format(idx))
-
+    #authored by Nathan
     def __thread_function(self):
         while not self.terminate:
             while not self.heartbeat_ack_queue.empty():
@@ -101,23 +101,23 @@ class Drone:
                     self.cli.to_cli("[drone      ] heartbeat distance exceeded {}".format(self.heartbeat_margin))
                     self.mode = None
             time.sleep(1 / self.heartbeat_freq)
-
+    #authored by Nathan
     def enable_heartbeat(self, enabled):
         self.heartbeat_enabled = enabled
 
-
+    #authored by Nathan
     def get_angles(self):
         return self.phi, self.theta, self.psi
-
+    #authored by Vivian
     def get_rpm(self):
         return self.rpm0, self.rpm1, self.rpm2, self.rpm3
-
+    #authored by Nathan
     def change_mode(self, mode: FlightMode):
         command = Command(CommandType.SetOrQueryMode)
         command.set_data(argument=mode.value)
 
         self.send_command(command)
-
+    #authored by Nathan
     def set_comms(self, idx):
         if self.mode is FlightMode.Safe:
             command = Command(CommandType.SetComms)
@@ -126,27 +126,28 @@ class Drone:
             self.send_command(command)
         else:
             self.cli.to_cli("[drone      ] cannot change comm while not in mode Safe (current mode = {})".format(self.mode.name))
-
+    #authored by Nathan
     def set_control(self, yaw, pitch, roll, throttle):
         command = Command(CommandType.SetControl)
         command.set_data(argument=self.mode.value, yaw=yaw, pitch=pitch, roll=roll, throttle=throttle)
 
         self.send_command(command)
-
+    #authored by Vivian
     def set_params(self, id, value):
         command = Command(CommandType.SetParam)
         command.set_data(argument=id, value=value)
 
         self.send_command(command)
-
+    #authored by Nathan
     def __time_in_ms(self):
         return time.time() / 1000
 
     # difference between sent out heartbeat sequence number and acknowledge heartbeat sequence number
+    #authored by Nathan
     def get_heartbeat_distance(self):
         seq = self.heartbeat_seq if (self.heartbeat_seq >= self.heartbeat_ack) else self.heartbeat_seq + 16
         return seq - self.heartbeat_ack
-
+    #authored by Nathan
     def beat_heart(self):
         if self.heartbeat_mode in [HeartbeatMode.Init, HeartbeatMode.Active]:
             if self.heartbeat_seq_prev != self.heartbeat_ack:
@@ -166,7 +167,7 @@ class Drone:
 
             if self.heartbeat_mode == HeartbeatMode.Init:
                 self.heartbeat_mode = HeartbeatMode.Waiting
-
+    #authored by Nathan
     def ack_heartbeat(self, ack):
         self.heartbeat_ack = ack
         self.heartbeat_ack_ts = self.__time_in_ms()

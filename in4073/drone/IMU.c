@@ -14,7 +14,7 @@ struct IMU *IMU_create(bool dmp, uint16_t frequency)
 {
     struct IMU *result = (struct IMU *)malloc(sizeof(struct IMU));
 
-    if (result)
+    if (result) //authored by Vivian
     {
         result->loop = LoopHandler_init_controlblock(IMU_loop);
         result->state = IMU_Init;
@@ -118,7 +118,7 @@ void IMU_loop(void *context, uint32_t delta_us)
             imu->state = IMU_Measuring;
         }
             break;
-        case IMU_Measuring: {
+        case IMU_Measuring: { //authored by Vivian
 
             //****COMMON****
 
@@ -186,7 +186,7 @@ void IMU_loop(void *context, uint32_t delta_us)
         }
             break;
 
-        case IMU_MeasuringRaw:
+        case IMU_MeasuringRaw: //authored by Vivian
         {
             //****COMMON****
 
@@ -306,16 +306,15 @@ void IMU_loop(void *context, uint32_t delta_us)
             imu->pitch_angle = imu->theta_kalman;
 
             //****END MEASURING RAW ****
-            //DEBUG(0,"y%d", fix2float(imu->sp_y[0]));
         }
             break;
 
-        case IMU_StartCalibration: {
+        case IMU_StartCalibration: { //authored by Nathan
             imu->calibration_start_ts = get_time_us();
             imu->state = IMU_Waiting;
         }
             break;
-        case IMU_Waiting: {
+        case IMU_Waiting: { //authored by Nathan
             uint32_t now = get_time_us();
 
             if ((now - imu->calibration_start_ts) >= imu->calibration_time_us)
@@ -324,7 +323,7 @@ void IMU_loop(void *context, uint32_t delta_us)
             }
         }
             break;
-        case IMU_FinishCalibration: {
+        case IMU_FinishCalibration: { //authored by Vivian
             if (check_sensor_int_flag())
             {
                 get_sensor_data();
@@ -344,7 +343,7 @@ void IMU_loop(void *context, uint32_t delta_us)
     }
 
 }
-
+//authored by Nathan
 void IMU_calibrate(struct IMU *self)
 {
     if (self)
@@ -353,7 +352,7 @@ void IMU_calibrate(struct IMU *self)
         self->state = IMU_StartCalibration;
     }
 }
-
+//authored by Nathan
 void IMU_destroy(struct IMU *self)
 {
     if (self)
@@ -361,13 +360,13 @@ void IMU_destroy(struct IMU *self)
         free(self);
     }
 }
-
+//authored by Vivian
 void IMU_go_raw(struct IMU *self)
 {
     imu_init(false, 300);
     self->state = IMU_MeasuringRaw;
 }
-
+//authored by Vivian
 void IMU_go_full(struct IMU *self)
 {
     imu_init(true, 100);
@@ -375,10 +374,13 @@ void IMU_go_full(struct IMU *self)
 }
 
 
+
 /*----------------------------------------------------------------
  * float2fix -- convert float to fixed point 18+14 bits
  *----------------------------------------------------------------
  */
+//authored by Vivian
+//Note : These are taken directly from the example on the course website
 int32_t    float2fix(double x)
 {
     int32_t	y;
@@ -392,6 +394,8 @@ int32_t    float2fix(double x)
  * fix2float -- convert fixed 18+14 bits to float
  *----------------------------------------------------------------
  */
+//authored by Vivian
+//Note : These are taken directly from the example on the course website
 int32_t 	fix2float(int x)
 {
     double	y;
@@ -405,6 +409,8 @@ int32_t 	fix2float(int x)
  * fixmul -- multiply fixed 18+14 bits to float
  *----------------------------------------------------------------
  */
+//authored by Vivian
+//Note : These are taken directly from the example on the course website
 double 	fixmul(int x1, int x2)
 {
     int	y;

@@ -9,7 +9,7 @@
 #include "../hal/timers.h"
 #include "../hal/gpio.h"
 #include <stdio.h>
-
+//authored by Nathan
 void Rotor_loop(void *context, uint32_t delta_us)
 {
     struct Rotor *rotor = (struct Rotor *)context;
@@ -18,7 +18,7 @@ void Rotor_loop(void *context, uint32_t delta_us)
 
     motor[rotor->motor_idx] = rotor->actual_rpm;
 }
-
+//authored by Nathan
 struct Rotor *Rotor_create(struct RotorMap *map, uint8_t motor_idx, int x_offset, int y_offset)
 {
     struct Rotor *result = (struct Rotor *)malloc(sizeof(struct Rotor));
@@ -38,7 +38,7 @@ struct Rotor *Rotor_create(struct RotorMap *map, uint8_t motor_idx, int x_offset
 
     return result;
 }
-
+//authored by Nathan
 void Rotor_set_rpm(struct Rotor *self, uint16_t rpm) {
     if (self)
     {
@@ -50,9 +50,9 @@ void Rotor_set_rpm(struct Rotor *self, uint16_t rpm) {
         self->target_rpm = rpm;
     }
 }
-
+//authored by Nathan
 void Rotor_set_thrust(struct Rotor *self, uint16_t thrust);
-
+//authored by Nathan
 void Rotor_destroy(struct Rotor *self)
 {
     if (self)

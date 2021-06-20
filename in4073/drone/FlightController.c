@@ -87,9 +87,9 @@ void FlightController_loop(void *context, uint32_t delta_us)
             }
             else{
                 uint16_t rpm0 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t + self->pitch_angle - self->yaw_rate)]);
-                uint16_t rpm1 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t + self->roll_angle + self->yaw_rate)]);
+                uint16_t rpm1 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t - self->roll_angle + self->yaw_rate)]);
                 uint16_t rpm2 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t - self->pitch_angle - self->yaw_rate)]);
-                uint16_t rpm3 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t - self->roll_angle + self->yaw_rate)]);
+                uint16_t rpm3 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t + self->roll_angle + self->yaw_rate)]);
 
                 //CommandHandler_send_command(self->ch, Command_make_debug_msg("rpm0 %d\n",rpm0));
 
@@ -139,10 +139,10 @@ void FlightController_loop(void *context, uint32_t delta_us)
 
             else
             {
-                uint16_t rpm0 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t + self->pitch_angle - yaw_compensation)]);
-                uint16_t rpm1 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t + self->roll_angle + yaw_compensation)]);
-                uint16_t rpm2 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t - self->pitch_angle - yaw_compensation)]);
-                uint16_t rpm3 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t - self->roll_angle + yaw_compensation)]);
+                uint16_t rpm0 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t + self->pitch_angle + yaw_compensation)]);
+                uint16_t rpm1 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t + self->roll_angle - yaw_compensation)]);
+                uint16_t rpm2 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t - self->pitch_angle + yaw_compensation)]);
+                uint16_t rpm3 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t - self->roll_angle - yaw_compensation)]);
 
                 Rotor_set_rpm(self->rotors[0], rpm0);
                 Rotor_set_rpm(self->rotors[1], rpm1);
@@ -215,10 +215,10 @@ void FlightController_loop(void *context, uint32_t delta_us)
 
             else
             {
-                uint16_t rpm0 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t + pitch_rate_compensation - yaw_compensation)]);
-                uint16_t rpm1 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t + roll_rate_compensation + yaw_compensation)]);
-                uint16_t rpm2 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t - pitch_rate_compensation- yaw_compensation)]);
-                uint16_t rpm3 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t - roll_rate_compensation + yaw_compensation)]);
+                uint16_t rpm0 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t + pitch_rate_compensation + yaw_compensation)]);
+                uint16_t rpm1 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t + roll_rate_compensation - yaw_compensation)]);
+                uint16_t rpm2 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t - pitch_rate_compensation + yaw_compensation)]);
+                uint16_t rpm3 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(t - roll_rate_compensation - yaw_compensation)]);
 
                 Rotor_set_rpm(self->rotors[0], rpm0);
                 Rotor_set_rpm(self->rotors[1], rpm1);
@@ -351,10 +351,10 @@ void FlightController_loop(void *context, uint32_t delta_us)
 
 
             //increase or decrease lift
-            uint16_t rpm0 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(self->hold_throttle + lift_compensation + pitch_rate_compensation - yaw_compensation)]);
-            uint16_t rpm1 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(self->hold_throttle + lift_compensation + roll_rate_compensation + yaw_compensation)]);
-            uint16_t rpm2 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(self->hold_throttle + lift_compensation - pitch_rate_compensation- yaw_compensation)]);
-            uint16_t rpm3 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(self->hold_throttle + lift_compensation - roll_rate_compensation + yaw_compensation)]);
+            uint16_t rpm0 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(self->hold_throttle + lift_compensation + pitch_rate_compensation + yaw_compensation)]);
+            uint16_t rpm1 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(self->hold_throttle + lift_compensation + roll_rate_compensation - yaw_compensation)]);
+            uint16_t rpm2 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(self->hold_throttle + lift_compensation - pitch_rate_compensation+ yaw_compensation)]);
+            uint16_t rpm3 = FlightController_set_limited_rpm(SQRT_SCALE_BACK * get_sqrt[FlightController_sqrt_index_bounds(self->hold_throttle + lift_compensation - roll_rate_compensation - yaw_compensation)]);
 
             Rotor_set_rpm(self->rotors[0], rpm0);
             Rotor_set_rpm(self->rotors[1], rpm1);

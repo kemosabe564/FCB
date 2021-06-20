@@ -425,7 +425,7 @@ struct FlightController *FlightController_create(struct IMU *imu, struct Rotor *
 
     return result;
 }
-//authored by Vivian
+//authored by Nathan
 bool FlightController_change_mode(struct FlightController *self, enum FlightControllerMode mode)
 {
     if (self)
@@ -458,7 +458,7 @@ void FlightController_set_on_change_mode(struct FlightController *self, FlightCo
         self->on_changed_mode = handler;
     }
 }
-//authored by Vivian
+//authored by Nathan
 bool FlightController_check_rotors_safe(struct FlightController *self)
 {
     if (self)

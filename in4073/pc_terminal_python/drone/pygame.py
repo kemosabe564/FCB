@@ -1,3 +1,4 @@
+# surpresses all welcome messages from PyGame
 import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame

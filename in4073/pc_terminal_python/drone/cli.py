@@ -7,7 +7,7 @@ import re
 
 from drone.command import Command, CommandType
 
-//authored by Nathan
+# authored by Nathan
 class CLIAction(Enum):
     Exit = 1
     SendCommand = 2
@@ -17,7 +17,7 @@ class CLIAction(Enum):
     SetTelemetry = 6
     SetComms = 7
 
-//authored by Nathan
+# authored by Nathan
 class CLI:
     def __init__(self, action_handler: Callable):
         self.action_handler = action_handler

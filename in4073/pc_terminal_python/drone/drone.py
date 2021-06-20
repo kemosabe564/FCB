@@ -7,6 +7,7 @@ from drone.serial import Serial
 from drone.command import Command, CommandType
 
 
+#authored by Nathan
 class FlightMode(Enum):
     Invalid = 0
     Init = 1
@@ -19,6 +20,7 @@ class FlightMode(Enum):
     Raw = 8
     HoldHeight = 9
 
+#authored by Nathan
 class HeartbeatMode(Enum):
     Init = 0
     Waiting = 1
@@ -26,6 +28,7 @@ class HeartbeatMode(Enum):
 
 
 class Drone:
+    #authored by Nathan
     def __init__(self, cli, serials: List[Serial], serial_idx):
         self.terminate = False
 

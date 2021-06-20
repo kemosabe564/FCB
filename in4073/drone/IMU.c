@@ -105,6 +105,7 @@ struct IMU *IMU_create(bool dmp, uint16_t frequency)
     return result;
 }
 
+// authored by Nathan
 void IMU_loop(void *context, uint32_t delta_us)
 {
     struct IMU *imu = (struct IMU *)context;

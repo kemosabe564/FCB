@@ -12,7 +12,7 @@ from drone.tripled.wireframeviewer import WireframeViewer
 import numpy as np
 import math
 
-#authored by Nathan
+#authored by Yiting
 def init_fig(Figsize, Dpi):
     fig = pylab.figure(figsize = Figsize, 
                     dpi = Dpi,        
@@ -41,7 +41,7 @@ def graph_drawing(fig, data, xlim, ylim, position, screen, title):
     # surf and screen are from pygame
     surf = pygame.image.fromstring(raw_data, size, "RGB")
     screen.blit(surf, position) 
-#authored by Nathan
+#authored by Yiting
 class Display_Data_Queue():
     # rename as Display_Data_Queue
     def __init__(self, N):
@@ -62,6 +62,7 @@ class Display_Data_Queue():
 
 
 class GUI:
+    # authored by Nathan
     def __init__(self, size, drone: Drone , controller: Controller):
         self.drone = drone
         self.controller = controller
@@ -96,7 +97,7 @@ class GUI:
         #
 
     # init the text printer and queue for receiving data from joys and snesors
-    #authored by Nathan
+    #authored by Yiting
     def __init_display(self):
         N = 100
         # for JS

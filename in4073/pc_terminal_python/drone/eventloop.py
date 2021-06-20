@@ -16,6 +16,7 @@ def tangent_map(x):
 
 
 class Eventloop:
+    #authored by Nathan
     def __init__(self):
         pygame.init()
 

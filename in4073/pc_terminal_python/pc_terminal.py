@@ -60,7 +60,7 @@ def new_action_handler(action, data=None):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--port', type=str, default='/dev/ttyUSB0', help='COM port of the drone')
+    parser.add_argument('--port', type=str, default='/dev/ttyUSB1', help='COM port of the drone')
     parser.add_argument('--ble', type=str, default='/dev/pts/3', help='Pseudo COM port of the BLE')
     parser.add_argument('--baud', type=int, default=115200, help='Baudrate for drone')
     parser.add_argument('--no-gui', action='store_true', default=False, help='Only use CLI without GUI')

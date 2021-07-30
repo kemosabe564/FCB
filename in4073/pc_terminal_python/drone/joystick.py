@@ -30,12 +30,6 @@ def map_to(value, mapping: tuple, limit_input=True):
     # if true then the input will be limited to the x-interval
     # this is used to create a deadzone
     if limit_input:
-        if x_s < x_e:  # normal x-axis
-            if value < x_s:
-                value = x_s
-            elif value > x_e:
-                value = x_e
-        else:  # inverted x-axis
             if value > x_s:
                 value = x_s
             elif value < x_e:
@@ -147,7 +141,7 @@ class Joystick:
                     self.__handle_event(event)
 
             for i in range(self.__num_axis):
-                self.__raw_axis[i] = self.__joystick.get_axis(i)
+                self.__raw_axis[i] = 0#self.__joystick.get_axis(i)
                 self.__parsed_axis[i] = self.__parse_axis(i, self.__raw_axis[i])
 
             for i in range(self.__num_buttons):
@@ -159,8 +153,9 @@ class Joystick:
         self.__round_axis[axis.value] = do_round
     #authored by Nathan
     def get_axis(self, axis: JoystickAxis):
-        if axis.value in self.__parsed_axis:
-            return self.__parsed_axis[axis.value]
+        if 0:
+            if axis.value in self.__parsed_axis:
+                return self.__parsed_axis[axis.value]
     #authored by Nathan
     def get_axis_raw(self, axis: JoystickAxis):
         if axis.value in self.__parsed_axis:

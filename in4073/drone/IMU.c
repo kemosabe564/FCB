@@ -117,6 +117,7 @@ void IMU_loop(void *context, uint32_t delta_us)
 //            timers_init();
 
             imu->state = IMU_Measuring;
+            imu->state = IMU_MeasuringRaw;
         }
             break;
         case IMU_Measuring: { //authored by Vivian

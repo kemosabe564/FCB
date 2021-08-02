@@ -81,12 +81,18 @@ struct IMU *IMU_create(bool dmp, uint16_t frequency)
 
         //need to replace these with MATLAB constants
 
-        result->a0 = float2fix(0.0095257623);
-        result->a1 = float2fix(0.0190515247);
-        result->a2 = float2fix(0.0095257623);
-        result->b0 = float2fix(1);
-        result->b1 = float2fix(-1.705552145);
-        result->b2 = float2fix(0.743655195);
+        // result->a0 = float2fix(0.0095257623);
+        // result->a1 = float2fix(0.0190515247);
+        // result->a2 = float2fix(0.0095257623);
+        // result->b0 = float2fix(1);
+        // result->b1 = float2fix(-1.705552145);
+        // result->b2 = float2fix(0.743655195);
+        result->a0 = 60;
+        result->a1 = 77;
+        result->a2 = 60;
+        result->b0 = 1;
+        result->b1 = -29812;
+        result->b2 = 13672;
 
         //kalman
 
@@ -236,11 +242,19 @@ void IMU_loop(void *context, uint32_t delta_us)
             //****END COMMON****
             //**** MEASURING RAW ****
 
+            // TODO:
+            // 1. fix fp to int64_t
+            // 2. verify it with buttorworth filter
+            // 3. apply it to Kalman filter equation
+            // 4. adjust parameters
+
+
+
             //sp
             //moving all values and reading the new input
             imu->sp_x[2]=imu->sp_x[1];
             imu->sp_x[1]=imu->sp_x[0];
-            imu->sp_x[0] = float2fix(sq);
+            imu->sp_x[0] = float2fix(sp);
 
             //moving all y values
             imu->sp_y[2]=imu->sp_y[1];
@@ -252,13 +266,12 @@ void IMU_loop(void *context, uint32_t delta_us)
             //sq
             imu->sq_x[2]=imu->sq_x[1];
             imu->sq_x[1]=imu->sq_x[0];
-            imu->sq_x[0] = float2fix(sp);
+            imu->sq_x[0] = float2fix(sq);
             //DEBUG(0,"sq%d",sq);
 
             //moving all y values
             imu->sq_y[2]=imu->sq_y[1];
             imu->sq_y[1]=imu->sq_y[0];
-
             imu->sq_y[0] = fixmul(imu->a0,imu->sq_x[0])+fixmul(imu->a1,imu->sq_x[1])+fixmul(imu->a2,imu->sq_x[2])-
                            fixmul(imu->b1,imu->sq_y[1])-fixmul(imu->b2,imu->sq_y[2]);
 
@@ -270,22 +283,36 @@ void IMU_loop(void *context, uint32_t delta_us)
             //moving all y values
             imu->sr_y[2]=imu->sr_y[1];
             imu->sr_y[1]=imu->sr_y[0];
-
             imu->sr_y[0] = fixmul(imu->a0,imu->sr_x[0])+fixmul(imu->a1,imu->sr_x[1])+fixmul(imu->a2,imu->sr_x[2])-
                            fixmul(imu->b1,imu->sr_y[1])-fixmul(imu->b2,imu->sr_y[2]);
 
-            imu->p = fix2float(imu->sp_y[0]) - imu->sp_offset;
-            imu->q = fix2float(imu->sq_y[0]) - imu->sq_offset;
-            imu->r = fix2float(imu->sr_y[0]) - imu->sr_offset;
 
-            DEBUG(0, "p%d",imu->p);
-            DEBUG(0, "q%d",imu->q);
+
+            // imu->p = fix2float(imu->sp_y[0]) - imu->sp_offset;
+            // imu->q = fix2float(imu->sq_y[0]) - imu->sq_offset;
+            // imu->r = fix2float(imu->sr_y[0]) - imu->sr_offset;
+
+            imu->p = fix2float(imu->sp_y[0]);
+            imu->q = fix2float(imu->sq_y[0]);
+            imu->r = fix2float(imu->sr_y[0]);            
+            imu->p = sp;
+            imu->q = sq;
+            imu->r = sr;    
+            // for all printing
+
+            DEBUG(0, "p: %d",imu->p);
+            DEBUG(0, "q: %d",imu->q);
+            DEBUG(0, "r: %d",imu->r);
+            // DEBUG(0, "q: %d",imu->q);
+            // DEBUG(0, "q: %d",imu->q);
 
             //kalman for phi and theta
 
             //p = sp - b
             imu->p_estimate = imu->sp_y[0] - imu->bias_phi;
             imu->q_estimate = imu->sq_y[0] - imu->bias_theta;
+            imu->p_estimate = float2fix(sp) - imu->bias_phi;
+            imu->q_estimate = float2fix(sq) - imu->bias_theta;
 
             //phi = phi + p * P2PHI
             imu->phi_kalman = imu->phi_kalman + fixmul(imu->p_estimate,P2PHI);
@@ -300,14 +327,20 @@ void IMU_loop(void *context, uint32_t delta_us)
             imu->theta_kalman = imu->theta_kalman - fixmul(imu->e_theta, (1 / C1));
 
             //b = b + (e/P2PHI) / C2
-            imu->bias_phi = imu->bias_phi + fixmul(fixmul(imu->e_phi,C2),(1/P2PHI));
-            imu->bias_theta = imu->bias_theta + fixmul(fixmul(imu->e_theta,C2),(1/P2PHI));
+            imu->bias_phi = imu->bias_phi + fixmul(fixmul(imu->e_phi,1/C2),(1/P2PHI));
+            imu->bias_theta = imu->bias_theta + fixmul(fixmul(imu->e_theta,1/C2),(1/P2PHI));
 
-            //setting the values
-            imu->roll_angle = imu->phi_kalman;
-            imu->pitch_angle = imu->theta_kalman;
+
 
             //****END MEASURING RAW ****
+
+            //setting the values
+            imu->roll_angle = fix2float(imu->phi_kalman);
+            imu->pitch_angle = fix2float(imu->theta_kalman);
+            
+            // imu->roll_angle = imu->p;
+            // imu->pitch_angle = imu->q;
+            imu->yaw_rate = imu->r;
         }
             break;
 
@@ -381,14 +414,13 @@ void IMU_go_full(struct IMU *self)
  * float2fix -- convert float to fixed point 18+14 bits
  *----------------------------------------------------------------
  */
-//authored by Vivian
+//authored by Ting
 //Note : These are taken directly from the example on the course website
-int32_t    float2fix(double x)
+int64_t float2fix(int x)
 {
-    int32_t	y;
-
-    y = x * (1 << 14);
-    return y;
+    int64_t result;
+    result = x * (1 << fixedpoint);
+    return result;
 }
 
 
@@ -396,14 +428,21 @@ int32_t    float2fix(double x)
  * fix2float -- convert fixed 18+14 bits to float
  *----------------------------------------------------------------
  */
-//authored by Vivian
+//authored by Ting
 //Note : These are taken directly from the example on the course website
-int32_t 	fix2float(int x)
+int fix2float(int64_t x)
 {
-    double	y;
+    // double	y;
 
-    y = ((double) x) / (1 << 14);
-    return (int32_t) y;
+    // y = ((double) x) / (1 << 14);
+    // return (int32_t) y;
+    int result;
+    result = x >> fixedpoint;
+    // if(((a >> (fixedpoint-1)) & 1 )== 1)
+    // {
+    //     result ++;
+    // }
+    return result;    
 }
 
 
@@ -411,13 +450,19 @@ int32_t 	fix2float(int x)
  * fixmul -- multiply fixed 18+14 bits to float
  *----------------------------------------------------------------
  */
-//authored by Vivian
+//authored by Ting
 //Note : These are taken directly from the example on the course website
-double 	fixmul(int x1, int x2)
+int64_t fixmul(int64_t a, int64_t b)
 {
-    int	y;
+    // int	y;
+    // y = x1 * x2; // Note: be sure this fits in 32 bits !!!!
+    // y = (y >> 14);
+    // return y;
 
-    y = x1 * x2; // Note: be sure this fits in 32 bits !!!!
-    y = (y >> 14);
-    return y;
+    int64_t result;
+    int64_t temp;
+    temp = a * b; 
+    temp += K;
+    result = (int64_t)(temp >> fixedpoint);
+    return result;    
 }

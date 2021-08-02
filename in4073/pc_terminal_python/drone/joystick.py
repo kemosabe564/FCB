@@ -30,6 +30,12 @@ def map_to(value, mapping: tuple, limit_input=True):
     # if true then the input will be limited to the x-interval
     # this is used to create a deadzone
     if limit_input:
+        if x_s < x_e:  # normal x-axis
+            if value < x_s:
+                value = x_s
+            elif value > x_e:
+                value = x_e
+        else:  # inverted x-axis
             if value > x_s:
                 value = x_s
             elif value < x_e:

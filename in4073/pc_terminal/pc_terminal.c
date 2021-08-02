@@ -182,10 +182,10 @@ int main(int argc, char **argv)
 	term_initio();
 	term_puts("\nTerminal program - Embedded Real-Time Systems\n");
 
-	// if no argument is given at execution time, /dev/ttyUSB1 is assumed
+	// if no argument is given at execution time, /dev/ttyUSB0 is assumed
 	// asserts are in the function
 	if (argc == 1) {
-		serial_port_open("/dev/ttyUSB1");
+		serial_port_open("/dev/ttyUSB0");
 	} else if (argc == 2) {
 		serial_port_open(argv[1]);
 	} else {

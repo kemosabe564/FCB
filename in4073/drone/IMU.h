@@ -8,10 +8,13 @@
 #define BARO_WIN 5
 #define BAT_WIN 5
 #define BUTTERWORTH_N 3
+#define fixedpoint 14
+ #define K (1 << (fixedpoint - 1))
 
-#define P2PHI float2fix(1)
-#define C1 float2fix(1)
-#define C2 float2fix(1000)
+
+#define P2PHI float2fix(300)
+#define C1 float2fix(100000)
+#define C2 float2fix(300000000)
 
 #include "LoopHandler.h"
 
@@ -81,13 +84,13 @@ struct IMU
     uint16_t battery_average;
 
     //butterworth
-    int32_t sp_x[BUTTERWORTH_N];
-    int16_t sq_x[BUTTERWORTH_N];
-    int16_t sr_x[BUTTERWORTH_N];
+    int64_t sp_x[BUTTERWORTH_N];
+    int64_t sq_x[BUTTERWORTH_N];
+    int64_t sr_x[BUTTERWORTH_N];
 
-    int32_t sp_y[BUTTERWORTH_N];
-    int16_t sq_y[BUTTERWORTH_N];
-    int16_t sr_y[BUTTERWORTH_N];
+    int64_t sp_y[BUTTERWORTH_N];
+    int64_t sq_y[BUTTERWORTH_N];
+    int64_t sr_y[BUTTERWORTH_N];
 
     int16_t a0;
     int16_t a1;
@@ -98,15 +101,15 @@ struct IMU
     int16_t b2;
 
     //kalman
-    int32_t bias_phi;
-    int32_t p_estimate;
-    int32_t e_phi;
-    int32_t phi_kalman;
+    int64_t bias_phi;
+    int64_t p_estimate;
+    int64_t e_phi;
+    int64_t phi_kalman;
 
-    int32_t bias_theta;
-    int32_t q_estimate;
-    int32_t e_theta;
-    int32_t theta_kalman;
+    int64_t bias_theta;
+    int64_t q_estimate;
+    int64_t e_theta;
+    int64_t theta_kalman;
 
     bool calibrated;
     uint32_t calibration_start_ts;
@@ -123,8 +126,8 @@ void IMU_destroy(struct IMU *self);
 void IMU_go_raw(struct IMU *self);
 void IMU_go_full(struct IMU *self);
 
-int32_t     float2fix(double x);
-int32_t 	fix2float(int x);
-double 	fixmul(int x1, int x2);
+int64_t     float2fix(int x);
+int 	    fix2float(int64_t x);
+int64_t 	fixmul(int64_t x1, int64_t x2);
 
 #endif //QUADCOPTER_FCB_IMU_H

@@ -212,9 +212,7 @@ void IMU_loop(void *context, uint32_t delta_us)
             //set the required index
             imu->battery_voltage[imu->battery_iterator]=bat_volt;
             imu->battery_iterator++;
-            int32_t bat_sum =0;
-            for (int i=0; i<BAT_WIN; i++)
-            {
+            int32_t bat_sum =0;0
                 bat_sum = bat_sum + imu->battery_voltage[i];
             }
             imu->battery_average = bat_sum/BAT_WIN;
@@ -248,7 +246,11 @@ void IMU_loop(void *context, uint32_t delta_us)
             // 3. apply it to Kalman filter equation
             // 4. adjust parameters
 
+            // above things are all done
 
+            // TODO: 8.6
+            // 1. filter of sax and say
+            // 2. adjust parameters
 
             //sp
             //moving all values and reading the new input

@@ -98,6 +98,13 @@ struct IMU
     int64_t sq_y[BUTTERWORTH_N];
     int64_t sr_y[BUTTERWORTH_N];
 
+    int64_t sax_x[BUTTERWORTH_N];
+    int64_t say_x[BUTTERWORTH_N];
+
+    int64_t sax_y[BUTTERWORTH_N];
+    int64_t say_y[BUTTERWORTH_N];
+
+    //filter
     int16_t a0;
     int16_t a1;
     int16_t a2;

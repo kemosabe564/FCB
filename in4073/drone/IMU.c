@@ -71,12 +71,22 @@ struct IMU *IMU_create(bool dmp, uint16_t frequency)
         //initializing all readings to 0
         for(int i=0; i<BUTTERWORTH_N; i++)
         {
+            //
             result->sp_x[i]=0;
-            result->sq_x[i]=0;
-            result->sr_x[i]=0;
             result->sp_y[i]=0;
+            //
+            result->sq_x[i]=0;
             result->sq_y[i]=0;
+            //
+            result->sr_x[i]=0;
             result->sr_y[i]=0;
+            //
+            result->sax_x[i]=0;
+            result->sax_y[i]=0;
+            //
+            result->say_x[i]=0;
+            result->say_y[i]=0;
+
         }
 
         //need to replace these with MATLAB constants
@@ -194,7 +204,7 @@ void IMU_loop(void *context, uint32_t delta_us)
         }
             break;
 
-        case IMU_MeasuringRaw: //authored by Vivian
+        case IMU_MeasuringRaw: //authored by Vivian and Ting
         {
             //****COMMON****
 
@@ -238,7 +248,6 @@ void IMU_loop(void *context, uint32_t delta_us)
             imu->barometer_average = sum/BARO_WIN;
 
             //****END COMMON****
-            //**** MEASURING RAW ****
 
             // TODO:
             // 1. fix fp to int64_t
@@ -252,12 +261,14 @@ void IMU_loop(void *context, uint32_t delta_us)
             // 1. filter of sax and say
             // 2. adjust parameters
 
+
+            //**** MEASURING RAW ****
+
             //sp
             //moving all values and reading the new input
             imu->sp_x[2]=imu->sp_x[1];
             imu->sp_x[1]=imu->sp_x[0];
             imu->sp_x[0] = float2fix(sp);
-
             //moving all y values
             imu->sp_y[2]=imu->sp_y[1];
             imu->sp_y[1]=imu->sp_y[0];
@@ -270,7 +281,6 @@ void IMU_loop(void *context, uint32_t delta_us)
             imu->sq_x[1]=imu->sq_x[0];
             imu->sq_x[0] = float2fix(sq);
             //DEBUG(0,"sq%d",sq);
-
             //moving all y values
             imu->sq_y[2]=imu->sq_y[1];
             imu->sq_y[1]=imu->sq_y[0];
@@ -281,13 +291,31 @@ void IMU_loop(void *context, uint32_t delta_us)
             imu->sr_x[2]=imu->sr_x[1];
             imu->sr_x[1]=imu->sr_x[0];
             imu->sr_x[0] = float2fix(sr);
-
             //moving all y values
             imu->sr_y[2]=imu->sr_y[1];
             imu->sr_y[1]=imu->sr_y[0];
             imu->sr_y[0] = fixmul(imu->a0,imu->sr_x[0])+fixmul(imu->a1,imu->sr_x[1])+fixmul(imu->a2,imu->sr_x[2])-
                            fixmul(imu->b1,imu->sr_y[1])-fixmul(imu->b2,imu->sr_y[2]);
 
+            //sax
+            imu->sax_x[2]=imu->sax_x[1];
+            imu->sax_x[1]=imu->sax_x[0];
+            imu->sax_x[0] = float2fix(sax);
+            //moving all y values
+            imu->sax_y[2]=imu->sax_y[1];
+            imu->sax_y[1]=imu->sax_y[0];
+            imu->sax_y[0] = fixmul(imu->a0,imu->sax_x[0])+fixmul(imu->a1,imu->sax_x[1])+fixmul(imu->a2,imu->sax_x[2])-
+                            fixmul(imu->b1,imu->sax_y[1])-fixmul(imu->b2,imu->sax_y[2]);
+
+            //say
+            imu->say_x[2]=imu->say_x[1];
+            imu->say_x[1]=imu->say_x[0];
+            imu->say_x[0] = float2fix(say);
+            //moving all y values
+            imu->say_y[2]=imu->say_y[1];
+            imu->say_y[1]=imu->say_y[0];
+            imu->say_y[0] = fixmul(imu->a0,imu->say_x[0])+fixmul(imu->a1,imu->say_x[1])+fixmul(imu->a2,imu->say_x[2])-
+                            fixmul(imu->b1,imu->say_y[1])-fixmul(imu->b2,imu->say_y[2]);
 
 
             // imu->p = fix2float(imu->sp_y[0]) - imu->sp_offset;

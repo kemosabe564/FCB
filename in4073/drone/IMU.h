@@ -9,12 +9,18 @@
 #define BAT_WIN 5
 #define BUTTERWORTH_N 3
 #define fixedpoint 14
- #define K (1 << (fixedpoint - 1))
+#define K (1 << (fixedpoint - 1))
 
 
-#define P2PHI float2fix(300)
-#define C1 float2fix(100000)
-#define C2 float2fix(300000000)
+// P2PHI = 0.0081, fp is 132
+#define P2PHI 132
+#define C1_P float2fix(256)
+#define C2_P float2fix(1000000)
+
+// P2PHI = 0.0081, fp is 132
+#define Q2THETA 132
+#define C1_Q float2fix(256)
+#define C2_Q float2fix(1000000)
 
 #include "LoopHandler.h"
 

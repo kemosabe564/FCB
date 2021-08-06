@@ -301,8 +301,8 @@ void IMU_loop(void *context, uint32_t delta_us)
             // for all printing
 
             DEBUG(0, "p: %d",imu->p);
-            DEBUG(0, "q: %d",imu->q);
-            DEBUG(0, "r: %d",imu->r);
+            // DEBUG(0, "q: %d",imu->q);
+            // DEBUG(0, "r: %d",imu->r);
             // DEBUG(0, "q: %d",imu->q);
             // DEBUG(0, "q: %d",imu->q);
 
@@ -311,24 +311,26 @@ void IMU_loop(void *context, uint32_t delta_us)
             //p = sp - b
             imu->p_estimate = imu->sp_y[0] - imu->bias_phi;
             imu->q_estimate = imu->sq_y[0] - imu->bias_theta;
-            imu->p_estimate = float2fix(sp) - imu->bias_phi;
-            imu->q_estimate = float2fix(sq) - imu->bias_theta;
+            // imu->p_estimate = float2fix(sp) - imu->bias_phi;
+            // imu->q_estimate = float2fix(sq) - imu->bias_theta;
 
             //phi = phi + p * P2PHI
             imu->phi_kalman = imu->phi_kalman + fixmul(imu->p_estimate,P2PHI);
-            imu->theta_kalman = imu->theta_kalman + fixmul(imu->q_estimate,P2PHI);
+            imu->theta_kalman = imu->theta_kalman + fixmul(imu->q_estimate,Q2THETA);
 
             //e = phi – sphi
-            imu->e_phi = imu->phi_kalman - float2fix(phi);
-            imu->e_theta = imu->theta_kalman - float2fix(theta);
+            imu->e_phi = imu->phi_kalman - float2fix(say);
+            imu->e_theta = imu->theta_kalman - float2fix(sax);            
+            // imu->e_phi = imu->phi_kalman - float2fix(phi);
+            // imu->e_theta = imu->theta_kalman - float2fix(theta);
 
             //phi = phi – e / C1
-            imu->phi_kalman = imu->phi_kalman - fixmul(imu->e_phi, (1 / C1));
-            imu->theta_kalman = imu->theta_kalman - fixmul(imu->e_theta, (1 / C1));
+            imu->phi_kalman = imu->phi_kalman - fixmul(imu->e_phi, (1 / C1_P));
+            imu->theta_kalman = imu->theta_kalman - fixmul(imu->e_theta, (1 / C1_Q));
 
             //b = b + (e/P2PHI) / C2
-            imu->bias_phi = imu->bias_phi + fixmul(fixmul(imu->e_phi,1/C2),(1/P2PHI));
-            imu->bias_theta = imu->bias_theta + fixmul(fixmul(imu->e_theta,1/C2),(1/P2PHI));
+            imu->bias_phi = imu->bias_phi + fixmul(fixmul(imu->e_phi,1/C2_P),(1/P2PHI));
+            imu->bias_theta = imu->bias_theta + fixmul(fixmul(imu->e_theta,1/C2_Q),(1/Q2THETA));
 
 
 

@@ -8,19 +8,23 @@
 #define BARO_WIN 5
 #define BAT_WIN 5
 #define BUTTERWORTH_N 3
-#define fixedpoint 14
+#define fixedpoint 18
 #define K (1 << (fixedpoint - 1))
 
 
 // P2PHI = 0.0081, fp is 132
-#define P2PHI 132
-#define C1_P float2fix(256)
-#define C2_P float2fix(1000000)
+#define P2PHI 2123
+// #define C1_P float2fix(1024)
+// #define C2_P float2fix(1250*C1)
+#define C1_P_inv 256
+#define C2_P_P2PHI_inv 25
 
 // P2PHI = 0.0081, fp is 132
 #define Q2THETA 132
-#define C1_Q float2fix(256)
-#define C2_Q float2fix(1000000)
+// #define C1_Q float2fix(256)
+// #define C2_Q float2fix(1000000)
+#define C1_Q_inv float2fix(256)
+#define C2_Q_Q2THETA_inv float2fix(1000000)
 
 #include "LoopHandler.h"
 
@@ -105,13 +109,13 @@ struct IMU
     int64_t say_y[BUTTERWORTH_N];
 
     //filter
-    int16_t a0;
-    int16_t a1;
-    int16_t a2;
+    int64_t a0;
+    int64_t a1;
+    int64_t a2;
 
-    int16_t b0;
-    int16_t b1;
-    int16_t b2;
+    int64_t b0;
+    int64_t b1;
+    int64_t b2;
 
     //kalman
     int64_t bias_phi;
@@ -129,6 +133,8 @@ struct IMU
     uint32_t calibration_time_us;
     bool dmp_enabled;
     uint16_t frequency;
+
+    uint32_t base_time;
 };
 
 void IMU_loop(void *context, uint32_t delta_us);

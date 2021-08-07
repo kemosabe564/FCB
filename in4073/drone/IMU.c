@@ -97,12 +97,12 @@ struct IMU *IMU_create(bool dmp, uint16_t frequency)
         // result->b0 = float2fix(1);
         // result->b1 = float2fix(-1.705552145);
         // result->b2 = float2fix(0.743655195);
-        result->a0 = 60;
-        result->a1 = 77;
-        result->a2 = 60;
+        result->a0 = 2497;//60;
+        result->a1 = 4994;//77;
+        result->a2 = 2497;//60;
         result->b0 = 1;
-        result->b1 = -29812;
-        result->b2 = 13672;
+        result->b1 = -262143;//-29812;
+        result->b2 = 194944;//13672;
 
         //kalman
 
@@ -134,6 +134,9 @@ void IMU_loop(void *context, uint32_t delta_us)
 
             imu->state = IMU_Measuring;
             imu->state = IMU_MeasuringRaw;
+
+            imu->base_time = get_time_us();
+
         }
             break;
         case IMU_Measuring: { //authored by Vivian
@@ -222,7 +225,9 @@ void IMU_loop(void *context, uint32_t delta_us)
             //set the required index
             imu->battery_voltage[imu->battery_iterator]=bat_volt;
             imu->battery_iterator++;
-            int32_t bat_sum =0;0
+            int32_t bat_sum =0;
+            for (int i=0; i<BAT_WIN; i++)
+            {
                 bat_sum = bat_sum + imu->battery_voltage[i];
             }
             imu->battery_average = bat_sum/BAT_WIN;
@@ -265,27 +270,29 @@ void IMU_loop(void *context, uint32_t delta_us)
             //**** MEASURING RAW ****
 
             //sp
-            //moving all values and reading the new input
-            imu->sp_x[2]=imu->sp_x[1];
-            imu->sp_x[1]=imu->sp_x[0];
+            // //moving all values and reading the new input
+            // imu->sp_x[2]=imu->sp_x[1];
+            // imu->sp_x[1]=imu->sp_x[0];
+
             imu->sp_x[0] = float2fix(sp);
-            //moving all y values
-            imu->sp_y[2]=imu->sp_y[1];
-            imu->sp_y[1]=imu->sp_y[0];
-            imu->sp_y[0] = fixmul(imu->a0,imu->sp_x[0])+fixmul(imu->a1,imu->sp_x[1])+fixmul(imu->a2,imu->sp_x[2])-
-                           fixmul(imu->b1,imu->sp_y[1])-fixmul(imu->b2,imu->sp_y[2]);
-            //DEBUG(0,"sp%d",sp);
+            
+            // //moving all y values
+            // imu->sp_y[2]=imu->sp_y[1];
+            // imu->sp_y[1]=imu->sp_y[0];
+            // imu->sp_y[0] = fixmul(imu->a0,imu->sp_x[0])+fixmul(imu->a1,imu->sp_x[1])+fixmul(imu->a2,imu->sp_x[2])-
+            //                fixmul(imu->b1,imu->sp_y[1])-fixmul(imu->b2,imu->sp_y[2]);
+            // //DEBUG(0,"sp%d",sp);
 
             //sq
-            imu->sq_x[2]=imu->sq_x[1];
-            imu->sq_x[1]=imu->sq_x[0];
+            // imu->sq_x[2]=imu->sq_x[1];
+            // imu->sq_x[1]=imu->sq_x[0];
             imu->sq_x[0] = float2fix(sq);
-            //DEBUG(0,"sq%d",sq);
-            //moving all y values
-            imu->sq_y[2]=imu->sq_y[1];
-            imu->sq_y[1]=imu->sq_y[0];
-            imu->sq_y[0] = fixmul(imu->a0,imu->sq_x[0])+fixmul(imu->a1,imu->sq_x[1])+fixmul(imu->a2,imu->sq_x[2])-
-                           fixmul(imu->b1,imu->sq_y[1])-fixmul(imu->b2,imu->sq_y[2]);
+            // //DEBUG(0,"sq%d",sq);
+            // //moving all y values
+            // imu->sq_y[2]=imu->sq_y[1];
+            // imu->sq_y[1]=imu->sq_y[0];
+            // imu->sq_y[0] = fixmul(imu->a0,imu->sq_x[0])+fixmul(imu->a1,imu->sq_x[1])+fixmul(imu->a2,imu->sq_x[2])-
+            //                fixmul(imu->b1,imu->sq_y[1])-fixmul(imu->b2,imu->sq_y[2]);
 
             //sr
             imu->sr_x[2]=imu->sr_x[1];
@@ -322,56 +329,74 @@ void IMU_loop(void *context, uint32_t delta_us)
             // imu->q = fix2float(imu->sq_y[0]) - imu->sq_offset;
             // imu->r = fix2float(imu->sr_y[0]) - imu->sr_offset;
 
-            imu->p = fix2float(imu->sp_y[0]);
-            imu->q = fix2float(imu->sq_y[0]);
-            imu->r = fix2float(imu->sr_y[0]);            
+            // imu->p = fix2float(imu->sp_y[0]);
+            // imu->q = fix2float(imu->sq_y[0]);
+            // imu->r = fix2float(imu->sr_y[0]);            
             imu->p = sp;
             imu->q = sq;
             imu->r = sr;    
-            // for all printing
-
-            DEBUG(0, "p: %d",imu->p);
-            // DEBUG(0, "q: %d",imu->q);
-            // DEBUG(0, "r: %d",imu->r);
-            // DEBUG(0, "q: %d",imu->q);
-            // DEBUG(0, "q: %d",imu->q);
 
             //kalman for phi and theta
 
             //p = sp - b
-            imu->p_estimate = imu->sp_y[0] - imu->bias_phi;
-            imu->q_estimate = imu->sq_y[0] - imu->bias_theta;
+            imu->p_estimate = imu->sp_x[0] - imu->bias_phi;
+            imu->q_estimate = imu->sq_x[0] - imu->bias_theta;
             // imu->p_estimate = float2fix(sp) - imu->bias_phi;
             // imu->q_estimate = float2fix(sq) - imu->bias_theta;
+
+            // DEBUG(0, "p: %d",fix2float(imu->sp_x[0]));
+            // DEBUG(0, "sax: %d",fix2float(imu->sax_y[0]));
+
 
             //phi = phi + p * P2PHI
             imu->phi_kalman = imu->phi_kalman + fixmul(imu->p_estimate,P2PHI);
             imu->theta_kalman = imu->theta_kalman + fixmul(imu->q_estimate,Q2THETA);
+            //phi_p(i) = phi_p(i-1) + p(i-1) * p2phi; 
+
 
             //e = phi – sphi
-            imu->e_phi = imu->phi_kalman - float2fix(say);
-            imu->e_theta = imu->theta_kalman - float2fix(sax);            
+            imu->e_phi = imu->phi_kalman - (imu->say_y[0]);
+            imu->e_theta = imu->theta_kalman - (imu->sax_y[0]);  
+
+            // imu->e_phi = imu->phi_kalman - float2fix(say);
+            // imu->e_theta = imu->theta_kalman - float2fix(sax);            
             // imu->e_phi = imu->phi_kalman - float2fix(phi);
             // imu->e_theta = imu->theta_kalman - float2fix(theta);
 
             //phi = phi – e / C1
-            imu->phi_kalman = imu->phi_kalman - fixmul(imu->e_phi, (1 / C1_P));
-            imu->theta_kalman = imu->theta_kalman - fixmul(imu->e_theta, (1 / C1_Q));
+            imu->phi_kalman = imu->phi_kalman - fixmul(imu->e_phi, C1_P_inv);
+            imu->theta_kalman = imu->theta_kalman - fixmul(imu->e_theta, C1_Q_inv);
 
             //b = b + (e/P2PHI) / C2
-            imu->bias_phi = imu->bias_phi + fixmul(fixmul(imu->e_phi,1/C2_P),(1/P2PHI));
-            imu->bias_theta = imu->bias_theta + fixmul(fixmul(imu->e_theta,1/C2_Q),(1/Q2THETA));
+            // DEBUG(0, "before: %d",imu->bias_phi);
+            imu->bias_phi = imu->bias_phi + fixmul(imu->e_phi, C2_P_P2PHI_inv);
+            // DEBUG(0, "after: %d",imu->bias_phi);
+            imu->bias_theta = imu->bias_theta + fixmul(imu->e_theta,C2_Q_Q2THETA_inv);
 
 
 
             //****END MEASURING RAW ****
 
+            // for all printing
+            // uint32_t time_now = get_time_us();
+            // DEBUG(0, "t:%d",imu->base_time);
+            DEBUG(0, "phi:%d",fix2float(imu->phi_kalman));
+            DEBUG(0, "p:%d", fix2float(imu->sp_x[0]));
+            DEBUG(0, "say:%d", fix2float(imu->say_y[0]));
+            // DEBUG(0, "p: %d",fix2float(imu->sp_x[0]));
+            // DEBUG(0, "say: %d",fix2float(imu->say_y[0]));
+            // DEBUG(0, "q: %d",imu->q);
+            // DEBUG(0, "r: %d",imu->r);
+            // DEBUG(0, "q: %d",imu->q);
+            // DEBUG(0, "q: %d",imu->q);
+
+
             //setting the values
             imu->roll_angle = fix2float(imu->phi_kalman);
             imu->pitch_angle = fix2float(imu->theta_kalman);
             
-            // imu->roll_angle = imu->p;
-            // imu->pitch_angle = imu->q;
+            imu->roll_angle = imu->say_y[0];
+            imu->pitch_angle = imu->sax_y[0];
             imu->yaw_rate = imu->r;
         }
             break;

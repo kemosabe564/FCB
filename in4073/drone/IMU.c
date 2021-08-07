@@ -97,6 +97,9 @@ struct IMU *IMU_create(bool dmp, uint16_t frequency)
         // result->b0 = float2fix(1);
         // result->b1 = float2fix(-1.705552145);
         // result->b2 = float2fix(0.743655195);
+        //b1 b2 -1.91058270331900	0.914412856345180
+        //a0 a1 a2 0.000957538256545570	0.00191507651309114	0.000957538256545570
+        
         result->a0 = 2497;//60;
         result->a1 = 4994;//77;
         result->a2 = 2497;//60;

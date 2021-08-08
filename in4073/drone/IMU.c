@@ -97,12 +97,25 @@ struct IMU *IMU_create(bool dmp, uint16_t frequency)
         // result->b0 = float2fix(1);
         // result->b1 = float2fix(-1.705552145);
         // result->b2 = float2fix(0.743655195);
+
+        //b1 b2 -1.91058270331900	0.914412856345180
+        //a0 a1 a2 0.000957538256545570	0.00191507651309114	0.000957538256545570
+
+        //for yaw 
         result->a0 = 2497;//60;
         result->a1 = 4994;//77;
         result->a2 = 2497;//60;
         result->b0 = 1;
-        result->b1 = -262143;//-29812;
+        result->b1 = -447100;//-29812;
         result->b2 = 194944;//13672;
+
+        //for roll and pitch
+        result->A0 = 251;//60;
+        result->A1 = 502;//77;
+        result->A2 = 251;//60;
+        result->B0 = 1;
+        result->B1 = -500847;//-29812;
+        result->B2 = 239707;//13672;
 
         //kalman
 
@@ -378,17 +391,22 @@ void IMU_loop(void *context, uint32_t delta_us)
             //****END MEASURING RAW ****
 
             // for all printing
+
+            // check output of filter
+            // DEBUG(0, "x:%d", fix2float(imu->say_x[0]));
+            // DEBUG(0, "y:%d", fix2float(imu->say_y[0]));
+
+            // check output of Kalman
             // uint32_t time_now = get_time_us();
             // DEBUG(0, "t:%d",imu->base_time);
             DEBUG(0, "phi:%d",fix2float(imu->phi_kalman));
             DEBUG(0, "p:%d", fix2float(imu->sp_x[0]));
             DEBUG(0, "say:%d", fix2float(imu->say_y[0]));
-            // DEBUG(0, "p: %d",fix2float(imu->sp_x[0]));
-            // DEBUG(0, "say: %d",fix2float(imu->say_y[0]));
+            
+            // other checking
+            // DEBUG(0, "q: %d",imu->q);
             // DEBUG(0, "q: %d",imu->q);
             // DEBUG(0, "r: %d",imu->r);
-            // DEBUG(0, "q: %d",imu->q);
-            // DEBUG(0, "q: %d",imu->q);
 
 
             //setting the values

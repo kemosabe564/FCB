@@ -324,8 +324,8 @@ void IMU_loop(void *context, uint32_t delta_us)
             //moving all y values
             imu->sax_y[2]=imu->sax_y[1];
             imu->sax_y[1]=imu->sax_y[0];
-            imu->sax_y[0] = fixmul(imu->a0,imu->sax_x[0])+fixmul(imu->a1,imu->sax_x[1])+fixmul(imu->a2,imu->sax_x[2])-
-                            fixmul(imu->b1,imu->sax_y[1])-fixmul(imu->b2,imu->sax_y[2]);
+            imu->sax_y[0] = fixmul(imu->A0,imu->sax_x[0])+fixmul(imu->A1,imu->sax_x[1])+fixmul(imu->A2,imu->sax_x[2])-
+                            fixmul(imu->B1,imu->sax_y[1])-fixmul(imu->B2,imu->sax_y[2]);
 
             //say
             imu->say_x[2]=imu->say_x[1];
@@ -334,8 +334,8 @@ void IMU_loop(void *context, uint32_t delta_us)
             //moving all y values
             imu->say_y[2]=imu->say_y[1];
             imu->say_y[1]=imu->say_y[0];
-            imu->say_y[0] = fixmul(imu->a0,imu->say_x[0])+fixmul(imu->a1,imu->say_x[1])+fixmul(imu->a2,imu->say_x[2])-
-                            fixmul(imu->b1,imu->say_y[1])-fixmul(imu->b2,imu->say_y[2]);
+            imu->say_y[0] = fixmul(imu->A0,imu->say_x[0])+fixmul(imu->A1,imu->say_x[1])+fixmul(imu->A2,imu->say_x[2])-
+                            fixmul(imu->B1,imu->say_y[1])-fixmul(imu->B2,imu->say_y[2]);
 
 
             // imu->p = fix2float(imu->sp_y[0]) - imu->sp_offset;
@@ -396,13 +396,19 @@ void IMU_loop(void *context, uint32_t delta_us)
             // DEBUG(0, "x:%d", fix2float(imu->say_x[0]));
             // DEBUG(0, "y:%d", fix2float(imu->say_y[0]));
 
-            // check output of Kalman
+            // check output of Kalman (phi)
             // uint32_t time_now = get_time_us();
             // DEBUG(0, "t:%d",imu->base_time);
             DEBUG(0, "phi:%d",fix2float(imu->phi_kalman));
             DEBUG(0, "p:%d", fix2float(imu->sp_x[0]));
             DEBUG(0, "say:%d", fix2float(imu->say_y[0]));
             
+            // check output of Kalman (theta)
+            // DEBUG(0, "th:%d",fix2float(imu->theta_kalman));
+            // DEBUG(0, "q:%d", fix2float(imu->sq_x[0]));
+            // DEBUG(0, "sax:%d", fix2float(imu->sax_y[0]));
+
+        
             // other checking
             // DEBUG(0, "q: %d",imu->q);
             // DEBUG(0, "q: %d",imu->q);

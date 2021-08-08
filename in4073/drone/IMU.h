@@ -14,17 +14,17 @@
 
 // P2PHI = 0.0081, fp is 132
 #define P2PHI 2123
-// #define C1_P float2fix(1024)
+// #define C1_P float2fix(256)
 // #define C2_P float2fix(1250*C1)
-#define C1_P_inv 256
-#define C2_P_P2PHI_inv 25
+#define C1_P_inv 1024
+#define C2_P_P2PHI_inv 101
 
 // P2PHI = 0.0081, fp is 132
-#define Q2THETA 132
+#define Q2THETA 2123
 // #define C1_Q float2fix(256)
 // #define C2_Q float2fix(1000000)
-#define C1_Q_inv float2fix(256)
-#define C2_Q_Q2THETA_inv float2fix(1000000)
+#define C1_Q_inv 1024
+#define C2_Q_Q2THETA_inv 101
 
 #include "LoopHandler.h"
 
@@ -108,7 +108,7 @@ struct IMU
     int64_t sax_y[BUTTERWORTH_N];
     int64_t say_y[BUTTERWORTH_N];
 
-    //filter
+    //filter for yaw
     int64_t a0;
     int64_t a1;
     int64_t a2;
@@ -116,7 +116,14 @@ struct IMU
     int64_t b0;
     int64_t b1;
     int64_t b2;
+    //filter for roll and pitch
+    int64_t A0;
+    int64_t A1;
+    int64_t A2;
 
+    int64_t B0;
+    int64_t B1;
+    int64_t B2;
     //kalman
     int64_t bias_phi;
     int64_t p_estimate;

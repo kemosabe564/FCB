@@ -54,6 +54,9 @@ $(abspath ./drone/Comms.c) \
 $(abspath ./drone/Debug.c) \
 $(abspath ./drone/FlightController.c) \
 $(abspath ./drone/IMU.c) \
+$(abspath ./drone/LogHandler.c) \
+$(abspath ./drone/LogHandler_flush.c) \
+$(abspath ./drone/LogData.c) \
 $(abspath ./drone/LoopHandler.c) \
 $(abspath ./drone/Rotor.c) \
 $(abspath ./drone/RotorMap.c) \

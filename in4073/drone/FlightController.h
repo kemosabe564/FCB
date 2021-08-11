@@ -33,7 +33,8 @@ enum FlightControllerMode
     Yaw = 6,
     Full = 7,
     Raw = 8,
-    HoldHeight = 9
+    HoldHeight = 9,
+    EndFlight_Logging = 10,
 };
 
 struct FlightController;

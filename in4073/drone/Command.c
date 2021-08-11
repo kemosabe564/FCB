@@ -88,6 +88,10 @@ struct Command *Command_decode(uint8_t *data)
                 break;
             case AckParam:
                 break;
+            case Stop:
+                break;
+            case LogInfo:
+                break;
             default:
                 break;
         }
@@ -174,6 +178,38 @@ struct EncodedCommand Command_encode(struct Command *command)
                 encoded[12] = (data->rpm[2] & 0b11111111);
                 encoded[13] = (data->rpm[3] >> 8);
                 encoded[14] = (data->rpm[3] & 0b11111111);
+
+                // setting last buffer element to CRC
+                encoded[size - 1] = crc8_fast(encoded, size - 1);
+            }
+            else
+            {
+                size = 0;
+            }
+        }
+        case LogInfo: {
+            struct LogData *data = (struct LogData *)command->data;
+
+            size = (1 + (7 * 2) + 1); // header + 7* 16bit values + crc
+            encoded = (uint8_t *)malloc(size * sizeof(uint8_t));
+
+            if (encoded)
+            {
+                encoded[0] = (command->type << 4);
+                encoded[1] = (data->psi >> 8);
+                encoded[2] = (data->psi& 0b11111111);;
+                encoded[3] = (data->phi >> 8);
+                encoded[4] = (data->phi & 0b11111111);;
+                encoded[5] = (data->theta >> 8);
+                encoded[6] = (data->theta & 0b11111111);
+                encoded[7] = (data->motor0_rpm >> 8);
+                encoded[8] = (data->motor0_rpm & 0b11111111);
+                encoded[9] = (data->motor1_rpm >> 8);
+                encoded[10] = (data->motor1_rpm & 0b11111111);
+                encoded[11] = (data->motor2_rpm >> 8);
+                encoded[12] = (data->motor2_rpm & 0b11111111);
+                encoded[13] = (data->motor3_rpm >> 8);
+                encoded[14] = (data->motor3_rpm & 0b11111111);
 
                 // setting last buffer element to CRC
                 encoded[size - 1] = crc8_fast(encoded, size - 1);
@@ -386,6 +422,8 @@ uint8_t Command_data_len(uint8_t header)
             return 0;
         case LastCommand:
             return 0;
+        case LogInfo:
+            return 14;
         default:
             return 0;
     }
@@ -416,6 +454,9 @@ void Command_destroy(struct Command *self)
             }
             case SetParam: {
                 free((struct CommandParamsData *)self->data);
+            }
+            case LogInfo: {
+                free((struct LogData *)self->data);
             }
             default:
                 break;

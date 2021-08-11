@@ -42,6 +42,11 @@
 #include "drone/Debug.h"
 #include "drone/Telemetry.h"
 
+#include "drone/LogData.h"
+#include "drone/LogHandler.h"
+#include "drone/LogHandler_flush.h"
+#define MEM_INIT 0x00FFFF
+
 bool demo_done;
 
 #define COMM_SERIAL 0
@@ -177,8 +182,12 @@ int main(void)
     fc = FlightController_create(imu, (struct Rotor *[]){ r1, r2, r3, r4 }, 4, ch);
     FlightController_set_on_change_mode(fc, changed_mode_handler);
 
-    telemetry = Telemetry_create(ch, imu, (struct Rotor *[]){ r1, r2, r3, r4 }, 4);
+    //telemetry = Telemetry_create(ch, imu, (struct Rotor *[]){ r1, r2, r3, r4 }, 4);
 
+    struct LogHandler * lgh = LogHandler_create(ch,MEM_INIT,fc);
+    struct LogHandler_flush * lgh_f = LogHandler_flush_create(lgh);
+
+    //Added ending signal for the final data flushing by Yuxiang
 	while (running)
 	{
 
@@ -198,7 +207,21 @@ int main(void)
         LoopHandler_loop(lh, LH_LINK(ch), 0);
 
         LoopHandler_loop(lh, LH_LINK(telemetry), LH_HZ_TO_PERIOD(3));
+        if(fc->mode != 10){
+            LoopHandler_loop(lh, LH_LINK(lgh), LH_HZ_TO_PERIOD(3));
+        }
+        else{
+            if(lgh->curr_add > lgh->start_add){
+                LoopHandler_loop(lh, LH_LINK(lgh_f), LH_HZ_TO_PERIOD(3));
+            }
+            else{
+                break;
+            }
+        }
 	}
+    
+        
+    
 
 	printf("\n\t Goodbye \n\n");
 	nrf_delay_ms(100);

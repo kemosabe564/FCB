@@ -19,6 +19,8 @@ class FlightMode(Enum):
     Full = 7
     Raw = 8
     HoldHeight = 9
+    #Stop and flushing back data by Yuxiang
+    EndFlight_Logging = 10
 
 #authored by Nathan
 class HeartbeatMode(Enum):
@@ -59,6 +61,7 @@ class Drone:
         self.heartbeat_ack_queue = Queue()
         self.heartbeat_mode = HeartbeatMode.Init
 
+        self.working = True
         # start the thread loop now
         self.thread = threading.Thread(target=self.__thread_function)
         self.thread.start()
@@ -120,6 +123,7 @@ class Drone:
         command.set_data(argument=mode.value)
 
         self.send_command(command)
+        
     #authored by Nathan
     def set_comms(self, idx):
         if self.mode is FlightMode.Safe:
@@ -185,4 +189,3 @@ class Drone:
 
         if self.heartbeat_mode == HeartbeatMode.Waiting:
             self.heartbeat_mode = HeartbeatMode.Active
-

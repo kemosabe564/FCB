@@ -188,6 +188,16 @@ class Controller:
                 if self.H > 1:
                     self.H = self.H - 1
                     self.drone.set_params(id=3, value=self.H)
+            
+            #End flight and prepare to flush by Yuxiang
+            if event.key == pygame.K_q: 
+                #if self.drone.mode == FlightMode.Safe and self.input_safe():
+                self.drone.change_mode(FlightMode. EndFlight_Logging)
+                self.drone.working = False
+                print("Flight ends successfully.")
+                    
+                #else:
+                #    print("NOT SAFE TO END YET.")
     #authored by Nathan
     def update_inputs(self):
         change = False

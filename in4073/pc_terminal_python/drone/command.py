@@ -17,6 +17,7 @@ class CommandType(Enum):
     Heartbeat = 0b1010
     SetComms = 0b1011
     CurrentComms = 0b1100
+    LogInfo = 0b1111
 
 
 class Command:
@@ -50,6 +51,9 @@ class Command:
 
         if self.type == CommandType.CurrentComms:
             self.args = ["argument"]
+        
+        if self.type == CommandType.LogInfo:
+            self.args = ["argument", "psi", "phi", "theta", "rpm0", "rpm1", "rpm2", "rpm3"]
     #authored by Nathan
     def set_data(self, **kwargs):
         for key, value in kwargs.items():
@@ -178,6 +182,19 @@ class SerialCommandDecoder:
 
             cmd.set_data(roll_angle=roll_angle, pitch_angle=pitch_angle, yaw_angle=yaw_angle, rpm0=rpm0, rpm1=rpm1, rpm2=rpm2, rpm3=rpm3)
 
+        elif type == CommandType.LogInfo:
+            print("Creating log file...")
+            yaw_angle = TO_INT16((self.buffer[1] << 8) | self.buffer[2])
+            roll_angle = TO_INT16((self.buffer[3] << 8) | self.buffer[4])
+            pitch_angle = TO_INT16((self.buffer[5] << 8) | self.buffer[6])
+            rpm0 = ((self.buffer[7] << 8) | self.buffer[8])
+            rpm1 = ((self.buffer[9] << 8) | self.buffer[10])
+            rpm2 = ((self.buffer[11] << 8) | self.buffer[12])
+            rpm3 = ((self.buffer[13] << 8) | self.buffer[14])
+            log_f = open("flightlog.txt","a")
+            log_f.write(str(roll_angle) + ',' + str(pitch_angle) + ',' + str(yaw_angle) + ',' + str(rpm0) + ',' + str(rpm1) + ',' + str(rpm2) + ',' + str(rpm3) + '\n')
+            log_f.close()
+
         self.commands.put(cmd)
         self.clear_buffer()
     #authored by Nathan
@@ -195,6 +212,9 @@ class SerialCommandDecoder:
             return header[1]
 
         if type == CommandType.CurrentTelemetry.value:
+            return 7 * 2
+
+        if type == CommandType.LogInfo.value:
             return 7 * 2
 
         return 0

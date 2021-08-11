@@ -206,7 +206,8 @@ class GUI:
             throttle_bg = pygame.Rect(1120, 600, 50, 200)
             pygame.draw.rect(self.screen, (200, 200, 200), throttle_bg)
 
-            throttle_height = round((self.controller.input_throttle / 255) * 200)
+            #throttle_height = round((self.controller.input_throttle / 255) * 200)
+            throttle_height = 150
             throttle = pygame.Rect(1120, 800 - throttle_height, 50, throttle_height)
             pygame.draw.rect(self.screen, (255, 40, 40), throttle)
             # !draw throttle

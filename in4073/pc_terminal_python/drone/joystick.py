@@ -159,7 +159,9 @@ class Joystick:
         self.__round_axis[axis.value] = do_round
     #authored by Nathan
     def get_axis(self, axis: JoystickAxis):
+        #===Edited for tetsing without joystick====
         if 0:
+        #==========================================
             if axis.value in self.__parsed_axis:
                 return self.__parsed_axis[axis.value]
     #authored by Nathan

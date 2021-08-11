@@ -6,7 +6,7 @@
 #define QUADCOPTER_FCB_COMMAND_H
 
 #include <stdint.h>
-
+#include "LogData.h"
 #define HEADER_TYPE_MASK    0b11110000
 #define HEADER_SUBTYPE_MASK 0b00001111
 #define HEADER_DATA_MASK    0b00001111
@@ -25,6 +25,8 @@ enum CommandType {
     Heartbeat = 0b1010,
     SetComms = 0b1011,
     CurrentComms = 0b1100,
+    Stop = 0b1101,
+    LogInfo = 0b1111,
     LastCommand // Used for checking if command in valid range
 };
 

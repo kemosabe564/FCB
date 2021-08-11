@@ -356,6 +356,17 @@ void FlightController_loop(void *context, uint32_t delta_us)
 
         }
             break;
+            
+    
+        
+        case EndFlight_Logging:
+        {
+            FlightController_change_mode(self,EndFlight_Logging);
+        }
+            break;
+
+        default:
+            break;
     }
 
 
@@ -539,6 +550,7 @@ char *FlightControllerMode_to_str(enum FlightControllerMode mode)
         case Full: return "Full";
         case Raw: return "Raw";
         case HoldHeight: return "HoldHeight";
+        case EndFlight_Logging: return "EndFlight_Logging";
     }
     return "";
 }

@@ -3,7 +3,7 @@ import argparse
 from drone.serial import Serial
 from drone.cli import CLI, CLIAction
 from drone.command import Command, CommandType, SerialCommandDecoder
-from drone.drone import Drone
+from drone.drone import Drone, FlightMode
 from drone.controller import Controller
 from drone.gui import GUI
 from drone.joystick import Joystick, JoystickAxis
@@ -85,10 +85,11 @@ if __name__ == "__main__":
 
     while running:
         eventloop.update()
-
         if gui:
             gui.draw()
-
+    
     cli.join()
     ser.join()
     controller.join()
+
+    

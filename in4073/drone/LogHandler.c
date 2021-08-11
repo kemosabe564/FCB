@@ -54,22 +54,22 @@ void LogHandler_loop(void * context, uint32_t delta_us){
     struct LogHandler * self  = (struct LogHandler *) context;
     struct LogData * data =  LogData_create();
     
-    data->psi = 11;
-    data->phi = 22;
-    data->theta = 33;
+    data->psi = self->flc->imu->yaw_rate;
+    data->phi = self->flc->imu->roll_angle;
+    data->theta = self->flc->imu->pitch_angle;
 
-    /*
+    
     data->motor0_rpm = self->flc->rotors[0]->actual_rpm;
     data->motor1_rpm = self->flc->rotors[1]->actual_rpm;
     data->motor2_rpm = self->flc->rotors[2]->actual_rpm;
     data->motor3_rpm = self->flc->rotors[3]->actual_rpm;
-    */
-
+    
+    /*
     data->motor0_rpm = 44;
     data->motor1_rpm = 55;
     data->motor2_rpm = 66;
     data->motor3_rpm = 77;
-
+    */
     nrf_gpio_pin_toggle(RED);
     LogHandler_append(self, data);
     LogData_destroy(data);

@@ -152,7 +152,7 @@ int main(void)
     timers_init();
     adc_init();
     twi_init();
-    imu_init(true, 100);
+    imu_init(false, 300);
     baro_init();
     spi_flash_init();
     quad_ble_init();

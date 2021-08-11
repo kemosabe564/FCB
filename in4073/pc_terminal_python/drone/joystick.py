@@ -147,7 +147,7 @@ class Joystick:
                     self.__handle_event(event)
 
             for i in range(self.__num_axis):
-                self.__raw_axis[i] = self.__joystick.get_axis(i)
+                self.__raw_axis[i] = 0#self.__joystick.get_axis(i)
                 self.__parsed_axis[i] = self.__parse_axis(i, self.__raw_axis[i])
 
             for i in range(self.__num_buttons):

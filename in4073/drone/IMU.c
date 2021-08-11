@@ -71,22 +71,51 @@ struct IMU *IMU_create(bool dmp, uint16_t frequency)
         //initializing all readings to 0
         for(int i=0; i<BUTTERWORTH_N; i++)
         {
+            //
             result->sp_x[i]=0;
-            result->sq_x[i]=0;
-            result->sr_x[i]=0;
             result->sp_y[i]=0;
+            //
+            result->sq_x[i]=0;
             result->sq_y[i]=0;
+            //
+            result->sr_x[i]=0;
             result->sr_y[i]=0;
+            //
+            result->sax_x[i]=0;
+            result->sax_y[i]=0;
+            //
+            result->say_x[i]=0;
+            result->say_y[i]=0;
+
         }
 
         //need to replace these with MATLAB constants
 
-        result->a0 = float2fix(0.0095257623);
-        result->a1 = float2fix(0.0190515247);
-        result->a2 = float2fix(0.0095257623);
-        result->b0 = float2fix(1);
-        result->b1 = float2fix(-1.705552145);
-        result->b2 = float2fix(0.743655195);
+        // result->a0 = float2fix(0.0095257623);
+        // result->a1 = float2fix(0.0190515247);
+        // result->a2 = float2fix(0.0095257623);
+        // result->b0 = float2fix(1);
+        // result->b1 = float2fix(-1.705552145);
+        // result->b2 = float2fix(0.743655195);
+
+        //b1 b2 -1.91058270331900	0.914412856345180
+        //a0 a1 a2 0.000957538256545570	0.00191507651309114	0.000957538256545570
+
+        //for yaw 
+        result->a0 = 2497;//60;
+        result->a1 = 4994;//77;
+        result->a2 = 2497;//60;
+        result->b0 = 1;
+        result->b1 = -447100;//-29812;
+        result->b2 = 194944;//13672;
+
+        //for roll and pitch
+        result->A0 = 251;//60;
+        result->A1 = 502;//77;
+        result->A2 = 251;//60;
+        result->B0 = 1;
+        result->B1 = -500847;//-29812;
+        result->B2 = 239707;//13672;
 
         //kalman
 
@@ -117,6 +146,10 @@ void IMU_loop(void *context, uint32_t delta_us)
 //            timers_init();
 
             imu->state = IMU_Measuring;
+            imu->state = IMU_MeasuringRaw;
+
+            imu->base_time = get_time_us();
+
         }
             break;
         case IMU_Measuring: { //authored by Vivian
@@ -187,7 +220,7 @@ void IMU_loop(void *context, uint32_t delta_us)
         }
             break;
 
-        case IMU_MeasuringRaw: //authored by Vivian
+        case IMU_MeasuringRaw: //authored by Vivian and Ting
         {
             //****COMMON****
 
@@ -233,80 +266,162 @@ void IMU_loop(void *context, uint32_t delta_us)
             imu->barometer_average = sum/BARO_WIN;
 
             //****END COMMON****
+
+            // TODO:
+            // 1. fix fp to int64_t
+            // 2. verify it with buttorworth filter
+            // 3. apply it to Kalman filter equation
+            // 4. adjust parameters
+
+            // above things are all done
+
+            // TODO: 8.6
+            // 1. filter of sax and say
+            // 2. adjust parameters
+
+
             //**** MEASURING RAW ****
 
             //sp
-            //moving all values and reading the new input
-            imu->sp_x[2]=imu->sp_x[1];
-            imu->sp_x[1]=imu->sp_x[0];
-            imu->sp_x[0] = float2fix(sq);
+            // //moving all values and reading the new input
+            // imu->sp_x[2]=imu->sp_x[1];
+            // imu->sp_x[1]=imu->sp_x[0];
 
-            //moving all y values
-            imu->sp_y[2]=imu->sp_y[1];
-            imu->sp_y[1]=imu->sp_y[0];
-            imu->sp_y[0] = fixmul(imu->a0,imu->sp_x[0])+fixmul(imu->a1,imu->sp_x[1])+fixmul(imu->a2,imu->sp_x[2])-
-                           fixmul(imu->b1,imu->sp_y[1])-fixmul(imu->b2,imu->sp_y[2]);
-            //DEBUG(0,"sp%d",sp);
+            imu->sp_x[0] = float2fix(sp);
+            
+            // //moving all y values
+            // imu->sp_y[2]=imu->sp_y[1];
+            // imu->sp_y[1]=imu->sp_y[0];
+            // imu->sp_y[0] = fixmul(imu->a0,imu->sp_x[0])+fixmul(imu->a1,imu->sp_x[1])+fixmul(imu->a2,imu->sp_x[2])-
+            //                fixmul(imu->b1,imu->sp_y[1])-fixmul(imu->b2,imu->sp_y[2]);
+            // //DEBUG(0,"sp%d",sp);
 
             //sq
-            imu->sq_x[2]=imu->sq_x[1];
-            imu->sq_x[1]=imu->sq_x[0];
-            imu->sq_x[0] = float2fix(sp);
-            //DEBUG(0,"sq%d",sq);
-
-            //moving all y values
-            imu->sq_y[2]=imu->sq_y[1];
-            imu->sq_y[1]=imu->sq_y[0];
-
-            imu->sq_y[0] = fixmul(imu->a0,imu->sq_x[0])+fixmul(imu->a1,imu->sq_x[1])+fixmul(imu->a2,imu->sq_x[2])-
-                           fixmul(imu->b1,imu->sq_y[1])-fixmul(imu->b2,imu->sq_y[2]);
+            // imu->sq_x[2]=imu->sq_x[1];
+            // imu->sq_x[1]=imu->sq_x[0];
+            imu->sq_x[0] = float2fix(sq);
+            // //DEBUG(0,"sq%d",sq);
+            // //moving all y values
+            // imu->sq_y[2]=imu->sq_y[1];
+            // imu->sq_y[1]=imu->sq_y[0];
+            // imu->sq_y[0] = fixmul(imu->a0,imu->sq_x[0])+fixmul(imu->a1,imu->sq_x[1])+fixmul(imu->a2,imu->sq_x[2])-
+            //                fixmul(imu->b1,imu->sq_y[1])-fixmul(imu->b2,imu->sq_y[2]);
 
             //sr
             imu->sr_x[2]=imu->sr_x[1];
             imu->sr_x[1]=imu->sr_x[0];
             imu->sr_x[0] = float2fix(sr);
-
             //moving all y values
             imu->sr_y[2]=imu->sr_y[1];
             imu->sr_y[1]=imu->sr_y[0];
-
             imu->sr_y[0] = fixmul(imu->a0,imu->sr_x[0])+fixmul(imu->a1,imu->sr_x[1])+fixmul(imu->a2,imu->sr_x[2])-
                            fixmul(imu->b1,imu->sr_y[1])-fixmul(imu->b2,imu->sr_y[2]);
 
-            imu->p = fix2float(imu->sp_y[0]) - imu->sp_offset;
-            imu->q = fix2float(imu->sq_y[0]) - imu->sq_offset;
-            imu->r = fix2float(imu->sr_y[0]) - imu->sr_offset;
+            //sax
+            imu->sax_x[2]=imu->sax_x[1];
+            imu->sax_x[1]=imu->sax_x[0];
+            imu->sax_x[0] = float2fix(sax);
+            //moving all y values
+            imu->sax_y[2]=imu->sax_y[1];
+            imu->sax_y[1]=imu->sax_y[0];
+            imu->sax_y[0] = fixmul(imu->A0,imu->sax_x[0])+fixmul(imu->A1,imu->sax_x[1])+fixmul(imu->A2,imu->sax_x[2])-
+                            fixmul(imu->B1,imu->sax_y[1])-fixmul(imu->B2,imu->sax_y[2]);
 
-            DEBUG(0, "p%d",imu->p);
-            DEBUG(0, "q%d",imu->q);
+            //say
+            imu->say_x[2]=imu->say_x[1];
+            imu->say_x[1]=imu->say_x[0];
+            imu->say_x[0] = float2fix(say);
+            //moving all y values
+            imu->say_y[2]=imu->say_y[1];
+            imu->say_y[1]=imu->say_y[0];
+            imu->say_y[0] = fixmul(imu->A0,imu->say_x[0])+fixmul(imu->A1,imu->say_x[1])+fixmul(imu->A2,imu->say_x[2])-
+                            fixmul(imu->B1,imu->say_y[1])-fixmul(imu->B2,imu->say_y[2]);
+
+
+            // imu->p = fix2float(imu->sp_y[0]) - imu->sp_offset;
+            // imu->q = fix2float(imu->sq_y[0]) - imu->sq_offset;
+            // imu->r = fix2float(imu->sr_y[0]) - imu->sr_offset;
+
+            // imu->p = fix2float(imu->sp_y[0]);
+            // imu->q = fix2float(imu->sq_y[0]);
+            // imu->r = fix2float(imu->sr_y[0]);            
+            imu->p = sp;
+            imu->q = sq;
+            imu->r = sr;    
 
             //kalman for phi and theta
 
             //p = sp - b
-            imu->p_estimate = imu->sp_y[0] - imu->bias_phi;
-            imu->q_estimate = imu->sq_y[0] - imu->bias_theta;
+            imu->p_estimate = imu->sp_x[0] - imu->bias_phi;
+            imu->q_estimate = imu->sq_x[0] - imu->bias_theta;
+            // imu->p_estimate = float2fix(sp) - imu->bias_phi;
+            // imu->q_estimate = float2fix(sq) - imu->bias_theta;
+
+            // DEBUG(0, "p: %d",fix2float(imu->sp_x[0]));
+            // DEBUG(0, "sax: %d",fix2float(imu->sax_y[0]));
+
 
             //phi = phi + p * P2PHI
             imu->phi_kalman = imu->phi_kalman + fixmul(imu->p_estimate,P2PHI);
-            imu->theta_kalman = imu->theta_kalman + fixmul(imu->q_estimate,P2PHI);
+            imu->theta_kalman = imu->theta_kalman + fixmul(imu->q_estimate,Q2THETA);
+            //phi_p(i) = phi_p(i-1) + p(i-1) * p2phi; 
+
 
             //e = phi – sphi
-            imu->e_phi = imu->phi_kalman - float2fix(phi);
-            imu->e_theta = imu->theta_kalman - float2fix(theta);
+            imu->e_phi = imu->phi_kalman - (imu->say_y[0]);
+            imu->e_theta = imu->theta_kalman - (imu->sax_y[0]);  
+
+            // imu->e_phi = imu->phi_kalman - float2fix(say);
+            // imu->e_theta = imu->theta_kalman - float2fix(sax);            
+            // imu->e_phi = imu->phi_kalman - float2fix(phi);
+            // imu->e_theta = imu->theta_kalman - float2fix(theta);
 
             //phi = phi – e / C1
-            imu->phi_kalman = imu->phi_kalman - fixmul(imu->e_phi, (1 / C1));
-            imu->theta_kalman = imu->theta_kalman - fixmul(imu->e_theta, (1 / C1));
+            imu->phi_kalman = imu->phi_kalman - fixmul(imu->e_phi, C1_P_inv);
+            imu->theta_kalman = imu->theta_kalman - fixmul(imu->e_theta, C1_Q_inv);
 
             //b = b + (e/P2PHI) / C2
-            imu->bias_phi = imu->bias_phi + fixmul(fixmul(imu->e_phi,C2),(1/P2PHI));
-            imu->bias_theta = imu->bias_theta + fixmul(fixmul(imu->e_theta,C2),(1/P2PHI));
+            // DEBUG(0, "before: %d",imu->bias_phi);
+            imu->bias_phi = imu->bias_phi + fixmul(imu->e_phi, C2_P_P2PHI_inv);
+            // DEBUG(0, "after: %d",imu->bias_phi);
+            imu->bias_theta = imu->bias_theta + fixmul(imu->e_theta,C2_Q_Q2THETA_inv);
 
-            //setting the values
-            imu->roll_angle = imu->phi_kalman;
-            imu->pitch_angle = imu->theta_kalman;
+
 
             //****END MEASURING RAW ****
+
+            // for all printing
+
+            // check output of filter
+            // DEBUG(0, "x:%d", fix2float(imu->say_x[0]));
+            // DEBUG(0, "y:%d", fix2float(imu->say_y[0]));
+
+            // check output of Kalman (phi)
+            // uint32_t time_now = get_time_us();
+            // DEBUG(0, "t:%d",imu->base_time);
+            DEBUG(0, "phi:%d",fix2float(imu->phi_kalman));
+            DEBUG(0, "p:%d", fix2float(imu->sp_x[0]));
+            DEBUG(0, "say:%d", fix2float(imu->say_y[0]));
+            
+            // check output of Kalman (theta)
+            // DEBUG(0, "th:%d",fix2float(imu->theta_kalman));
+            // DEBUG(0, "q:%d", fix2float(imu->sq_x[0]));
+            // DEBUG(0, "sax:%d", fix2float(imu->sax_y[0]));
+
+        
+            // other checking
+            // DEBUG(0, "q: %d",imu->q);
+            // DEBUG(0, "q: %d",imu->q);
+            // DEBUG(0, "r: %d",imu->r);
+
+
+            //setting the values
+            imu->roll_angle = fix2float(imu->phi_kalman);
+            imu->pitch_angle = fix2float(imu->theta_kalman);
+            
+            imu->roll_angle = imu->say_y[0];
+            imu->pitch_angle = imu->sax_y[0];
+            imu->yaw_rate = imu->r;
         }
             break;
 
@@ -380,14 +495,13 @@ void IMU_go_full(struct IMU *self)
  * float2fix -- convert float to fixed point 18+14 bits
  *----------------------------------------------------------------
  */
-//authored by Vivian
+//authored by Ting
 //Note : These are taken directly from the example on the course website
-int32_t    float2fix(double x)
+int64_t float2fix(int x)
 {
-    int32_t	y;
-
-    y = x * (1 << 14);
-    return y;
+    int64_t result;
+    result = x * (1 << fixedpoint);
+    return result;
 }
 
 
@@ -395,14 +509,21 @@ int32_t    float2fix(double x)
  * fix2float -- convert fixed 18+14 bits to float
  *----------------------------------------------------------------
  */
-//authored by Vivian
+//authored by Ting
 //Note : These are taken directly from the example on the course website
-int32_t 	fix2float(int x)
+int fix2float(int64_t x)
 {
-    double	y;
+    // double	y;
 
-    y = ((double) x) / (1 << 14);
-    return (int32_t) y;
+    // y = ((double) x) / (1 << 14);
+    // return (int32_t) y;
+    int result;
+    result = x >> fixedpoint;
+    // if(((a >> (fixedpoint-1)) & 1 )== 1)
+    // {
+    //     result ++;
+    // }
+    return result;    
 }
 
 
@@ -410,13 +531,19 @@ int32_t 	fix2float(int x)
  * fixmul -- multiply fixed 18+14 bits to float
  *----------------------------------------------------------------
  */
-//authored by Vivian
+//authored by Ting
 //Note : These are taken directly from the example on the course website
-double 	fixmul(int x1, int x2)
+int64_t fixmul(int64_t a, int64_t b)
 {
-    int	y;
+    // int	y;
+    // y = x1 * x2; // Note: be sure this fits in 32 bits !!!!
+    // y = (y >> 14);
+    // return y;
 
-    y = x1 * x2; // Note: be sure this fits in 32 bits !!!!
-    y = (y >> 14);
-    return y;
+    int64_t result;
+    int64_t temp;
+    temp = a * b; 
+    temp += K;
+    result = (int64_t)(temp >> fixedpoint);
+    return result;    
 }

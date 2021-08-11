@@ -8,10 +8,23 @@
 #define BARO_WIN 5
 #define BAT_WIN 5
 #define BUTTERWORTH_N 3
+#define fixedpoint 18
+#define K (1 << (fixedpoint - 1))
 
-#define P2PHI float2fix(1)
-#define C1 float2fix(1)
-#define C2 float2fix(1000)
+
+// P2PHI = 0.0081, fp is 132
+#define P2PHI 2123
+// #define C1_P float2fix(256)
+// #define C2_P float2fix(1250*C1)
+#define C1_P_inv 1024
+#define C2_P_P2PHI_inv 101
+
+// P2PHI = 0.0081, fp is 132
+#define Q2THETA 2123
+// #define C1_Q float2fix(256)
+// #define C2_Q float2fix(1000000)
+#define C1_Q_inv 1024
+#define C2_Q_Q2THETA_inv 101
 
 #include "LoopHandler.h"
 
@@ -81,38 +94,54 @@ struct IMU
     uint16_t battery_average;
 
     //butterworth
-    int32_t sp_x[BUTTERWORTH_N];
-    int16_t sq_x[BUTTERWORTH_N];
-    int16_t sr_x[BUTTERWORTH_N];
+    int64_t sp_x[BUTTERWORTH_N];
+    int64_t sq_x[BUTTERWORTH_N];
+    int64_t sr_x[BUTTERWORTH_N];
 
-    int32_t sp_y[BUTTERWORTH_N];
-    int16_t sq_y[BUTTERWORTH_N];
-    int16_t sr_y[BUTTERWORTH_N];
+    int64_t sp_y[BUTTERWORTH_N];
+    int64_t sq_y[BUTTERWORTH_N];
+    int64_t sr_y[BUTTERWORTH_N];
 
-    int16_t a0;
-    int16_t a1;
-    int16_t a2;
+    int64_t sax_x[BUTTERWORTH_N];
+    int64_t say_x[BUTTERWORTH_N];
 
-    int16_t b0;
-    int16_t b1;
-    int16_t b2;
+    int64_t sax_y[BUTTERWORTH_N];
+    int64_t say_y[BUTTERWORTH_N];
 
+    //filter for yaw
+    int64_t a0;
+    int64_t a1;
+    int64_t a2;
+
+    int64_t b0;
+    int64_t b1;
+    int64_t b2;
+    //filter for roll and pitch
+    int64_t A0;
+    int64_t A1;
+    int64_t A2;
+
+    int64_t B0;
+    int64_t B1;
+    int64_t B2;
     //kalman
-    int32_t bias_phi;
-    int32_t p_estimate;
-    int32_t e_phi;
-    int32_t phi_kalman;
+    int64_t bias_phi;
+    int64_t p_estimate;
+    int64_t e_phi;
+    int64_t phi_kalman;
 
-    int32_t bias_theta;
-    int32_t q_estimate;
-    int32_t e_theta;
-    int32_t theta_kalman;
+    int64_t bias_theta;
+    int64_t q_estimate;
+    int64_t e_theta;
+    int64_t theta_kalman;
 
     bool calibrated;
     uint32_t calibration_start_ts;
     uint32_t calibration_time_us;
     bool dmp_enabled;
     uint16_t frequency;
+
+    uint32_t base_time;
 };
 
 void IMU_loop(void *context, uint32_t delta_us);
@@ -123,8 +152,8 @@ void IMU_destroy(struct IMU *self);
 void IMU_go_raw(struct IMU *self);
 void IMU_go_full(struct IMU *self);
 
-int32_t     float2fix(double x);
-int32_t 	fix2float(int x);
-double 	fixmul(int x1, int x2);
+int64_t     float2fix(int x);
+int 	    fix2float(int64_t x);
+int64_t 	fixmul(int64_t x1, int64_t x2);
 
 #endif //QUADCOPTER_FCB_IMU_H
